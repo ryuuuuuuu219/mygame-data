@@ -1,0 +1,116 @@
+using UnityEngine;
+using TMPro;
+
+public class DebugHUD2 : MonoBehaviour
+{
+    public AlartSystem alartSystem;
+    public AugumentStatus status;
+    public TextMeshProUGUI hpText;
+
+
+    public GameObject alarttextUI;
+    public GameObject hitUI;
+    public GameObject altTimerUI;
+    [SerializeField] SpawnTableManager spawnTableManager;
+
+    public bool hit;
+    public bool destroyed;
+    float timer = 1f;
+
+    public WeaponSystem weaponSystem;
+
+    private void LateUpdate()
+    {
+        if (spawnTableManager.isStageClear)
+        {
+            altTimerUI.GetComponent<TextMeshProUGUI>().text = "Stage Clear!" +
+                "\nReturning to Base in " + spawnTableManager.toResultTimer.ToString("F1") + "s";
+
+        }
+        if (status != null)
+        {
+            int? mode = weaponSystem != null ? (int)weaponSystem.mode : null;
+            string wcooldown= "Gun:" + weaponSystem.currentBullets.ToString("F0") + " / " + weaponSystem.maxBullets.ToString("F0") + "\n";
+
+            switch (mode)
+            {
+                case 0:
+                    wcooldown += weaponSystem != null ? "MSL: " + weaponSystem.currentMissiles.ToString("F0") + " / " + weaponSystem.maxMissiles.ToString("F0") + "\n" +
+                        "\n" + weaponSystem.missileTimerA.ToString("F1")+"-"+ weaponSystem.missileTimerB.ToString("F1") 
+                        : "N/A";
+                    break;
+                case 1:
+                    wcooldown += "nAAM: " + weaponSystem.currentnAAM.ToString("F0") + " / " + weaponSystem.maxnAAM.ToString("F0") + "\n";
+                    for (int i = 0; i < weaponSystem.multiTimers.Count; i++)
+                    {
+                        wcooldown += weaponSystem.multiTimers[i].ToString("F1")
+                            + ((i % 2 == 0) ? "-" : "\n");
+                    }
+
+
+                    break;
+                case 2:
+                    wcooldown += "UGB: " + weaponSystem.currentUGB.ToString("F0") + " / " + weaponSystem.maxUGB.ToString("F0") + "\n" + 
+                        weaponSystem.ugbTimer.ToString("F1");
+                    break;
+                default:
+                    wcooldown += "N/A";
+                    break;
+            }
+            float hp = status.hp;
+
+            hpText.text = "HP:" + hp.ToString("F0")
+                + "\nMode:" + mode+
+                "\n"+wcooldown;
+
+            bool islocked = false;
+            foreach(bool b in alartSystem.LockingArray)
+            {
+                if (b) islocked = true;
+            }
+            bool missilelocked = false;
+            foreach (bool b in alartSystem.MissileArray)
+            {
+                if (b) missilelocked = true;
+            }
+            if (missilelocked)
+            {
+                alarttextUI.GetComponent<TextMeshProUGUI>().text = "missile alert";
+            }
+            else if(islocked)
+            {
+                alarttextUI.GetComponent<TextMeshProUGUI>().text = "Warning";
+            }
+            else
+            {
+                alarttextUI.GetComponent<TextMeshProUGUI>().text = "";
+            }
+        }
+        hit=ObjectManager.Instance.hitUIflag;
+        destroyed = ObjectManager.Instance.destroyedUIflag;
+        if (hit)
+        {
+            hitUI.GetComponent<TextMeshProUGUI>().text = "hit";
+            timer -= Time.deltaTime;
+            if (timer < 0f)
+            {
+                hit = false;
+                timer = 1f;
+            }
+        }
+        if (destroyed)
+        {
+            hitUI.GetComponent<TextMeshProUGUI>().text = "destroyed";
+            timer -= Time.deltaTime;
+            if (timer < 0f)
+            {
+                destroyed = false;
+                timer = 1f;
+            }
+        }
+        if(!hit && !destroyed)
+        {
+            hitUI.GetComponent<TextMeshProUGUI>().text = "";
+        }
+    }
+}
