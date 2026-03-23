@@ -1,0 +1,37 @@
+{
+  "stages": [
+    {
+      "sceneName": "M02",
+      "spawns": [
+        {
+          "WaveId": 0,
+          "enemyIds": [0],
+          "isMissionTarget": [true],
+          "lifetimes": [0],
+          "triggerTargetWaveId": -1
+        },
+        {
+          "WaveId": 1,
+          "enemyIds": [1, 2],
+          "isMissionTarget": [true, true],
+          "lifetimes": [0, 45],
+          "triggerTargetWaveId": 0
+        },
+        {
+          "WaveId": 2,
+          "enemyIds": [3],
+          "isMissionTarget": [true],
+          "lifetimes": [0],
+          "triggerTargetWaveId": 1
+        },
+        {
+          "WaveId": 3,
+          "enemyIds": [4, 5, 6, 7],
+          "isMissionTarget": [false, false, false, false],
+          "lifetimes": [0, 0, 0, 0],
+          "triggerTargetWaveId": 1
+        }
+      ]
+    }
+  ]
+}
