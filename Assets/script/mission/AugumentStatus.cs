@@ -192,6 +192,7 @@ public class AugumentStatus : MonoBehaviour
             Debug.Log($"{name} destroyed. Score awarded: {maxhp * 200f}");
 
             OnDestroyed?.Invoke();
+            OM.UnregisterEnemy(gameObject, waveID);
             Destroy(gameObject);
         }
         else if (isPlayer && !isEnemy)

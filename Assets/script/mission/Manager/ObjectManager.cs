@@ -85,9 +85,14 @@ public class ObjectManager : MonoBehaviour
 
     public void UnregisterEnemy(GameObject e, int waveID)
     {
-        enemies.Remove((waveID, e));
+        bool removed = enemies.Remove((waveID, e));
+        if (!removed) return;
+
         bool isTarget = e.TryGetComponent(out AugumentStatus aug) && aug.missionObjective;
-        aug.waveID = waveID;
+        if (aug != null)
+            aug.waveID = waveID;
+
+        if (spawnTableManager == null) return;
         spawnTableManager.NotifyEnemyDestroyed(waveID, isTarget);
     }
 

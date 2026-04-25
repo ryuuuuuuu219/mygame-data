@@ -107,8 +107,12 @@ public class SpawnTableManager : MonoBehaviour
 
     bool CanStartWave(WaveDefinition wave)
     {
+        if (wave.requireClearedWaves == null) return true;
+
         foreach (int w in wave.requireClearedWaves)
         {
+            if (w < 0 || w >= waveRuntime.Count) continue;
+
             if (!waveRuntime[w].rt.cleared)
                 return false;
         }
@@ -204,9 +208,12 @@ public class SpawnTableManager : MonoBehaviour
 
         Debug.Log($"[SpawnManager] Initializing stage: {currentStage.sceneName}");
         waveRuntime.Clear();
+        waveDefinitions.Clear();
         int i=0;
         foreach (var wave in currentStage.spawns)
         {
+            wave.Normalize();
+
             waveRuntime.Add(new()
             {
                 ID = i,
@@ -237,10 +244,12 @@ public class SpawnTableManager : MonoBehaviour
 
     public void NotifyEnemyDestroyed(int waveId, bool isTarget)
     {
+        if (waveId < 0 || waveId >= waveRuntime.Count) return;
+
         var runtime = waveRuntime[waveId];
-        runtime.rt.aliveEnemy--;
+        runtime.rt.aliveEnemy = Mathf.Max(0, runtime.rt.aliveEnemy - 1);
         if (isTarget)
-            runtime.rt.aliveTarget--;
+            runtime.rt.aliveTarget = Mathf.Max(0, runtime.rt.aliveTarget - 1);
     }
 
     void FinishStage()
@@ -263,6 +272,9 @@ public class SpawnTableManager : MonoBehaviour
     void ActivateWave(WaveDefinition spawn)
     {
         int waveId = spawn.waveId;
+        if (waveId < 0 || waveId >= waveRuntime.Count) return;
+        if (spawn.enemyIds == null) return;
+
         var runtime = waveRuntime[waveId];
 
         for (int i = 0; i < spawn.enemyIds.Count; i++)
@@ -275,12 +287,13 @@ public class SpawnTableManager : MonoBehaviour
             if (!enemy.TryGetComponent(out AugumentStatus aug)) continue;
 
             bool isTarget =
+                spawn.isMissionTarget != null &&
                 i < spawn.isMissionTarget.Count &&
                 spawn.isMissionTarget[i];
 
             aug.missionObjective = isTarget;
 
-            if (i < spawn.lifetimes.Count)
+            if (spawn.lifetimes != null && i < spawn.lifetimes.Count)
                 aug.lifeTime = spawn.lifetimes[i];
 
             enemy.SetActive(true);
@@ -311,6 +324,10 @@ public class SpawnTableManager : MonoBehaviour
 [System.Serializable]
 public class WaveDefinition
 {
+    // StreamingAssets/stage_spawns.json uses these legacy names.
+    public int WaveId = -1;
+    public int triggerTargetWaveId = -1;
+
     public int waveId;
 
     // このWaveが開始する条件
@@ -324,6 +341,20 @@ public class WaveDefinition
 
     // 敵のライフタイム（秒）。0以下なら無制限
     public List<float> lifetimes;
+
+    public void Normalize()
+    {
+        if (WaveId >= 0)
+            waveId = WaveId;
+
+        requireClearedWaves ??= new List<int>();
+
+        if (triggerTargetWaveId >= 0 &&
+            !requireClearedWaves.Contains(triggerTargetWaveId))
+        {
+            requireClearedWaves.Add(triggerTargetWaveId);
+        }
+    }
 }
 
 [System.Serializable]
