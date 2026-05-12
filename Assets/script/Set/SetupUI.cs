@@ -9,10 +9,17 @@ public class SetupUI : MonoBehaviour
     public TextMeshProUGUI pointText;
     public List<string> scene_name = new List<string>();
 
-    int selectedstage;
-    int selectedIndex;
-    int pageIndex;
-    List<WeaponDropData> weapons = new List<WeaponDropData>();
+    const string StdIndexKey = "WeaponSelectIndex_stdm";
+    const string GunIndexKey = "WeaponSelectIndex_gun";
+    const string SpwIndexKey = "WeaponSelectIndex_spw";
+
+    enum ScreenMode
+    {
+        Main,
+        StandardMissile,
+        Gun,
+        SpecialWeapon
+    }
 
     enum StickLock
     {
@@ -21,14 +28,31 @@ public class SetupUI : MonoBehaviour
         Vertical
     }
 
+    ScreenMode screenMode = ScreenMode.Main;
     StickLock stickLock = StickLock.None;
+
+    int selectedstage;
+    int mainIndex;
+    int stdmIndex;
+    int gunIndex;
+    int spwIndex;
+    int detailPage;
+
     float interval = 1f;
     float holdtime = 0.5f;
+
+    readonly List<WeaponDropData> stdmWeapons = new List<WeaponDropData>();
+    readonly List<WeaponDropData> gunWeapons = new List<WeaponDropData>();
+    readonly List<WeaponDropData> spwWeapons = new List<WeaponDropData>();
 
     void Start()
     {
         selectedstage = PlayerPrefs.GetInt("selectedstage", 0);
-        Reload();
+        stdmIndex = PlayerPrefs.GetInt(StdIndexKey, 0);
+        gunIndex = PlayerPrefs.GetInt(GunIndexKey, 0);
+        spwIndex = PlayerPrefs.GetInt(SpwIndexKey, 0);
+        ReloadWeapons();
+        UpdateText();
     }
 
     void Update()
@@ -45,17 +69,61 @@ public class SetupUI : MonoBehaviour
         if (keyInput.left) h = -1f;
         else if (keyInput.right) h = 1f;
 
+        HandleMove(h, v);
+
+        if (keyInput.submit)
+        {
+            Submit();
+        }
+        else if (keyInput.cancel)
+        {
+            Back();
+        }
+
+        UpdateText();
+    }
+
+    void ReloadWeapons()
+    {
+        stdmWeapons.Clear();
+        gunWeapons.Clear();
+        spwWeapons.Clear();
+
+        foreach (var weapon in WeaponStorage.LoadAll())
+        {
+            switch ((WeaponDropType)weapon.weaponTypeId)
+            {
+                case WeaponDropType.StandardMissile:
+                    stdmWeapons.Add(weapon);
+                    break;
+                case WeaponDropType.Gun:
+                    gunWeapons.Add(weapon);
+                    break;
+                case WeaponDropType.UGB:
+                case WeaponDropType.nAAM:
+                    spwWeapons.Add(weapon);
+                    break;
+            }
+        }
+
+        stdmIndex = ClampIndex(stdmIndex, stdmWeapons.Count);
+        gunIndex = ClampIndex(gunIndex, gunWeapons.Count);
+        spwIndex = ClampIndex(spwIndex, spwWeapons.Count);
+    }
+
+    void HandleMove(float h, float v)
+    {
         switch (stickLock)
         {
             case StickLock.None:
                 if (Mathf.Abs(h) > 0.1f)
                 {
-                    ChangePage(h);
+                    ChangeHorizontal(h);
                     stickLock = StickLock.Horizontal;
                 }
                 else if (Mathf.Abs(v) > 0.1f)
                 {
-                    ChangeSelection(v);
+                    ChangeVertical(v);
                     stickLock = StickLock.Vertical;
                 }
                 break;
@@ -66,7 +134,7 @@ public class SetupUI : MonoBehaviour
                 }
                 else
                 {
-                    Repeat(() => ChangePage(h));
+                    Repeat(() => ChangeHorizontal(h));
                 }
                 break;
             case StickLock.Vertical:
@@ -76,42 +144,96 @@ public class SetupUI : MonoBehaviour
                 }
                 else
                 {
-                    Repeat(() => ChangeSelection(v));
+                    Repeat(() => ChangeVertical(v));
                 }
                 break;
         }
+    }
 
-        if (keyInput.submit)
+    void ChangeVertical(float value)
+    {
+        int delta = value > 0f ? 1 : -1;
+
+        if (screenMode == ScreenMode.Main)
         {
-            EquipAndLaunch();
+            mainIndex = Wrap(mainIndex + delta, 5);
+            return;
         }
-        else if (keyInput.cancel)
+
+        var list = CurrentList();
+        if (list.Count == 0) return;
+
+        SetCurrentIndex(Wrap(CurrentIndex() + delta, list.Count));
+        SaveIndexes();
+    }
+
+    void ChangeHorizontal(float value)
+    {
+        if (screenMode == ScreenMode.Main) return;
+
+        int delta = value > 0f ? 1 : -1;
+        detailPage = Wrap(detailPage + delta, 3);
+    }
+
+    void Submit()
+    {
+        if (screenMode == ScreenMode.Main)
+        {
+            switch (mainIndex)
+            {
+                case 0:
+                    Enter(ScreenMode.StandardMissile);
+                    break;
+                case 1:
+                    Enter(ScreenMode.Gun);
+                    break;
+                case 2:
+                    Enter(ScreenMode.SpecialWeapon);
+                    break;
+                case 3:
+                    Sortie();
+                    break;
+                case 4:
+                    SceneManager.LoadScene("Briefing");
+                    break;
+            }
+            return;
+        }
+
+        var weapon = CurrentWeapon();
+        if (weapon == null) return;
+
+        WeaponStorage.Equip(weapon);
+        ReloadWeapons();
+        SaveIndexes();
+    }
+
+    void Back()
+    {
+        if (screenMode == ScreenMode.Main)
         {
             SceneManager.LoadScene("Briefing");
+            return;
         }
 
-        UpdateText();
+        screenMode = ScreenMode.Main;
+        detailPage = 0;
     }
 
-    void Reload()
+    void Enter(ScreenMode mode)
     {
-        weapons = WeaponStorage.LoadAll();
-        selectedIndex = Mathf.Clamp(selectedIndex, 0, Mathf.Max(0, weapons.Count - 1));
-        UpdateText();
+        screenMode = mode;
+        detailPage = 0;
     }
 
-    void ChangeSelection(float value)
+    void Sortie()
     {
-        if (weapons.Count == 0) return;
-        int delta = value > 0 ? 1 : -1;
-        selectedIndex = (selectedIndex + delta + weapons.Count) % weapons.Count;
-    }
+        WeaponStorage.ApplyEquippedToPlayerPrefs();
 
-    void ChangePage(float value)
-    {
-        int pageCount = 2;
-        int delta = value > 0 ? 1 : -1;
-        pageIndex = (pageIndex + delta + pageCount) % pageCount;
+        if (selectedstage >= 0 && selectedstage < scene_name.Count)
+        {
+            SceneManager.LoadScene(scene_name[selectedstage]);
+        }
     }
 
     void Repeat(System.Action action)
@@ -131,53 +253,175 @@ public class SetupUI : MonoBehaviour
         holdtime = 0.5f;
     }
 
-    void EquipAndLaunch()
+    void SaveIndexes()
     {
-        if (weapons.Count == 0) return;
-        WeaponStorage.Equip(weapons[selectedIndex]);
-        WeaponStorage.ApplyEquippedToPlayerPrefs();
-
-        if (selectedstage >= 0 && selectedstage < scene_name.Count)
-        {
-            SceneManager.LoadScene(scene_name[selectedstage]);
-        }
+        PlayerPrefs.SetInt(StdIndexKey, stdmIndex);
+        PlayerPrefs.SetInt(GunIndexKey, gunIndex);
+        PlayerPrefs.SetInt(SpwIndexKey, spwIndex);
+        PlayerPrefs.Save();
     }
 
     void UpdateText()
     {
         if (hudText == null) return;
 
-        hudText.text = "Weapon Storage\n\n";
-        hudText.text += pageIndex == 0 ? "[List]  Detail\n\n" : " List  [Detail]\n\n";
-
-        if (weapons.Count == 0)
+        if (screenMode == ScreenMode.Main)
         {
-            hudText.text += "No weapons.\n";
-            return;
-        }
-
-        if (pageIndex == 0)
-        {
-            for (int i = 0; i < weapons.Count; i++)
-            {
-                var data = weapons[i];
-                string head = selectedIndex == i ? "> " : "  ";
-                string equipped = data.equipped ? " *" : "";
-                hudText.text += $"{head}{data.displayName}{equipped}\n";
-            }
-
-            hudText.text += "\nO: Equip / X: Back / <>: Detail";
+            UpdateMainText();
         }
         else
         {
-            hudText.text += WeaponStorage.BuildDetailText(weapons[selectedIndex]);
-            hudText.text += "\nO: Equip / X: Back / <>: List";
+            UpdateWeaponText();
         }
+    }
+
+    void UpdateMainText()
+    {
+        hudText.text = "setting\n\n";
+        hudText.text += MainLine(0, "MSL") + "\n";
+        hudText.text += MainLine(1, "GUN") + "\n";
+        hudText.text += MainLine(2, "SPW") + "\n\n";
+        hudText.text += MainLine(3, "sortie") + "\n";
+        hudText.text += MainLine(4, "cancel") + "\n";
 
         if (pointText != null)
+            pointText.text = GetMainDescription();
+    }
+
+    void UpdateWeaponText()
+    {
+        var list = CurrentList();
+        var weapon = CurrentWeapon();
+
+        hudText.text = GetModeTitle();
+
+        if (weapon == null)
         {
-            var data = weapons[selectedIndex];
-            pointText.text = $"Type: {WeaponStorage.GetShortTypeName(data)}\nLevel: {data.level:F0}";
+            hudText.text += "\nNo weapon.\n";
+            if (pointText != null)
+                pointText.text = "候補がありません";
+            return;
         }
+
+        hudText.text += BuildPagedDetail(weapon);
+        hudText.text += $"\nページ {detailPage + 1}/3 {GetPageName()} </>\n";
+        hudText.text += $"ID {CurrentIndex() + 1}/{list.Count} ↑/↓";
+
+        if (pointText != null)
+            pointText.text = GetWeaponDescription();
+    }
+
+    string MainLine(int index, string label)
+    {
+        string head = mainIndex == index ? "> " : "  ";
+        return head + label;
+    }
+
+    string GetMainDescription()
+    {
+        switch (mainIndex)
+        {
+            case 0: return "標準ミサイルを変更します";
+            case 1: return "機銃を変更します";
+            case 2: return "特殊兵装を変更します";
+            case 3: return "出撃します";
+            case 4: return "ブリーフィングへ戻ります";
+            default: return "";
+        }
+    }
+
+    string GetWeaponDescription()
+    {
+        switch (screenMode)
+        {
+            case ScreenMode.StandardMissile: return "標準ミサイルを選択します";
+            case ScreenMode.Gun: return "機銃を選択します";
+            case ScreenMode.SpecialWeapon: return "特殊兵装を選択します";
+            default: return "";
+        }
+    }
+
+    string GetModeTitle()
+    {
+        switch (screenMode)
+        {
+            case ScreenMode.StandardMissile: return "MSL";
+            case ScreenMode.Gun: return "GUN";
+            case ScreenMode.SpecialWeapon: return "SPW";
+            default: return "";
+        }
+    }
+
+    string GetPageName()
+    {
+        switch (detailPage)
+        {
+            case 0: return "[メインパラメータ]";
+            case 1: return "[サブパラメータ 差分のみ]";
+            case 2: return "[サブパラメータ すべて]";
+            default: return "";
+        }
+    }
+
+    string BuildPagedDetail(WeaponDropData weapon)
+    {
+        return WeaponStorage.BuildDetailText(weapon, detailPage);
+    }
+
+    List<WeaponDropData> CurrentList()
+    {
+        switch (screenMode)
+        {
+            case ScreenMode.StandardMissile: return stdmWeapons;
+            case ScreenMode.Gun: return gunWeapons;
+            case ScreenMode.SpecialWeapon: return spwWeapons;
+            default: return stdmWeapons;
+        }
+    }
+
+    WeaponDropData CurrentWeapon()
+    {
+        var list = CurrentList();
+        if (list.Count == 0) return null;
+        return list[CurrentIndex()];
+    }
+
+    int CurrentIndex()
+    {
+        switch (screenMode)
+        {
+            case ScreenMode.StandardMissile: return ClampIndex(stdmIndex, stdmWeapons.Count);
+            case ScreenMode.Gun: return ClampIndex(gunIndex, gunWeapons.Count);
+            case ScreenMode.SpecialWeapon: return ClampIndex(spwIndex, spwWeapons.Count);
+            default: return 0;
+        }
+    }
+
+    void SetCurrentIndex(int value)
+    {
+        switch (screenMode)
+        {
+            case ScreenMode.StandardMissile:
+                stdmIndex = value;
+                break;
+            case ScreenMode.Gun:
+                gunIndex = value;
+                break;
+            case ScreenMode.SpecialWeapon:
+                spwIndex = value;
+                break;
+        }
+    }
+
+    int ClampIndex(int index, int count)
+    {
+        if (count <= 0) return 0;
+        return Mathf.Clamp(index, 0, count - 1);
+    }
+
+    int Wrap(int value, int count)
+    {
+        if (count <= 0) return 0;
+        return (value % count + count) % count;
     }
 }

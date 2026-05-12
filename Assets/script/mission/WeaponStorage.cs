@@ -144,13 +144,13 @@ public static class WeaponStorage
         return GetShortTypeName((WeaponDropType)data.weaponTypeId);
     }
 
-    public static string BuildDetailText(WeaponDropData data)
+    public static string BuildDetailText(WeaponDropData data, int page = 0)
     {
         if (data == null) return "No weapon selected.";
 
         var table = new StatusTable();
         var keys = GetStatKeys((WeaponDropType)data.weaponTypeId);
-        string text = $"{GetShortTypeName(data)} lv.{data.level} #{data.serialInType:0000}\n\n";
+        string text = $"{GetShortTypeName(data)}     lv.{data.level}\n\n";
         text += "        [Pt]    [Value]    [Prev/Next]\n";
 
         for (int i = 0; i < keys.Length; i++)
@@ -160,10 +160,12 @@ public static class WeaponStorage
             if (entry == null) continue;
 
             int point = i < data.upgradePoints.Length ? data.upgradePoints[i] : 0;
+            if (page == 1 && point == 0) continue;
+
             float value = CalculateValue(entry.range, point);
-            float prev = CalculateValue(entry.range, point - 1);
-            float next = CalculateValue(entry.range, point + 1);
-            text += $"{GetDisplayName(key),-8} +{point,-5} {value,8:F1}    {prev:F1}/{next:F1}\n";
+            string prev = point > 0 ? CalculateValue(entry.range, point - 1).ToString("F1") : "-";
+            string next = point < GetMaxPoint(entry.range) ? CalculateValue(entry.range, point + 1).ToString("F1") : "-";
+            text += $"{GetDisplayName(key),-8} +{point,-5} {value,8:F1}    {prev}/{next}\n";
         }
 
         return text;
