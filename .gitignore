@@ -22,3 +22,9 @@ bin/
 *.mdb
 *.opendb
 *.VC.db
+
+# Office temporary lock files
+~$*.xlsx
+
+# Distributed memo source left while the workbook is open
+/memo/レベルデザイン.xlsx
