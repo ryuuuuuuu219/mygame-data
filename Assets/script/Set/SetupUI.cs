@@ -7,6 +7,13 @@ public class SetupUI : MonoBehaviour
 {
     public TextMeshProUGUI hudText;
     public TextMeshProUGUI pointText;
+    public TextMeshProUGUI itemNameText;
+    public TextMeshProUGUI itemPointHeaderText;
+    public TextMeshProUGUI itemValueHeaderText;
+    public TextMeshProUGUI itemPrevNextHeaderText;
+    public TextMeshProUGUI itemPointText;
+    public TextMeshProUGUI itemValueText;
+    public TextMeshProUGUI itemPrevNextText;
     public List<string> scene_name = new List<string>();
 
     const string StdIndexKey = "WeaponSelectIndex_stdm";
@@ -47,6 +54,18 @@ public class SetupUI : MonoBehaviour
 
     void Start()
     {
+        if (hudText != null)
+        {
+            hudText.fontSize = 18f;
+            hudText.lineSpacing = 0f;
+        }
+        if (pointText != null)
+        {
+            pointText.fontSize = 18f;
+            pointText.lineSpacing = 0f;
+        }
+        EnsureSplitTextObjects();
+
         selectedstage = PlayerPrefs.GetInt("selectedstage", 0);
         stdmIndex = PlayerPrefs.GetInt(StdIndexKey, 0);
         gunIndex = PlayerPrefs.GetInt(GunIndexKey, 0);
@@ -277,6 +296,8 @@ public class SetupUI : MonoBehaviour
 
     void UpdateMainText()
     {
+        SetSplitTextVisible(false);
+
         hudText.text = "setting\n\n";
         hudText.text += MainLine(0, "MSL") + "\n";
         hudText.text += MainLine(1, "GUN") + "\n";
@@ -290,22 +311,33 @@ public class SetupUI : MonoBehaviour
 
     void UpdateWeaponText()
     {
+        SetSplitTextVisible(true);
+
         var list = CurrentList();
         var weapon = CurrentWeapon();
 
-        hudText.text = GetModeTitle();
-
         if (weapon == null)
         {
+            hudText.text = GetModeTitle();
             hudText.text += "\nNo weapon.\n";
+            SetSplitText("", "", "", "", "", "", "");
             if (pointText != null)
                 pointText.text = "候補がありません";
             return;
         }
 
-        hudText.text += BuildPagedDetail(weapon);
-        hudText.text += $"\nページ {detailPage + 1}/3 {GetPageName()} </>\n";
+        var detail = WeaponStorage.BuildDetailColumns(weapon, detailPage);
+        hudText.text = detail.title + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+        hudText.text += $"ページ {detailPage + 1}/3 {GetPageName()} </>\n";
         hudText.text += $"ID {CurrentIndex() + 1}/{list.Count} ↑/↓";
+        SetSplitText(
+            "\n\n\n" + detail.labels,
+            "\n\n" + detail.pointHeader,
+            "\n\n" + detail.valueHeader,
+            "\n\n" + detail.prevNextHeader,
+            "\n\n\n" + detail.points,
+            "\n\n\n" + detail.values,
+            "\n\n\n" + detail.prevNextValues);
 
         if (pointText != null)
             pointText.text = GetWeaponDescription();
@@ -314,7 +346,7 @@ public class SetupUI : MonoBehaviour
     string MainLine(int index, string label)
     {
         string head = mainIndex == index ? "> " : "  ";
-        return head + label;
+        return head + "\t" + label;
     }
 
     string GetMainDescription()
@@ -366,6 +398,95 @@ public class SetupUI : MonoBehaviour
     string BuildPagedDetail(WeaponDropData weapon)
     {
         return WeaponStorage.BuildDetailText(weapon, detailPage);
+    }
+
+    void EnsureSplitTextObjects()
+    {
+        if (hudText == null) return;
+
+        if (itemNameText == null)
+            itemNameText = CreateSplitText("ItemNameText", 0f, -220f);
+
+        if (itemPointHeaderText == null)
+            itemPointHeaderText = CreateSplitText("ItemPointHeaderText", 565f, 80f, true);
+
+        if (itemValueHeaderText == null)
+            itemValueHeaderText = CreateSplitText("ItemValueHeaderText", 660f, 100f, true);
+
+        if (itemPrevNextHeaderText == null)
+            itemPrevNextHeaderText = CreateSplitText("ItemPrevNextHeaderText", 780f, 180f, true);
+
+        if (itemPointText == null)
+            itemPointText = CreateSplitText("ItemPointText", 565f, 80f, true);
+
+        if (itemValueText == null)
+            itemValueText = CreateSplitText("ItemValueText", 660f, 100f, true);
+
+        if (itemPrevNextText == null)
+            itemPrevNextText = CreateSplitText("ItemPrevNextText", 780f, 180f, true);
+
+        SetSplitTextVisible(false);
+    }
+
+    TextMeshProUGUI CreateSplitText(string objectName, float x, float widthDelta, bool useAbsoluteX = false)
+    {
+        var text = Instantiate(hudText, hudText.transform.parent);
+        text.name = objectName;
+        text.text = "";
+        text.fontSize = 18f;
+        text.lineSpacing = 0f;
+        text.raycastTarget = false;
+
+        var rect = text.rectTransform;
+        rect.anchoredPosition = useAbsoluteX
+            ? new Vector2(x, rect.anchoredPosition.y)
+            : rect.anchoredPosition + new Vector2(x, 0f);
+        rect.sizeDelta += new Vector2(widthDelta, 0f);
+
+        return text;
+    }
+
+    void SetSplitText(
+        string itemNames,
+        string pointHeader,
+        string valueHeader,
+        string prevNextHeader,
+        string points,
+        string values,
+        string prevNextValues)
+    {
+        if (itemNameText != null)
+            itemNameText.text = itemNames;
+        if (itemPointHeaderText != null)
+            itemPointHeaderText.text = pointHeader;
+        if (itemValueHeaderText != null)
+            itemValueHeaderText.text = valueHeader;
+        if (itemPrevNextHeaderText != null)
+            itemPrevNextHeaderText.text = prevNextHeader;
+        if (itemPointText != null)
+            itemPointText.text = points;
+        if (itemValueText != null)
+            itemValueText.text = values;
+        if (itemPrevNextText != null)
+            itemPrevNextText.text = prevNextValues;
+    }
+
+    void SetSplitTextVisible(bool visible)
+    {
+        if (itemNameText != null)
+            itemNameText.gameObject.SetActive(visible);
+        if (itemPointHeaderText != null)
+            itemPointHeaderText.gameObject.SetActive(visible);
+        if (itemValueHeaderText != null)
+            itemValueHeaderText.gameObject.SetActive(visible);
+        if (itemPrevNextHeaderText != null)
+            itemPrevNextHeaderText.gameObject.SetActive(visible);
+        if (itemPointText != null)
+            itemPointText.gameObject.SetActive(visible);
+        if (itemValueText != null)
+            itemValueText.gameObject.SetActive(visible);
+        if (itemPrevNextText != null)
+            itemPrevNextText.gameObject.SetActive(visible);
     }
 
     List<WeaponDropData> CurrentList()

@@ -38,6 +38,18 @@ public class WeaponDropData
     public int[] upgradePoints;
 }
 
+public class WeaponDetailText
+{
+    public string title;
+    public string labels;
+    public string pointHeader;
+    public string valueHeader;
+    public string prevNextHeader;
+    public string points;
+    public string values;
+    public string prevNextValues;
+}
+
 public static class WeaponStorage
 {
     const string StorageFolderName = "weapon_storage";
@@ -146,12 +158,36 @@ public static class WeaponStorage
 
     public static string BuildDetailText(WeaponDropData data, int page = 0)
     {
-        if (data == null) return "No weapon selected.";
+        var detail = BuildDetailColumns(data, page);
+        return detail.title + "\n\n" + detail.labels;
+    }
+
+    public static WeaponDetailText BuildDetailColumns(WeaponDropData data, int page = 0)
+    {
+        var detail = new WeaponDetailText();
+        if (data == null)
+        {
+            detail.title = "No weapon selected.";
+            detail.labels = "";
+            detail.pointHeader = "";
+            detail.valueHeader = "";
+            detail.prevNextHeader = "";
+            detail.points = "";
+            detail.values = "";
+            detail.prevNextValues = "";
+            return detail;
+        }
 
         var table = new StatusTable();
         var keys = GetStatKeys((WeaponDropType)data.weaponTypeId);
-        string text = $"{GetShortTypeName(data)}     lv.{data.level}\n\n";
-        text += "        [Pt]    [Value]    [Prev/Next]\n";
+        detail.title = $"{GetShortTypeName(data)}\tlv.{data.level}";
+        detail.labels = "";
+        detail.pointHeader = "[Pt]";
+        detail.valueHeader = "[Value]";
+        detail.prevNextHeader = "[Prev/Next]";
+        detail.points = "";
+        detail.values = "";
+        detail.prevNextValues = "";
 
         for (int i = 0; i < keys.Length; i++)
         {
@@ -165,10 +201,13 @@ public static class WeaponStorage
             float value = CalculateValue(entry.range, point);
             string prev = point > 0 ? CalculateValue(entry.range, point - 1).ToString("F1") : "-";
             string next = point < GetMaxPoint(entry.range) ? CalculateValue(entry.range, point + 1).ToString("F1") : "-";
-            text += $"{GetDisplayName(key),-8} +{point,-5} {value,8:F1}    {prev}/{next}\n";
+            detail.labels += GetDisplayName(key) + "\n";
+            detail.points += $"+{point}\n";
+            detail.values += $"{value:F1}\n";
+            detail.prevNextValues += $"{prev}/{next}\n";
         }
 
-        return text;
+        return detail;
     }
 
     static void CreateInitialWeapons()
