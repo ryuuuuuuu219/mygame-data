@@ -1,0 +1,15 @@
+{
+ "version": "2.0.0",
+ "tasks": [
+  {
+   "label": "AI Orchestrator",
+   "type": "shell",
+   "command": "python ai/orchestrator.py",
+   "group": {
+    "kind": "build",
+    "isDefault": true
+   },
+   "problemMatcher": []
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+{
+  "dotnet.preferCSharpExtension": true,
+
+  "search.exclude": {
+    "**/Library": true,
+    "**/Temp": true,
+    "**/node_modules": true
+  },
+
+  "files.watcherExclude": {
+    "**/Library/**": true,
+    "**/Temp/**": true
+  },
+  
+  "files.exclude": {
+  "**/*.meta": false,
+  "**/Library": true,
+  "**/Temp": true,
+  "**/Logs": true,
+  "**/Obj": true
+  }
+}
