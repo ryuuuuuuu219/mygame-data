@@ -98,6 +98,7 @@ public class AugumentStatus : MonoBehaviour
         CurrentStatus = new StatusTable();
         if (isPlayer)
         {
+            WeaponStorage.ApplyEquippedToPlayerPrefs();
             CurrentStatus = Clone_player();
         }
 

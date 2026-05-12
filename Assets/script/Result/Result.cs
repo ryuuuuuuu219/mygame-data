@@ -11,6 +11,8 @@ namespace Assets.script.Result
         float hiscore;
         float timeBonus;
         float hpBonus;
+        float finalScore;
+        WeaponDropData droppedWeapon;
 
         public TextMeshProUGUI hudText;          // HUDテキスト
 
@@ -23,12 +25,15 @@ namespace Assets.script.Result
             score = PlayerPrefs.GetFloat("LastScore", 0);
             timeBonus = PlayerPrefs.GetFloat("TimeBonus", 0);
             hpBonus=PlayerPrefs.GetFloat("hpBonus", 0);
-            if (score-timeBonus+hpBonus > hiscore)
+            finalScore = score - timeBonus + hpBonus;
+            if (finalScore > hiscore)
             {
-                PlayerPrefs.SetFloat(scene_name + "_hiscore", score - timeBonus + hpBonus);
+                PlayerPrefs.SetFloat(scene_name + "_hiscore", finalScore);
                 PlayerPrefs.Save();
             }
 
+            int stageIndex = PlayerPrefs.GetInt("selectedstage", 0) + 1;
+            droppedWeapon = WeaponStorage.GenerateDrop(finalScore, stageIndex, scene_name);
         }
 
         // Update is called once per frame
@@ -39,8 +44,10 @@ namespace Assets.script.Result
                 "Time Bonus: -" + timeBonus.ToString("F0") + "\n" +
                 "HP Bonus: " + hpBonus.ToString("F0") + "\n" +
                 "-------------------\n" +
-                "Final Score: " + (score - timeBonus + hpBonus).ToString("F0") + "\n" +
-                "Hiscore: " + hiscore.ToString("F0");
+                "Final Score: " + finalScore.ToString("F0") + "\n" +
+                "Hiscore: " + hiscore.ToString("F0") + "\n" +
+                "-------------------\n" +
+                "Drop: " + (droppedWeapon != null ? droppedWeapon.displayName : "None");
 
             var keyInput = InputManager.Instance;
 
