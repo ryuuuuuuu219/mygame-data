@@ -340,14 +340,27 @@ public class WorldGenerator : MonoBehaviour
         generatedCloudParticleMaterial.SetTexture("_MainTex", particleTexture);
         generatedCloudParticleMaterial.SetColor("_BaseColor", new Color(1f, 1f, 1f, 0.55f));
         generatedCloudParticleMaterial.SetColor("_Color", new Color(1f, 1f, 1f, 0.55f));
-        
-        generatedCloudParticleMaterial.SetFloat("_Surface", 1f); // Transparent
-        generatedCloudParticleMaterial.SetFloat("_Blend", 0f);   // Alpha
-        generatedCloudParticleMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-        generatedCloudParticleMaterial.renderQueue =
-            (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+        ConfigureTransparentAlphaMaterial(generatedCloudParticleMaterial);
 
         return generatedCloudParticleMaterial;
+    }
+
+    private void ConfigureTransparentAlphaMaterial(Material material)
+    {
+        material.SetOverrideTag("RenderType", "Transparent");
+        material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        material.SetInt("_ZWrite", 0);
+        material.SetFloat("_Surface", 1f);
+        material.SetFloat("_Blend", 0f);
+        material.SetFloat("_Mode", 2f);
+        material.SetFloat("_AlphaClip", 0f);
+        material.DisableKeyword("_ALPHATEST_ON");
+        material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        material.EnableKeyword("_ALPHABLEND_ON");
+        material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
     }
 
     private Texture2D CreateCloudParticleTexture()
