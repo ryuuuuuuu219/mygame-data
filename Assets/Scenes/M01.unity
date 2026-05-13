@@ -1545,6 +1545,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 357683767}
+  - component: {fileID: 357683768}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -1603,6 +1604,51 @@ Transform:
   - {fileID: 1805252106}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &357683768
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 357683766}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3057bac1ac904765b4784c163f2a0d8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldGenerator
+  seed: 12345
+  usePlayerPrefsSeed: 1
+  disableExistingTerrains: 1
+  generateOnStart: 1
+  terrainSize: 6000
+  heightmapResolution: 1025
+  heightScale: 600
+  noiseScale: 0.006
+  octaves: 4
+  persistence: 0.5
+  lacunarity: 2
+  water: {fileID: 0}
+  waterHeight: 8
+  boundaryOffset: 2
+  ceilingHeight: 2000
+  generateClouds: 1
+  cloudCount: 12
+  cloudMinAltitude: 900
+  cloudMaxAltitude: 1600
+  cloudAreaPadding: 150
+  cloudParticleCount: 400
+  cloudHeight: 420
+  cloudBaseRadius: 320
+  cloudTopRadius: 220
+  cloudBulge: 240
+  cloudShapeScale: 10
+  cloudParticleSizeScale: 5
+  playerHueShift: 0
+  playerSaturation: 0.8
+  playerValue: 0.6
+  randomHueRange: 0.1
+  terrain: {fileID: 0}
+  isgenerating: 0
 --- !u!1 &376673030
 GameObject:
   m_ObjectHideFlags: 0
@@ -3101,7 +3147,7 @@ Transform:
   m_GameObject: {fileID: 796543696}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 300, z: -1200}
+  m_LocalPosition: {x: 0, y: 863.12, z: -1200}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

@@ -33,13 +33,15 @@ public class WorldGenerator : MonoBehaviour
     public float cloudMinAltitude = 900f;
     public float cloudMaxAltitude = 1600f;
     public float cloudAreaPadding = 150f;
-    public int cloudParticleCount = 400;
-    public float cloudHeight = 420f;
-    public float cloudBaseRadius = 320f;
-    public float cloudTopRadius = 220f;
-    public float cloudBulge = 240f;
-    public float cloudShapeScale = 10f;
-    public float cloudParticleSizeScale = 5f;
+    public int cloudSizeX = 18;
+    public int cloudSizeY = 26;
+    public int cloudSizeZ = 18;
+    public float cloudCellSize = 55f;
+    public int cloudCellularSteps = 4;
+    [Range(0.05f, 0.95f)] public float cloudInitialFillRate = 0.42f;
+    [Range(0f, 1f)] public float cloudAlpha = 0.3f;
+    [Range(0.25f, 8f)] public float cloudAngleFadePower = 2f;
+    [Range(0f, 1f)] public float cloudMinAngleAlphaFactor = 0.12f;
 
     [Header("Color Control")]
     public float playerHueShift = 0f;
@@ -199,47 +201,34 @@ public class WorldGenerator : MonoBehaviour
                 RandomRange(-half, half)
             );
 
-            ParticleSystem particleSystem = cloud.AddComponent<ParticleSystem>();
-            ConfigureCloudParticleSystem(particleSystem);
+            int cloudSeed = seed + 10000 + i * 997;
+            CloudCellularGenerator cloudGenerator = new CloudCellularGenerator(cloudSeed);
+            CloudPreset preset = cloudGenerator.GenerateCumulonimbus(
+                $"Cumulonimbus_{i + 1:00}",
+                Mathf.Max(3, cloudSizeX),
+                Mathf.Max(3, cloudSizeY),
+                Mathf.Max(3, cloudSizeZ),
+                Mathf.Max(1f, cloudCellSize),
+                Mathf.Max(0, cloudCellularSteps),
+                cloudInitialFillRate
+            );
 
-            CumulonimbusParticleCloud cloudShape = cloud.AddComponent<CumulonimbusParticleCloud>();
-            cloudShape.particleCount = cloudParticleCount;
-            cloudShape.height = cloudHeight * cloudShapeScale;
-            cloudShape.baseRadius = cloudBaseRadius * cloudShapeScale;
-            cloudShape.topRadius = cloudTopRadius * cloudShapeScale;
-            cloudShape.bulge = cloudBulge * cloudShapeScale;
-            cloudShape.minSize *= cloudParticleSizeScale;
-            cloudShape.maxSize *= cloudParticleSizeScale;
-            cloudShape.GenerateCloud();
+            CloudVoxelRenderer renderer = cloud.AddComponent<CloudVoxelRenderer>();
+            renderer.alpha = cloudAlpha;
+            renderer.Render(
+                preset,
+                CloudMaterialFactory.CreateVoxelCloudMaterial(
+                    new Color(1f, 1f, 1f, cloudAlpha),
+                    cloudAngleFadePower,
+                    cloudMinAngleAlphaFactor
+                )
+            );
         }
     }
 
     private float RandomRange(float min, float max)
     {
         return Mathf.Lerp(min, max, (float)rng.NextDouble());
-    }
-
-    private void ConfigureCloudParticleSystem(ParticleSystem particleSystem)
-    {
-        ParticleSystem.MainModule main = particleSystem.main;
-        main.loop = false;
-        main.playOnAwake = false;
-        main.simulationSpace = ParticleSystemSimulationSpace.Local;
-        main.maxParticles = cloudParticleCount;
-
-        ParticleSystem.EmissionModule emission = particleSystem.emission;
-        emission.enabled = false;
-
-        ParticleSystem.ShapeModule shape = particleSystem.shape;
-        shape.enabled = false;
-
-        ParticleSystemRenderer renderer =
-            particleSystem.GetComponent<ParticleSystemRenderer>();
-
-        renderer.renderMode = ParticleSystemRenderMode.Billboard;
-        renderer.alignment = ParticleSystemRenderSpace.View;
-        renderer.sortMode = ParticleSystemSortMode.Distance;
-        renderer.sharedMaterial = CreateCloudParticleMaterial();
     }
 
     private Color GenerateColor(System.Random colorRng)
@@ -310,42 +299,6 @@ public class WorldGenerator : MonoBehaviour
         return shader;
     }
 
-    private Material generatedCloudParticleMaterial;
-    private Texture2D generatedCloudParticleTexture;
-
-    private Material CreateCloudParticleMaterial()
-    {
-        if (generatedCloudParticleMaterial != null)
-        {
-            return generatedCloudParticleMaterial;
-        }
-
-        Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-
-        if (shader == null)
-            shader = Shader.Find("Universal Render Pipeline/Unlit");
-
-        if (shader == null)
-            shader = Shader.Find("Particles/Standard Unlit");
-
-        if (shader == null)
-            shader = Shader.Find("Sprites/Default");
-
-        generatedCloudParticleMaterial = new Material(shader);
-        generatedCloudParticleMaterial.name = "GeneratedCloudParticleMaterial";
-
-        Texture2D particleTexture = CreateCloudParticleTexture();
-        generatedCloudParticleMaterial.mainTexture = particleTexture;
-        generatedCloudParticleMaterial.SetTexture("_BaseMap", particleTexture);
-        generatedCloudParticleMaterial.SetTexture("_MainTex", particleTexture);
-        generatedCloudParticleMaterial.SetColor("_BaseColor", new Color(1f, 1f, 1f, 0.55f));
-        generatedCloudParticleMaterial.SetColor("_Color", new Color(1f, 1f, 1f, 0.55f));
-
-        ConfigureTransparentAlphaMaterial(generatedCloudParticleMaterial);
-
-        return generatedCloudParticleMaterial;
-    }
-
     private void ConfigureTransparentAlphaMaterial(Material material)
     {
         material.SetOverrideTag("RenderType", "Transparent");
@@ -361,45 +314,6 @@ public class WorldGenerator : MonoBehaviour
         material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
         material.EnableKeyword("_ALPHABLEND_ON");
         material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-    }
-
-    private Texture2D CreateCloudParticleTexture()
-    {
-        if (generatedCloudParticleTexture != null)
-        {
-            return generatedCloudParticleTexture;
-        }
-
-        const int textureSize = 64;
-        generatedCloudParticleTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
-        generatedCloudParticleTexture.name = "GeneratedCloudParticleTexture";
-        generatedCloudParticleTexture.wrapMode = TextureWrapMode.Clamp;
-        generatedCloudParticleTexture.filterMode = FilterMode.Bilinear;
-
-        float center = (textureSize - 1) * 0.5f;
-        float radius = center;
-
-        for (int y = 0; y < textureSize; y++)
-        {
-            for (int x = 0; x < textureSize; x++)
-            {
-                float dx = (x - center) / radius;
-                float dy = (y - center) / radius;
-                float distance = Mathf.Sqrt(dx * dx + dy * dy);
-                float alpha = 1f - Mathf.InverseLerp(0.68f, 1f, distance);
-                alpha = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(alpha));
-
-                if (distance > 1f)
-                {
-                    alpha = 0f;
-                }
-
-                generatedCloudParticleTexture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
-            }
-        }
-
-        generatedCloudParticleTexture.Apply();
-        return generatedCloudParticleTexture;
     }
 
     public void RefreshMaterials()
