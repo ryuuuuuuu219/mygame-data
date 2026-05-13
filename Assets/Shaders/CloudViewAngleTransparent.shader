@@ -11,7 +11,7 @@ Shader "Custom/CloudViewAngleTransparent"
     {
         Tags
         {
-            "Queue" = "Transparent"
+            "Queue" = "Transparent-100"
             "RenderType" = "Transparent"
         }
 

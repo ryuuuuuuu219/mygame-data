@@ -2,6 +2,8 @@ using UnityEngine;
 
 public static class CloudMaterialFactory
 {
+    private const int CloudRenderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent - 100;
+
     public static Material CreateVoxelCloudMaterial(
         Color baseColor,
         float angleFadePower = 2f,
@@ -50,6 +52,6 @@ public static class CloudMaterialFactory
         material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
         material.EnableKeyword("_ALPHABLEND_ON");
-        material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+        material.renderQueue = CloudRenderQueue;
     }
 }
