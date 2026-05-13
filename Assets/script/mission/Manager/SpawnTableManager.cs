@@ -8,6 +8,7 @@ public class SpawnTableManager : MonoBehaviour
 {
     public GameObject Player;
     public List<GameObject> enemies;
+    public SpawnPlacementManager spawnPlacementManager;
 
     [Tooltip("例: https://ユーザー名.github.io/mygame-data/stage_spawns.json")]
     public string jsonUrl;
@@ -38,6 +39,11 @@ public class SpawnTableManager : MonoBehaviour
 
     void Start()
     {
+        if (spawnPlacementManager == null)
+            spawnPlacementManager = GetComponent<SpawnPlacementManager>();
+        if (spawnPlacementManager == null)
+            spawnPlacementManager = gameObject.AddComponent<SpawnPlacementManager>();
+
         currentStage = new();
 
         foreach (var enemy in enemies)
@@ -271,9 +277,37 @@ public class SpawnTableManager : MonoBehaviour
     //spawn内のwaveIDに基づいて敵を有効化
     void ActivateWave(WaveDefinition spawn)
     {
+        if (spawn.enemies != null && spawn.enemies.Count > 0)
+        {
+            ActivateWaveNew(spawn);
+            return;
+        }
+
+        ActivateWave_regacy(spawn);
+    }
+
+    void ActivateWaveNew(WaveDefinition spawn)
+    {
+        int waveId = spawn.waveId;
+        if (waveId < 0 || waveId >= waveRuntime.Count) return;
+        if (spawnPlacementManager == null) return;
+
+        var runtime = waveRuntime[waveId];
+
+        foreach (var enemyDefinition in spawn.enemies)
+        {
+            SpawnResult result = spawnPlacementManager.SpawnEnemyGroup(enemies, enemyDefinition, waveId);
+            runtime.rt.aliveEnemy += result.aliveEnemy;
+            runtime.rt.aliveTarget += result.aliveTarget;
+        }
+    }
+
+    void ActivateWave_regacy(WaveDefinition spawn)
+    {
         int waveId = spawn.waveId;
         if (waveId < 0 || waveId >= waveRuntime.Count) return;
         if (spawn.enemyIds == null) return;
+        if (spawnPlacementManager == null) return;
 
         var runtime = waveRuntime[waveId];
 
@@ -284,27 +318,26 @@ public class SpawnTableManager : MonoBehaviour
 
             GameObject enemy = enemies[id];
             if (enemy == null) continue;
-            if (!enemy.TryGetComponent(out AugumentStatus aug)) continue;
 
             bool isTarget =
                 spawn.isMissionTarget != null &&
                 i < spawn.isMissionTarget.Count &&
                 spawn.isMissionTarget[i];
 
-            aug.missionObjective = isTarget;
-
+            float lifetime = 0f;
             if (spawn.lifetimes != null && i < spawn.lifetimes.Count)
-                aug.lifeTime = spawn.lifetimes[i];
+                lifetime = spawn.lifetimes[i];
 
-            enemy.SetActive(true);
-            ObjectManager.Instance.RegisterEnemy(enemy, waveId);
-            aug.issortie = true;
-            aug.waveID = waveId;
+            var enemyDefinition = new EnemySpawnDefinition
+            {
+                enemyId = id,
+                missionTarget = isTarget,
+                lifetime = lifetime
+            };
 
-
-            runtime.rt.aliveEnemy++;
-            if (isTarget)
-                runtime.rt.aliveTarget++;
+            SpawnResult result = spawnPlacementManager.SpawnEnemy(enemy, enemyDefinition, waveId);
+            runtime.rt.aliveEnemy += result.aliveEnemy;
+            runtime.rt.aliveTarget += result.aliveTarget;
         }
 
     }
@@ -342,6 +375,9 @@ public class WaveDefinition
     // 敵のライフタイム（秒）。0以下なら無制限
     public List<float> lifetimes;
 
+    // 新形式: 敵ごとに目標フラグ、寿命、配置情報をまとめる
+    public List<EnemySpawnDefinition> enemies;
+
     public void Normalize()
     {
         if (WaveId >= 0)
@@ -358,9 +394,50 @@ public class WaveDefinition
 }
 
 [System.Serializable]
+public class EnemySpawnDefinition
+{
+    public int enemyId;
+    public string prefabType;
+    public bool missionTarget;
+    public float lifetime;
+    public PlacementDefinition placement;
+}
+
+[System.Serializable]
+public class PlacementDefinition
+{
+    public string mode;
+    public int count = 1;
+    public bool isstoped;
+    public SerializableVector3 position;
+    public SerializableVector3 vector;
+    public SerializableVector3 rotate;
+    public bool snapToTerrain;
+    public string areaId;
+    public float minAltitude;
+    public float maxAltitude;
+    public string terrainLayer;
+    public float radius;
+}
+
+[System.Serializable]
+public class SerializableVector3
+{
+    public float x;
+    public float y;
+    public float z;
+
+    public Vector3 ToVector3()
+    {
+        return new Vector3(x, y, z);
+    }
+}
+
+[System.Serializable]
 public class StageData
 {
     public string sceneName;
+    public int randomSeed;
     public List<WaveDefinition> spawns;
 }
 
