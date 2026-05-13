@@ -25,21 +25,10 @@ public class AugumentStatus : MonoBehaviour
     public StatusTable CurrentStatus;
     public bool TryGetHP(out float current, out float max)
     {
-        current = 0f;
+        current = hp;
         max = maxhp;
 
-        if (!IsInitialized || CurrentStatus == null)
-            return false;
-
-        try
-        {
-            current = CurrentStatus.Get("Aircraft", "HP").value;
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        return max > 0f;
     }
 
     public void storeHP()

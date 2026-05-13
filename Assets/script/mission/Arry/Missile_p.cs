@@ -96,14 +96,26 @@ public class Missile_p : MonoBehaviour
             if (lastDirToTarget != Vector3.zero)
             {
                 Vector3 LOSrate = Vector3.Cross(lastDirToTarget, dirToTarget);
-                Vector3 rotAxis = LOSrate.normalized;
+                Vector3 rotAxis = LOSrate.sqrMagnitude > 0.000001f
+                    ? LOSrate.normalized
+                    : Vector3.Cross(newDir, dirToTarget).normalized;
                 float rotMag = LOSrate.magnitude * ProportionalConstant * Mathf.Rad2Deg / Time.fixedDeltaTime;
 
                 // 旋回速度上限
                 rotMag = Mathf.Min(rotMag, turnRate);
 
                 // 進行方向更新
-                newDir = Quaternion.AngleAxis(rotMag * Time.fixedDeltaTime, rotAxis) * newDir;
+                if (rotAxis.sqrMagnitude > 0.000001f)
+                    newDir = Quaternion.AngleAxis(rotMag * Time.fixedDeltaTime, rotAxis) * newDir;
+            }
+            else
+            {
+                newDir = Vector3.RotateTowards(
+                    newDir,
+                    dirToTarget,
+                    turnRate * Mathf.Deg2Rad * Time.fixedDeltaTime,
+                    0f
+                );
             }
 
             lastDirToTarget = dirToTarget;

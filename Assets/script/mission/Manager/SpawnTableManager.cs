@@ -9,6 +9,7 @@ public class SpawnTableManager : MonoBehaviour
     public GameObject Player;
     public List<GameObject> enemies;
     public SpawnPlacementManager spawnPlacementManager;
+    public bool disableSceneEnemiesOnStart = true;
 
     [Tooltip("例: https://ユーザー名.github.io/mygame-data/stage_spawns.json")]
     public string jsonUrl;
@@ -45,6 +46,9 @@ public class SpawnTableManager : MonoBehaviour
             spawnPlacementManager = gameObject.AddComponent<SpawnPlacementManager>();
 
         currentStage = new();
+
+        if (disableSceneEnemiesOnStart)
+            DisableSceneEnemies();
 
         foreach (var enemy in enemies)
         {
@@ -237,8 +241,23 @@ public class SpawnTableManager : MonoBehaviour
             i++;
         }
 
+        spawnPlacementManager.SetRandomSeed(currentStage.randomSeed);
         isInit = true;
 
+    }
+
+    void DisableSceneEnemies()
+    {
+        AugumentStatus[] statuses = FindObjectsByType<AugumentStatus>(
+            FindObjectsInactive.Exclude,
+            FindObjectsSortMode.None
+        );
+
+        foreach (var status in statuses)
+        {
+            if (status != null && status.isEnemy)
+                status.gameObject.SetActive(false);
+        }
     }
 
 

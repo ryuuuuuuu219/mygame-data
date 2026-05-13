@@ -1187,6 +1187,8 @@ GameObject:
   m_Component:
   - component: {fileID: 245426230}
   - component: {fileID: 245426231}
+  - component: {fileID: 245426232}
+  - component: {fileID: 245426233}
   m_Layer: 0
   m_Name: SpownTable
   m_TagString: Untagged
@@ -1222,15 +1224,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.script.mission.Manager.SpawnTableManager
   Player: {fileID: 796543696}
-  enemies:
-  - {fileID: 1469356796}
-  - {fileID: 219998402}
-  - {fileID: 2098113285}
-  - {fileID: 1706155944}
-  - {fileID: 1098930380}
-  - {fileID: 610255292}
-  - {fileID: 864043622}
-  - {fileID: 954877527}
+  enemies: []
+  spawnPlacementManager: {fileID: 245426232}
+  disableSceneEnemiesOnStart: 1
   jsonUrl: 'https://ryuuuuuuu219.github.io/mygame-data/stage_spawns.json '
   isUseRemoteJSON: 0
   isInit: 0
@@ -1240,6 +1236,36 @@ MonoBehaviour:
   toResultTimer: 5
   Weight_hp: 10
   Weight_time: 10
+--- !u!114 &245426232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 245426229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d905a7e86a3470bb03b28b3d7d9d08f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpawnPlacementManager
+  prefabRegistry: {fileID: 245426233}
+--- !u!114 &245426233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 245426229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c45b7ad5272d4edbbbd8e4b43ed542bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpawnPrefabRegistry
+  entries:
+  - prefabTypeName: AA_GUN
+    prefab: {fileID: 881100000000000001, guid: 3c936c6ca8b64de7afc5577795951bc7, type: 3}
+  - prefabTypeName: SAM
+    prefab: {fileID: 287339356655383430, guid: a8f39d91b5109fc419044e9b4c30a6af, type: 3}
 --- !u!1001 &277640307
 PrefabInstance:
   m_ObjectHideFlags: 0

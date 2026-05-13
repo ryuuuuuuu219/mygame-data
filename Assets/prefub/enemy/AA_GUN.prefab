@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &287339356655383430
+--- !u!1 &881100000000000001
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,52 +8,52 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3958602714798318470}
-  - component: {fileID: 7729900970231473111}
-  - component: {fileID: 1152601882167144548}
-  - component: {fileID: 4748629168523481185}
-  - component: {fileID: -2681149873869738082}
-  - component: {fileID: 22001001}
-  - component: {fileID: 22001002}
-  - component: {fileID: 22001003}
-  - component: {fileID: 22001004}
+  - component: {fileID: 881100000000000002}
+  - component: {fileID: 881100000000000003}
+  - component: {fileID: 881100000000000004}
+  - component: {fileID: 881100000000000005}
+  - component: {fileID: 881100000000000006}
+  - component: {fileID: 881100000000000007}
+  - component: {fileID: 881100000000000008}
+  - component: {fileID: 881100000000000009}
+  - component: {fileID: 881100000000000010}
   m_Layer: 0
-  m_Name: SAM
+  m_Name: AA_GUN
   m_TagString: enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
---- !u!4 &3958602714798318470
+--- !u!4 &881100000000000002
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 287339356655383430}
+  m_GameObject: {fileID: 881100000000000001}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &7729900970231473111
+--- !u!33 &881100000000000003
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 287339356655383430}
+  m_GameObject: {fileID: 881100000000000001}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &1152601882167144548
+--- !u!23 &881100000000000004
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 287339356655383430}
+  m_GameObject: {fileID: 881100000000000001}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -89,13 +89,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &4748629168523481185
+--- !u!65 &881100000000000005
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 287339356655383430}
+  m_GameObject: {fileID: 881100000000000001}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -110,13 +110,13 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!54 &-2681149873869738082
+--- !u!54 &881100000000000006
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 287339356655383430}
+  m_GameObject: {fileID: 881100000000000001}
   serializedVersion: 4
   m_Mass: 1
   m_Drag: 0
@@ -137,13 +137,13 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 0
---- !u!114 &22001001
+--- !u!114 &881100000000000007
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 287339356655383430}
+  m_GameObject: {fileID: 881100000000000001}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 062268485fcb2644696721d969d9ceb1, type: 3}
@@ -161,62 +161,58 @@ MonoBehaviour:
   hp: 100
   maxhp: 100
   lifeTime: 0
---- !u!114 &22001002
+--- !u!114 &881100000000000008
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 287339356655383430}
+  m_GameObject: {fileID: 881100000000000001}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0fc8f97bd8cf43f5ae1bc79f6f6bd711, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetSelector
-  detectRange: 4000
-  lockRange: 1800
+  detectRange: 3000
+  lockRange: 900
   retargetInterval: 0.25
   alternateClosestTarget: 1
   lockon: 0
   target: {fileID: 0}
   lastDirToTarget: {x: 0, y: 0, z: 0}
---- !u!114 &22001003
+--- !u!114 &881100000000000009
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 287339356655383430}
+  m_GameObject: {fileID: 881100000000000001}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 063ec16ef7a34f00a8d5ac5e9f1c641e, type: 3}
+  m_Script: {fileID: 11500000, guid: 740d91914da044cb97a8f48c4adf90a0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyMissileShooter
-  missileHardpoint: {fileID: 3958602714798318470}
-  missileSpeed: 160
-  missileCooldown: 3
-  missileLifeTime: 12
-  missilePower: 60
-  missileAcceleration: 25
-  missileMaxSpeed: 220
-  missileTurnRate: 90
-  missileBreakAngle: 90
-  missileProportionalConstant: 3
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyGunShooter
+  gunMuzzle: {fileID: 881100000000000002}
+  bulletSpeed: 260
+  fireRate: 0.12
+  spreadAngle: 2
+  bulletSize: 1
+  bulletLifetime: 3
   bulletpool: {fileID: 0}
---- !u!114 &22001004
+--- !u!114 &881100000000000010
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 287339356655383430}
+  m_GameObject: {fileID: 881100000000000001}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e07f6a35d7e9423dbf0bd79e4a7ab413, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GroundAntiAirController
-  useGun: 0
-  useMissile: 1
-  targetSelector: {fileID: 22001002}
-  gunShooter: {fileID: 0}
-  missileShooter: {fileID: 22001003}
+  useGun: 1
+  useMissile: 0
+  targetSelector: {fileID: 881100000000000008}
+  gunShooter: {fileID: 881100000000000009}
+  missileShooter: {fileID: 0}

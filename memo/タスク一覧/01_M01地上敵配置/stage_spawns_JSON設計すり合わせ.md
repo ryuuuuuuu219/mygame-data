@@ -202,7 +202,40 @@ JSON から読み取った敵定義を実際の GameObject 配置に変換する
 | コンポーネント | 役割 |
 | --- | --- |
 | `SpawnTableManager` | `stage_spawns.json` の読み込み、ステージ選択、Wave 定義保持、Wave 開始・終了判定、新旧形式の振り分け。 |
-| `SpawnPlacementManager` | 敵 GameObject の有効化、`count` による複製、`position` / `rotate` / `vector` / `isstoped` の適用、`ObjectManager` への登録。 |
+| `SpawnPlacementManager` | 敵 GameObject の有効化、`prefabType` による prefab 生成、`count` による複製、`position` / `rotate` / `vector` / `isstoped` / `snapToTerrain` の適用、`ObjectManager` への登録。 |
+| `SpawnPrefabRegistry` | `prefabType` 名と prefab の対応表。現状は M01/M02 の `SpownTable` に `AA_GUN` と `SAM` を登録する。 |
+
+### JSON項目の接続状況
+
+| 項目 | 状況 | 備考 |
+| --- | --- | --- |
+| `prefabType` | 接続済み | `SpawnPrefabRegistry` から prefab を取得し、`SpawnPlacementManager` が生成する。 |
+| `enemyId` | 接続済み | `prefabType` が未指定または未登録の場合の旧式フォールバックとして使う。 |
+| `missionTarget` | 接続済み | `AugumentStatus.missionObjective` と Wave の `aliveTarget` に反映。 |
+| `lifetime` | 接続済み | `AugumentStatus.lifeTime` に反映。 |
+| `count` | 接続済み | 同じ定義から複数体を生成する。 |
+| `position` | 接続済み | 初期座標として反映。 |
+| `rotate` | 接続済み | 初期回転として反映。 |
+| `isstoped` | 接続済み | true の場合、初速を `Vector3.zero` にする。 |
+| `vector` | 接続済み | 初期速度として `Rigidbody` / `AugumentStatus` / `AircraftController` に反映。 |
+| `snapToTerrain` | 接続済み | true の場合、上空から Raycast して地形上に置く。 |
+| `terrainLayer` | 接続済み | `snapToTerrain` の Raycast 対象 Layer として使う。 |
+| `requireClearedWaves` | 接続済み | Wave 開始条件として使う。 |
+| `randomSeed` | 接続済み | ステージ内の `terrainRandom` 配置の固定乱数として使う。M01 は `260514`。 |
+| `mode` | 接続済み | `terrainRandom` の場合、`position` を中心に `radius` 内でランダム抽選する。 |
+| `areaId` | ラベル扱い | 現状は処理には使わず、配置意図を読むための識別名として残す。 |
+| `minAltitude` | 接続済み | `terrainRandom` 抽選後、地形上に置いた y が下限未満なら再抽選する。 |
+| `maxAltitude` | 接続済み | `terrainRandom` 抽選後、地形上に置いた y が上限超過なら再抽選する。 |
+| `radius` | 接続済み | `terrainRandom` の XZ 抽選半径として使う。M01 は全グループ `15`。 |
+
+### M01 新形式生成状況
+
+- M01 は `stage_spawns.json` 上で新形式へ移行済み。
+- `randomSeed`: `260514`
+- AA_GUN: 12 グループ * 3 体 = 36 体。
+- SAM: 9 グループ * 2 体 = 18 体。
+- 合計 54 体、すべて `missionTarget: true`。
+- M01 シーンの `SpownTable.enemies` は空にし、旧航空機などのシーン配置敵は起動時に `disableSceneEnemiesOnStart` で無効化する。
 
 1. `WaveDefinition.enemies` が存在する場合は新形式で読む。
 2. `WaveDefinition.enemies` が空または null の場合は、旧形式の `enemyIds`、`isMissionTarget`、`lifetimes` を読む。
