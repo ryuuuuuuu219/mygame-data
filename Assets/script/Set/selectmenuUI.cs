@@ -146,6 +146,7 @@ public class selectmenuUI : MonoBehaviour
     readonly Dictionary<string, string> missionText = new Dictionary<string, string>()
     {
         {"M01","対空陣地中央の長射程地対空ミサイルを破壊せよ\n一定高度（900）以上を飛ぶと目標から長距離ミサイルが飛んでくるので低空侵入を推奨する" },
+        {"MVP","対空陣地中央の長射程地対空ミサイルを破壊せよ\n一定高度（900）以上を飛ぶと目標から長距離ミサイルが飛んでくるので低空侵入を推奨する" },
         {"M02","作戦空域内のすべてのミッション目標を撃破せよ。" }
     };
 
