@@ -8,6 +8,7 @@ public class GroundAntiAirController : MonoBehaviour
     public EnemyTargetSelector targetSelector;
     public EnemyGunShooter gunShooter;
     public EnemyMissileShooter missileShooter;
+    public EnemyMissileShooter_longrange longrangeMissileShooter;
 
     AugumentStatus status;
     Rigidbody rb;
@@ -17,6 +18,7 @@ public class GroundAntiAirController : MonoBehaviour
         targetSelector ??= GetComponent<EnemyTargetSelector>();
         gunShooter ??= GetComponent<EnemyGunShooter>();
         missileShooter ??= GetComponent<EnemyMissileShooter>();
+        longrangeMissileShooter ??= GetComponent<EnemyMissileShooter_longrange>();
         status = GetComponent<AugumentStatus>();
         rb = GetComponent<Rigidbody>();
     }
@@ -38,6 +40,9 @@ public class GroundAntiAirController : MonoBehaviour
 
         if (useMissile && missileShooter != null)
             missileShooter.TryFire(direction, platformVelocity, targetSelector.target.transform);
+
+        if (useMissile && longrangeMissileShooter != null)
+            longrangeMissileShooter.TryFire(direction, platformVelocity, targetSelector.target.transform);
     }
 
     Vector3 GetPlatformVelocity()

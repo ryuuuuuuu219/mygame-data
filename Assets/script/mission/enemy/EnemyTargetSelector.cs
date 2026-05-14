@@ -7,6 +7,9 @@ public class EnemyTargetSelector : MonoBehaviour
     public float lockRange = 850f;
     public float retargetInterval = 0.25f;
     public bool alternateClosestTarget = true;
+    public bool IsAirsuppression;
+    public float thresholdalt = 1000f;
+    public float thresholdaltperdist = 0.25f;
 
     public bool lockon;
     public GameObject target;
@@ -51,7 +54,14 @@ public class EnemyTargetSelector : MonoBehaviour
             if (candidate == null) continue;
 
             float distance = Vector3.Distance(transform.position, candidate.transform.position);
-            if (distance > detectRange) continue;
+            if (IsAirsuppression)
+            {
+                if (!IsAirsuppressionTarget(candidate)) continue;
+            }
+            else if (distance > detectRange)
+            {
+                continue;
+            }
 
             if (distance < closestDistance)
             {
@@ -84,7 +94,7 @@ public class EnemyTargetSelector : MonoBehaviour
         }
 
         Vector3 toTarget = target.transform.position - transform.position;
-        lockon = toTarget.magnitude <= lockRange;
+        lockon = IsAirsuppression || toTarget.magnitude <= lockRange;
 
         if (lockon)
         {
@@ -104,5 +114,15 @@ public class EnemyTargetSelector : MonoBehaviour
             return status.Velocity / Mathf.Max(Time.deltaTime, 0.0001f);
 
         return Vector3.zero;
+    }
+
+    bool IsAirsuppressionTarget(GameObject candidate)
+    {
+        Vector3 toTarget = candidate.transform.position - transform.position;
+        if (candidate.transform.position.y >= thresholdalt) return true;
+
+        Vector2 horizontal = new Vector2(toTarget.x, toTarget.z);
+        float coneAltitude = horizontal.magnitude * thresholdaltperdist;
+        return toTarget.y >= coneAltitude;
     }
 }

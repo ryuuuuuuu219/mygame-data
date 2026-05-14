@@ -1,448 +1,681 @@
 {
-  "stages": [
-    {
-      "sceneName": "M01",
-      "randomSeed": 260514,
-      "spawns": [
-        {
-          "waveId": 0,
-          "requireClearedWaves": [],
-          "enemies": [
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": -1700, "y": 0, "z": -1500 },
-                "rotate": { "x": 0, "y": 45, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_01",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": -900, "y": 0, "z": -1800 },
-                "rotate": { "x": 0, "y": 65, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_02",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": 100, "y": 0, "z": -1700 },
-                "rotate": { "x": 0, "y": 90, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_03",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500 
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": 900, "y": 0, "z": -1500 },
-                "rotate": { "x": 0, "y": 115, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_04",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": 1700, "y": 0, "z": -900 },
-                "rotate": { "x": 0, "y": 135, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_05",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": 1800, "y": 0, "z": 100 },
-                "rotate": { "x": 0, "y": 170, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_06",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": 1500, "y": 0, "z": 900 },
-                "rotate": { "x": 0, "y": 205, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_07",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": 700, "y": 0, "z": 1600 },
-                "rotate": { "x": 0, "y": 230, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_08",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": -200, "y": 0, "z": 1700 },
-                "rotate": { "x": 0, "y": 260, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_09",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": -1000, "y": 0, "z": 1400 },
-                "rotate": { "x": 0, "y": 290, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_10",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": -1700, "y": 0, "z": 700 },
-                "rotate": { "x": 0, "y": 320, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_11",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "AA_GUN",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 3,
-                "position": { "x": -1900, "y": 0, "z": -300 },
-                "rotate": { "x": 0, "y": 350, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "ridge_aa_12",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "SAM",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 2,
-                "position": { "x": -1300, "y": 0, "z": -800 },
-                "rotate": { "x": 0, "y": 60, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "valley_sam_01",
-                "minAltitude": -500,
-                "maxAltitude": 450,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "SAM",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 2,
-                "position": { "x": -500, "y": 0, "z": -1000 },
-                "rotate": { "x": 0, "y": 80, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "valley_sam_02",
-                "minAltitude": -500,
-                "maxAltitude": 450,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "SAM",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 2,
-                "position": { "x": 300, "y": 0, "z": -900 },
-                "rotate": { "x": 0, "y": 110, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "valley_sam_03",
-                "minAltitude": -500,
-                "maxAltitude": 450,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "SAM",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 2,
-                "position": { "x": 1000, "y": 0, "z": -500 },
-                "rotate": { "x": 0, "y": 150, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "valley_sam_04",
-                "minAltitude": -500,
-                "maxAltitude": 450,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "SAM",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 2,
-                "position": { "x": 900, "y": 0, "z": 400 },
-                "rotate": { "x": 0, "y": 190, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "valley_sam_05",
-                "minAltitude": -500,
-                "maxAltitude": 450,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "SAM",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 2,
-                "position": { "x": 200, "y": 0, "z": 900 },
-                "rotate": { "x": 0, "y": 230, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "valley_sam_06",
-                "minAltitude": -500,
-                "maxAltitude": 450,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "SAM",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 2,
-                "position": { "x": -600, "y": 0, "z": 800 },
-                "rotate": { "x": 0, "y": 270, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "valley_sam_07",
-                "minAltitude": -500,
-                "maxAltitude": 450,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "SAM",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 2,
-                "position": { "x": -1200, "y": 0, "z": 300 },
-                "rotate": { "x": 0, "y": 310, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "valley_sam_08",
-                "minAltitude": -500,
-                "maxAltitude": 450,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            },
-            {
-              "enemyId": -1,
-              "prefabType": "SAM",
-              "missionTarget": true,
-              "lifetime": 0,
-              "placement": {
-                "mode": "terrainRandom",
-                "count": 2,
-                "position": { "x": -1600, "y": 0, "z": -300 },
-                "rotate": { "x": 0, "y": 340, "z": 0 },
-                "isstoped": true,
-                "snapToTerrain": true,
-                "areaId": "valley_sam_09",
-                "minAltitude": -500,
-                "maxAltitude": 450,
-                "terrainLayer": "Terrain",
-                "radius": 500
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "sceneName": "M02",
-      "spawns": [
-        {
-          "WaveId": 0,
-          "enemyIds": [0],
-          "isMissionTarget": [true],
-          "lifetimes": [0],
-          "triggerTargetWaveId": -1
-        },
-        {
-          "WaveId": 1,
-          "enemyIds": [1, 2],
-          "isMissionTarget": [true, true],
-          "lifetimes": [0, 45],
-          "triggerTargetWaveId": 0
-        },
-        {
-          "WaveId": 2,
-          "enemyIds": [3],
-          "isMissionTarget": [true],
-          "lifetimes": [0],
-          "triggerTargetWaveId": 1
-        },
-        {
-          "WaveId": 3,
-          "enemyIds": [4, 5, 6, 7],
-          "isMissionTarget": [false, false, false, false],
-          "lifetimes": [0, 0, 0, 0],
-          "triggerTargetWaveId": 1
-        }
-      ]
-    }
-  ]
+    "stages":  [
+                   {
+                       "sceneName":  "M01",
+                       "randomSeed":  260514,
+                       "spawns":  [
+                                      {
+                                          "waveId":  0,
+                                          "requireClearedWaves":  [
+
+                                                                  ],
+                                          "enemies":  [
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  -1700,
+                                                                                                 "y":  0,
+                                                                                                 "z":  -1500
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  45,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_01",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  -900,
+                                                                                                 "y":  0,
+                                                                                                 "z":  -1800
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  65,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_02",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  100,
+                                                                                                 "y":  0,
+                                                                                                 "z":  -1700
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  90,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_03",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  900,
+                                                                                                 "y":  0,
+                                                                                                 "z":  -1500
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  115,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_04",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  1700,
+                                                                                                 "y":  0,
+                                                                                                 "z":  -900
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  135,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_05",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  1800,
+                                                                                                 "y":  0,
+                                                                                                 "z":  100
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  170,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_06",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  1500,
+                                                                                                 "y":  0,
+                                                                                                 "z":  900
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  205,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_07",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  700,
+                                                                                                 "y":  0,
+                                                                                                 "z":  1600
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  230,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_08",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  -200,
+                                                                                                 "y":  0,
+                                                                                                 "z":  1700
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  260,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_09",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  -1000,
+                                                                                                 "y":  0,
+                                                                                                 "z":  1400
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  290,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_10",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  -1700,
+                                                                                                 "y":  0,
+                                                                                                 "z":  700
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  320,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_11",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AA_GUN",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  -1900,
+                                                                                                 "y":  0,
+                                                                                                 "z":  -300
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  350,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "ridge_aa_12",
+                                                                                "minAltitude":  120,
+                                                                                "maxAltitude":  2200,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "SAM",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  2,
+                                                                                "position":  {
+                                                                                                 "x":  -1300,
+                                                                                                 "y":  0,
+                                                                                                 "z":  -800
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  60,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "valley_sam_01",
+                                                                                "minAltitude":  -500,
+                                                                                "maxAltitude":  450,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "SAM",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  2,
+                                                                                "position":  {
+                                                                                                 "x":  -500,
+                                                                                                 "y":  0,
+                                                                                                 "z":  -1000
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  80,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "valley_sam_02",
+                                                                                "minAltitude":  -500,
+                                                                                "maxAltitude":  450,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "SAM",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  2,
+                                                                                "position":  {
+                                                                                                 "x":  300,
+                                                                                                 "y":  0,
+                                                                                                 "z":  -900
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  110,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "valley_sam_03",
+                                                                                "minAltitude":  -500,
+                                                                                "maxAltitude":  450,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "SAM",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  2,
+                                                                                "position":  {
+                                                                                                 "x":  1000,
+                                                                                                 "y":  0,
+                                                                                                 "z":  -500
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  150,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "valley_sam_04",
+                                                                                "minAltitude":  -500,
+                                                                                "maxAltitude":  450,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "SAM",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  2,
+                                                                                "position":  {
+                                                                                                 "x":  900,
+                                                                                                 "y":  0,
+                                                                                                 "z":  400
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  190,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "valley_sam_05",
+                                                                                "minAltitude":  -500,
+                                                                                "maxAltitude":  450,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "SAM",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  2,
+                                                                                "position":  {
+                                                                                                 "x":  200,
+                                                                                                 "y":  0,
+                                                                                                 "z":  900
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  230,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "valley_sam_06",
+                                                                                "minAltitude":  -500,
+                                                                                "maxAltitude":  450,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "SAM",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  2,
+                                                                                "position":  {
+                                                                                                 "x":  -600,
+                                                                                                 "y":  0,
+                                                                                                 "z":  800
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  270,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "valley_sam_07",
+                                                                                "minAltitude":  -500,
+                                                                                "maxAltitude":  450,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "SAM",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  2,
+                                                                                "position":  {
+                                                                                                 "x":  -1200,
+                                                                                                 "y":  0,
+                                                                                                 "z":  300
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  310,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "valley_sam_08",
+                                                                                "minAltitude":  -500,
+                                                                                "maxAltitude":  450,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "SAM",
+                                                              "missionTarget":  false,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  2,
+                                                                                "position":  {
+                                                                                                 "x":  -1600,
+                                                                                                 "y":  0,
+                                                                                                 "z":  -300
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  340,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "valley_sam_09",
+                                                                                "minAltitude":  -500,
+                                                                                "maxAltitude":  450,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "LASM",
+                                                              "missionTarget":  true,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "terrainRandom",
+                                                                                "count":  3,
+                                                                                "position":  {
+                                                                                                 "x":  0,
+                                                                                                 "y":  0,
+                                                                                                 "z":  0
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  0,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  true,
+                                                                                "areaId":  "center_lasm_01",
+                                                                                "minAltitude":  -500,
+                                                                                "maxAltitude":  450,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  200
+                                                                            }
+                                                          }
+                                                      ]
+                                      }
+                                  ]
+                   },
+                   {
+                       "sceneName":  "M02",
+                       "spawns":  [
+                                      {
+                                          "WaveId":  0,
+                                          "enemyIds":  [
+                                                           0
+                                                       ],
+                                          "isMissionTarget":  [
+                                                                  true
+                                                              ],
+                                          "lifetimes":  [
+                                                            0
+                                                        ],
+                                          "triggerTargetWaveId":  -1
+                                      },
+                                      {
+                                          "WaveId":  1,
+                                          "enemyIds":  [
+                                                           1,
+                                                           2
+                                                       ],
+                                          "isMissionTarget":  [
+                                                                  true,
+                                                                  true
+                                                              ],
+                                          "lifetimes":  [
+                                                            0,
+                                                            45
+                                                        ],
+                                          "triggerTargetWaveId":  0
+                                      },
+                                      {
+                                          "WaveId":  2,
+                                          "enemyIds":  [
+                                                           3
+                                                       ],
+                                          "isMissionTarget":  [
+                                                                  true
+                                                              ],
+                                          "lifetimes":  [
+                                                            0
+                                                        ],
+                                          "triggerTargetWaveId":  1
+                                      },
+                                      {
+                                          "WaveId":  3,
+                                          "enemyIds":  [
+                                                           4,
+                                                           5,
+                                                           6,
+                                                           7
+                                                       ],
+                                          "isMissionTarget":  [
+                                                                  false,
+                                                                  false,
+                                                                  false,
+                                                                  false
+                                                              ],
+                                          "lifetimes":  [
+                                                            0,
+                                                            0,
+                                                            0,
+                                                            0
+                                                        ],
+                                          "triggerTargetWaveId":  1
+                                      }
+                                  ]
+                   }
+               ]
 }

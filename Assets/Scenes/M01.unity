@@ -1266,6 +1266,8 @@ MonoBehaviour:
     prefab: {fileID: 881100000000000001, guid: 3c936c6ca8b64de7afc5577795951bc7, type: 3}
   - prefabTypeName: SAM
     prefab: {fileID: 287339356655383430, guid: a8f39d91b5109fc419044e9b4c30a6af, type: 3}
+  - prefabTypeName: LASM
+    prefab: {fileID: 287339356655383430, guid: 9c61ccc9d85242acb1e018ab81b752ea, type: 3}
 --- !u!1001 &277640307
 PrefabInstance:
   m_ObjectHideFlags: 0

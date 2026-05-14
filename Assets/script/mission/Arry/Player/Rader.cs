@@ -44,12 +44,11 @@ public class Rader : MonoBehaviour
         RefreshDetections();
 
         UpdateBlipGroup(arrys, arrysUI, friendColor);
-        UpdateBlipGroup(enemys, enemysUI, enemyColor);
-        UpdateBlipGroup(targets, targetsUI, targetColor);
+        UpdateEnemyBlipGroup(enemys, enemysUI);
 
         DisableUnused(arrysUI, arrys.Count);
         DisableUnused(enemysUI, enemys.Count);
-        DisableUnused(targetsUI, targets.Count);
+        DisableUnused(targetsUI, 0);
     }
     void UpdateBlipGroup(
         List<GameObject> objects,
@@ -60,10 +59,9 @@ public class Rader : MonoBehaviour
         {
             if (objects[i] == null) continue;
 
-            Vector2 pos = RadarSquarePosition(objects[i].transform.position);
-
             RectTransform rt = uiList[i].GetComponent<RectTransform>();
             Image img = uiList[i].GetComponent<Image>();
+            Vector2 pos = RadarSquarePosition(objects[i].transform.position, rt);
 
             rt.localPosition = PlayerBlip.transform.localPosition + (Vector3)pos;
             img.color = color;
@@ -77,7 +75,24 @@ public class Rader : MonoBehaviour
             uiList[i].GetComponent<Image>().enabled = false;
         }
     }
-    Vector2 RadarSquarePosition(Vector3 worldPos)
+    void UpdateEnemyBlipGroup(
+        List<GameObject> objects,
+        List<GameObject> uiList)
+    {
+        for (int i = 0; i < objects.Count; i++)
+        {
+            if (objects[i] == null) continue;
+
+            RectTransform rt = uiList[i].GetComponent<RectTransform>();
+            Image img = uiList[i].GetComponent<Image>();
+            Vector2 pos = RadarSquarePosition(objects[i].transform.position, rt);
+
+            rt.localPosition = PlayerBlip.transform.localPosition + (Vector3)pos;
+            img.color = IsMissionTarget(objects[i]) ? targetColor : enemyColor;
+            img.enabled = true;
+        }
+    }
+    Vector2 RadarSquarePosition(Vector3 worldPos, RectTransform blipRect)
     {
         Vector3 dir = worldPos - player.position;
 
@@ -97,7 +112,22 @@ public class Rader : MonoBehaviour
             p /= max;
         }
 
-        return p * radarRadius;
+        float halfBlipSize = 0f;
+        if (blipRect != null)
+        {
+            Rect rect = blipRect.rect;
+            halfBlipSize = Mathf.Max(rect.width, rect.height) * 0.5f;
+        }
+
+        float effectiveRadius = Mathf.Max(0f, radarRadius - halfBlipSize);
+        return p * effectiveRadius;
+    }
+
+    bool IsMissionTarget(GameObject obj)
+    {
+        return obj != null &&
+            obj.TryGetComponent(out AugumentStatus aug) &&
+            aug.missionObjective;
     }
 
 
@@ -130,6 +160,7 @@ public class Rader : MonoBehaviour
     void RefreshDetections()
     {
         enemys = ObjectManager.Instance.Enemies as List<GameObject>;
+        if (enemys == null) enemys = new List<GameObject>();
 
         // 足りない場合はプール拡張
         while (enemysUI.Count < enemys.Count)
@@ -139,6 +170,7 @@ public class Rader : MonoBehaviour
             enemysUI.Add(u);
         }
         arrys = ObjectManager.Instance.allies;
+        if (arrys == null) arrys = new List<GameObject>();
         // 足りない場合はプール拡張
         while (arrysUI.Count < arrys.Count)
         {
@@ -147,20 +179,14 @@ public class Rader : MonoBehaviour
             arrysUI.Add(u);
         }
 
-        List<GameObject> detecttargets = enemys;
-        for (int i = enemys.Count-1; i >= 0; i--)
+        targets = new List<GameObject>();
+        for (int i = 0; i < enemys.Count; i++)
         {
-            if (detecttargets[i] == null) continue;
-            if (detecttargets[i].TryGetComponent(out AugumentStatus aug))
-            {
-                if (!aug.missionObjective)
-                {
-                    detecttargets.Remove(enemys[i]);
-                    enemys.RemoveAt(i);
-                }
-            }
+            GameObject enemy = enemys[i];
+            if (enemy == null) continue;
+            if (enemy.TryGetComponent(out AugumentStatus aug) && aug.missionObjective)
+                targets.Add(enemy);
         }
-        targets = detecttargets;
         //Debug.LogError("brake pt.");
         // 足りない場合はプール拡張
         while (targetsUI.Count < targets.Count)
