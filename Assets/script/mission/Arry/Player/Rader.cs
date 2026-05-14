@@ -23,13 +23,6 @@ public class Rader : MonoBehaviour
     public Color friendColor = Color.cyan;
     public Color enemyColor = Color.green;
     public Color targetColor = Color.red;
-    public Color missileAlertColor = Color.red;
-
-    Image radarImage;
-    Image playerBlipImage;
-    Color normalRadarColor;
-    Color normalPlayerBlipColor;
-    bool missileAlertActive;
 
     // Use this for initialization
     void Start()
@@ -38,11 +31,7 @@ public class Rader : MonoBehaviour
         CreatePool(10, 10,10);  // 初期数は適当に設定、足りないときは動的追加
 
         radarRect = GetComponent<RectTransform>();
-        radarImage = GetComponent<Image>();
         if (PlayerBlip != null) playerBlipRect = PlayerBlip.GetComponent<RectTransform>();
-        if (PlayerBlip != null) playerBlipImage = PlayerBlip.GetComponent<Image>();
-        if (radarImage != null) normalRadarColor = radarImage.color;
-        if (playerBlipImage != null) normalPlayerBlipColor = playerBlipImage.color;
 
         if (worldCamera == null) worldCamera = Camera.main;
         if (player == null) Debug.LogError("RadarSystem: player not assigned.");
@@ -58,8 +47,6 @@ public class Rader : MonoBehaviour
     void Update()
     {
         RefreshDetections();
-        missileAlertActive = IsMissileAlertActive();
-        UpdateRadarAlertVisual();
 
         UpdateBlipGroup(arrys, arrysUI, friendColor);
         UpdateEnemyBlipGroup(enemys, enemysUI);
@@ -109,42 +96,6 @@ public class Rader : MonoBehaviour
             img.color = IsMissionTarget(objects[i]) ? targetColor : enemyColor;
             img.enabled = true;
         }
-    }
-
-    void UpdateRadarAlertVisual()
-    {
-        if (radarImage != null)
-        {
-            radarImage.color = missileAlertActive ? missileAlertColor : normalRadarColor;
-        }
-
-        if (playerBlipImage != null)
-        {
-            playerBlipImage.color = missileAlertActive ? missileAlertColor : normalPlayerBlipColor;
-        }
-    }
-
-    bool IsMissileAlertActive()
-    {
-        if (player == null || ObjectManager.Instance == null || ObjectManager.Instance.missiles_e == null)
-        {
-            return false;
-        }
-
-        List<GameObject> missiles = ObjectManager.Instance.missiles_e;
-        for (int i = 0; i < missiles.Count; i++)
-        {
-            GameObject missileObject = missiles[i];
-            if (missileObject == null) continue;
-
-            Missile missile = missileObject.GetComponent<Missile>();
-            if (missile != null && missile.target == player)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
     Vector2 RadarSquarePosition(Vector3 worldPos, RectTransform blipRect)
     {

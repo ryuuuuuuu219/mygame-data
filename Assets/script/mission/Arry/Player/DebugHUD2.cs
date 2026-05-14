@@ -3,6 +3,10 @@ using TMPro;
 
 public class DebugHUD2 : MonoBehaviour
 {
+    [Header("HUD Colors")]
+    public Color normalHudColor = Color.green;
+    public Color missileAlertHudColor = Color.red;
+
     public AlartSystem alartSystem;
     public AugumentStatus status;
     public TextMeshProUGUI hpText;
@@ -27,7 +31,10 @@ public class DebugHUD2 : MonoBehaviour
 
     private void LateUpdate()
     {
+        bool missilelocked = IsMissileAlertActive();
+        ApplyHudTextColor(missilelocked ? missileAlertHudColor : normalHudColor);
         UpdateScoreTimeText();
+        ApplyHudTextColor(missilelocked ? missileAlertHudColor : normalHudColor);
 
         if (spawnTableManager.isStageClear)
         {
@@ -71,16 +78,7 @@ public class DebugHUD2 : MonoBehaviour
                 + "\nMode:" + mode+
                 "\n"+wcooldown;
 
-            bool islocked = false;
-            foreach(bool b in alartSystem.LockingArray)
-            {
-                if (b) islocked = true;
-            }
-            bool missilelocked = false;
-            foreach (bool b in alartSystem.MissileArray)
-            {
-                if (b) missilelocked = true;
-            }
+            bool islocked = IsLockAlertActive();
             if (missilelocked)
             {
                 alarttextUI.GetComponent<TextMeshProUGUI>().text = "missile alert";
@@ -143,6 +141,7 @@ public class DebugHUD2 : MonoBehaviour
         scoreTimeText.fontSize = 24f;
         scoreTimeText.alignment = TextAlignmentOptions.TopLeft;
         scoreTimeText.raycastTarget = false;
+        scoreTimeText.color = normalHudColor;
         scoreTimeText.text = "";
     }
 
@@ -159,5 +158,52 @@ public class DebugHUD2 : MonoBehaviour
             "Score: " + score.ToString("F0") +
             "\nTime: " + Time.time.ToString("F1") + "s" +
             "\nTime Penalty: -" + timePenalty.ToString("F0");
+    }
+
+    bool IsMissileAlertActive()
+    {
+        if (alartSystem == null || alartSystem.MissileArray == null)
+        {
+            return false;
+        }
+
+        foreach (bool b in alartSystem.MissileArray)
+        {
+            if (b) return true;
+        }
+
+        return false;
+    }
+
+    bool IsLockAlertActive()
+    {
+        if (alartSystem == null || alartSystem.LockingArray == null)
+        {
+            return false;
+        }
+
+        foreach (bool b in alartSystem.LockingArray)
+        {
+            if (b) return true;
+        }
+
+        return false;
+    }
+
+    void ApplyHudTextColor(Color color)
+    {
+        if (hpText != null) hpText.color = color;
+        if (scoreTimeText != null) scoreTimeText.color = color;
+        SetTextColor(alarttextUI, color);
+        SetTextColor(hitUI, color);
+        SetTextColor(altTimerUI, color);
+    }
+
+    void SetTextColor(GameObject obj, Color color)
+    {
+        if (obj == null) return;
+
+        TextMeshProUGUI text = obj.GetComponent<TextMeshProUGUI>();
+        if (text != null) text.color = color;
     }
 }

@@ -8444,10 +8444,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 86112868}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 191.1, y: -191.7}
-  m_SizeDelta: {x: 100, y: 300}
+  m_AnchorMin: {x: 0.2, y: 0.5}
+  m_AnchorMax: {x: 0.2, y: 0.5}
+  m_AnchoredPosition: {x: -22.5, y: 36.600006}
+  m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &876484931
 MonoBehaviour:
@@ -8534,7 +8534,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: -0.7373657, z: 0, w: -24.92337}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -11903,6 +11903,7 @@ MonoBehaviour:
   friendColor: {r: 0, g: 1, b: 1, a: 1}
   enemyColor: {r: 0, g: 1, b: 0, a: 1}
   targetColor: {r: 1, g: 0, b: 0, a: 1}
+  missileAlertColor: {r: 1, g: 0, b: 0, a: 1}
   detectRange: 3000
   radarRadius: 100
   arrysUI: []
