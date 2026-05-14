@@ -55,6 +55,8 @@ public class SpawnPlacementManager : MonoBehaviour
         ApplyInitialMotion(enemy, definition.placement);
 
         aug.missionObjective = definition.missionTarget;
+        aug.isEnemy = true;
+        aug.isPlayer = false;
         aug.lifeTime = definition.lifetime;
         aug.issortie = true;
         aug.waveID = waveId;

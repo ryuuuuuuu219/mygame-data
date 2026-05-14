@@ -43,7 +43,7 @@ public class Gun_p : MonoBehaviour
         transform.position += velocity * Time.fixedDeltaTime;
         currentPos = transform.position;
 
-        if (HitTerrainBetweenPreviousAndCurrent())
+        if (ResolveColliderHitBetweenPreviousAndCurrent())
         {
             gameObject.SetActive(false);
             return;
@@ -58,29 +58,60 @@ public class Gun_p : MonoBehaviour
             return;
         }
 
-        var status = other.GetComponent<AugumentStatus>();
+        var status = other.GetComponentInParent<AugumentStatus>();
         if (status != null && status.isEnemy)
         {
             status.damage(power);
             ObjectManager.Instance.hitUIflag = true;
-        gameObject.SetActive(false);
+            gameObject.SetActive(false);
         }
     }
 
-    private bool HitTerrainBetweenPreviousAndCurrent()
+    private bool ResolveColliderHitBetweenPreviousAndCurrent()
     {
         Vector3 delta = currentPos - previousPos;
         float distance = delta.magnitude;
         if (distance <= 0.0001f) return false;
 
-        return Physics.Raycast(
+        Vector3 dir = delta / distance;
+        float radius = GetProjectileRadius();
+        RaycastHit[] hits = Physics.SphereCastAll(
             previousPos,
-            delta / distance,
-            out RaycastHit hit,
+            radius,
+            dir,
             distance,
             Physics.DefaultRaycastLayers,
-            QueryTriggerInteraction.Ignore) &&
-            hit.collider is TerrainCollider;
+            QueryTriggerInteraction.Collide);
+
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.collider == null) continue;
+            if (hit.collider.transform.IsChildOf(transform)) continue;
+
+            if (hit.collider is TerrainCollider) return true;
+
+            var status = hit.collider.GetComponentInParent<AugumentStatus>();
+            if (status == null || !status.isEnemy) continue;
+
+            status.damage(power);
+            if (ObjectManager.Instance != null)
+                ObjectManager.Instance.hitUIflag = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    private float GetProjectileRadius()
+    {
+        Collider collider = GetComponent<Collider>();
+        if (collider == null)
+            return Mathf.Max(0.01f, transform.lossyScale.magnitude * 0.5f);
+
+        Vector3 extents = collider.bounds.extents;
+        return Mathf.Max(0.01f, Mathf.Max(extents.x, extents.y, extents.z));
     }
 
 }

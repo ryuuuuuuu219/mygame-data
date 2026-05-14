@@ -57,6 +57,12 @@ public class SpawnTableManager : MonoBehaviour
         }
 
         currentWave = -1;
+        if (SceneManager.GetActiveScene().name == "M02")
+        {
+            InitializeM02ManualStage();
+            return;
+        }
+
         StartCoroutine(LoadJSON());
     }
 
@@ -108,6 +114,14 @@ public class SpawnTableManager : MonoBehaviour
         runtime.rt.cleared = false;
         runtime.rt.aliveEnemy = 0;
         runtime.rt.aliveTarget = 0;
+
+        if (SceneManager.GetActiveScene().name == "M02")
+        {
+            InitializeM02DesignController();
+            GetComponent<M02DesignController>().StartWave(wave.waveId);
+            Debug.Log($"[SpawnManager] Wave {wave.waveId} started by M02 design controller");
+            return;
+        }
 
         ActivateWave(wave);
 
@@ -246,6 +260,60 @@ public class SpawnTableManager : MonoBehaviour
 
     }
 
+    void InitializeM02DesignController()
+    {
+        var controller = GetComponent<M02DesignController>();
+        if (controller == null)
+            controller = gameObject.AddComponent<M02DesignController>();
+
+        controller.Initialize(this, spawnPlacementManager, Player);
+    }
+
+    void InitializeM02ManualStage()
+    {
+        currentStage = new StageData
+        {
+            sceneName = "M02",
+            randomSeed = 260514,
+            spawns = new List<WaveDefinition>
+            {
+                new WaveDefinition
+                {
+                    waveId = 0,
+                    requireClearedWaves = new List<int>()
+                },
+                new WaveDefinition
+                {
+                    waveId = 1,
+                    requireClearedWaves = new List<int> { 0 }
+                }
+            }
+        };
+
+        waveRuntime.Clear();
+        waveDefinitions.Clear();
+
+        foreach (var wave in currentStage.spawns)
+        {
+            waveRuntime.Add(new()
+            {
+                ID = wave.waveId,
+                rt = new WaveRuntime
+                {
+                    waveId = wave.waveId,
+                    started = false,
+                    cleared = false,
+                    aliveEnemy = 0,
+                    aliveTarget = 0
+                }
+            });
+            waveDefinitions.Add(wave);
+        }
+
+        spawnPlacementManager.SetRandomSeed(currentStage.randomSeed);
+        isInit = true;
+    }
+
     void DisableSceneEnemies()
     {
         AugumentStatus[] statuses = FindObjectsByType<AugumentStatus>(
@@ -275,6 +343,28 @@ public class SpawnTableManager : MonoBehaviour
         runtime.rt.aliveEnemy = Mathf.Max(0, runtime.rt.aliveEnemy - 1);
         if (isTarget)
             runtime.rt.aliveTarget = Mathf.Max(0, runtime.rt.aliveTarget - 1);
+    }
+
+    public void RegisterRuntimeEnemy(GameObject enemy, int waveId, bool isTarget)
+    {
+        if (enemy == null) return;
+        if (waveId < 0 || waveId >= waveRuntime.Count) return;
+
+        ObjectManager.Instance.RegisterEnemy(enemy, waveId);
+
+        var runtime = waveRuntime[waveId];
+        runtime.rt.aliveEnemy++;
+        if (isTarget)
+            runtime.rt.aliveTarget++;
+    }
+
+    public void ReserveRuntimeTargets(int waveId, int targetCount)
+    {
+        if (waveId < 0 || waveId >= waveRuntime.Count) return;
+        if (targetCount <= 0) return;
+
+        var runtime = waveRuntime[waveId];
+        runtime.rt.aliveTarget += targetCount;
     }
 
     void FinishStage()

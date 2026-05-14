@@ -262,6 +262,13 @@ public class FCS_e : MonoBehaviour
 
     void FireGun()
     {
+        if (rb == null)
+            rb = GetComponent<Rigidbody>();
+        if (gunMuzzle == null)
+            gunMuzzle = transform;
+        if (bulletpool == null)
+            bulletpool = FindFirstObjectByType<Gun_e_pool>();
+        if (rb == null || bulletpool == null) return;
 
         //ばらつき
         Vector3 spread = new Vector3(
@@ -271,16 +278,19 @@ public class FCS_e : MonoBehaviour
         );
 
         Vector3 velocity = rb.linearVelocity + transform.forward * bulletSpeed + spread;
-        GameObject bullet = bulletpool.bulletpull(1f, gunMuzzle.position, velocity, 3f);
-        Gun_p gun = bullet.GetComponent<Gun_p>();
-        if (gun != null)
-        {
-            gun.Init(10f, 1f);
-        }
+        bulletpool.bulletpull(gunSize, gunMuzzle.position, velocity, 3f);
     }
 
     void FireMissile()
     {
+        if (rb == null)
+            rb = GetComponent<Rigidbody>();
+        if (missileHardpoint == null)
+            missileHardpoint = transform;
+        if (bulletpool == null)
+            bulletpool = FindFirstObjectByType<Gun_e_pool>();
+        if (rb == null || bulletpool == null) return;
+
         Vector3 velocity = rb.linearVelocity + transform.forward * bulletSpeed;
         GameObject MSL = bulletpool.missilepull(missileHardpoint.position, velocity, 10f);
         Missile missile = MSL.GetComponent<Missile>();

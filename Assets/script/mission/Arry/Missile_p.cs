@@ -156,37 +156,47 @@ public class Missile_p : MonoBehaviour
         float dist = Vector3.Distance(previousPos, currentPos);
         if (dist <= 0.0001f) return;
 
-        if (Physics.Raycast(previousPos, dir, out RaycastHit hit, dist, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) &&
-            hit.collider is TerrainCollider)
+        float radius = GetProjectileRadius();
+        RaycastHit[] hits = Physics.SphereCastAll(
+            previousPos,
+            radius,
+            dir,
+            dist,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Collide);
+
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (RaycastHit hit in hits)
         {
+            if (hit.collider == null) continue;
+            if (hit.collider.transform.IsChildOf(transform)) continue;
+
+            if (hit.collider is TerrainCollider)
+            {
+                rangeover();
+                return;
+            }
+
+            var status = hit.collider.GetComponentInParent<AugumentStatus>();
+            if (status == null || !status.isEnemy) continue;
+
+            status.damage(power); // ダメージ量は適宜調整
+            if (ObjectManager.Instance != null)
+                ObjectManager.Instance.hitUIflag = true;
             rangeover();
             return;
         }
+    }
 
-        var enemys = ObjectManager.Instance.Enemies;
-        foreach (var i in enemys)
-        {
-            if (i == null) continue;
+    private float GetProjectileRadius()
+    {
+        Collider collider = GetComponent<Collider>();
+        if (collider == null)
+            return Mathf.Max(0.01f, transform.lossyScale.magnitude * 0.5f);
 
-            Vector3 allyPos = i.transform.position;
-            float radius = 0.5f * (transform.localScale.x + i.transform.localScale.x);
-
-            Vector3 closestPoint = previousPos + Vector3.Project(allyPos - previousPos, dir);
-
-            if (Vector3.Distance(closestPoint, allyPos) < radius &&
-                Vector3.Dot(allyPos - previousPos, dir) > 0 &&
-                Vector3.Distance(previousPos, allyPos) <= dist)
-            {
-                var status = i.GetComponent<AugumentStatus>();
-                if (status != null && status.isEnemy)
-                {
-                    status.damage(power); // ダメージ量は適宜調整
-                    ObjectManager.Instance.hitUIflag = true;
-                    rangeover();
-                }
-                return;
-            }
-        }
+        Vector3 extents = collider.bounds.extents;
+        return Mathf.Max(0.01f, Mathf.Max(extents.x, extents.y, extents.z));
     }
 
     // 消滅処理
