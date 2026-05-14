@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,6 +11,9 @@ public class selectmenuUI : MonoBehaviour
     public List<string> stage_name = new List<string>();
 
     public int selectedstage;
+
+    StageRoot stageRoot;
+    readonly Dictionary<string, string> briefingTextCache = new Dictionary<string, string>();
 
 
     // Start is called before the first frame update
@@ -102,7 +106,7 @@ public class selectmenuUI : MonoBehaviour
         }
         if (SceneManager.GetActiveScene().name == "Menu")
         {
-            hudText.text = "Select Mission\n\n";
+            hudText.text = "ミッション選択\n\n";
 
             for (int i = 0; i < stage_name.Count; i++)
             {
@@ -110,8 +114,8 @@ public class selectmenuUI : MonoBehaviour
             }
 
             hudText.text +=
-                "Press O to Confirm\n" +
-                "Press X to Cancel";
+                "〇 決定\n" +
+                "× 戻る";
             if (Mathf.Abs(v) > 0.1f)
             {
                 interval -= Time.deltaTime;
@@ -129,19 +133,206 @@ public class selectmenuUI : MonoBehaviour
         }
         else if (SceneManager.GetActiveScene().name == "Briefing")
         {
-            hudText.text = "Mission Briefing\n\n" +
-                "Mission: " + stage_name[selectedstage] + "\n\n" +
-                text[stage_name[selectedstage]] + "\n\n" +
-                "Press O to Confirm\n" +
-                "Press X to Cancel";
+            string stageName = GetSelectedStageName();
+
+            hudText.text = "ミッション説明\n\n" +
+                "ミッション: " + stageName + "\n\n" +
+                BuildMissionDescription(stageName) + "\n\n" +
+                "〇 決定\n" +
+                "× 戻る";
         }
     }
 
-    Dictionary<string, string> text= new Dictionary<string, string>()
+    readonly Dictionary<string, string> missionText = new Dictionary<string, string>()
     {
-        {"M01","Eliminate all enemy targets in the area." },
-        {"M02","Eliminate all enemy targets in the area." }
+        {"M01","対空陣地中央の長射程地対空ミサイルを破壊せよ\n一定高度（900）以上を飛ぶと目標から長距離ミサイルが飛んでくるので低空侵入を推奨する" },
+        {"M02","作戦空域内のすべてのミッション目標を撃破せよ。" }
     };
+
+    string GetSelectedStageName()
+    {
+        if (selectedstage < 0 || selectedstage >= stage_name.Count)
+            return "";
+
+        return stage_name[selectedstage];
+    }
+
+    string BuildMissionDescription(string stageName)
+    {
+        if (string.IsNullOrEmpty(stageName))
+            return "ミッション情報を取得できません。";
+
+        if (briefingTextCache.TryGetValue(stageName, out string cachedText))
+            return cachedText;
+
+        string description;
+        if (missionText.TryGetValue(stageName, out string authoredText))
+        {
+            description = authoredText;
+        }
+        else
+        {
+            StageData stageData = FindStageData(stageName);
+            description = stageData == null
+                ? GetFallbackDescription(stageName)
+                : GenerateDescription(stageData);
+        }
+
+        briefingTextCache[stageName] = description;
+        return description;
+    }
+
+    StageData FindStageData(string stageName)
+    {
+        LoadStageRoot();
+
+        if (stageRoot == null || stageRoot.stages == null)
+            return null;
+
+        foreach (StageData stage in stageRoot.stages)
+        {
+            if (stage != null && stage.sceneName == stageName)
+                return stage;
+        }
+
+        return null;
+    }
+
+    void LoadStageRoot()
+    {
+        if (stageRoot != null)
+            return;
+
+        string path = Path.Combine(Application.streamingAssetsPath, "stage_spawns.json");
+        if (!File.Exists(path))
+            return;
+
+        string json = File.ReadAllText(path);
+        stageRoot = JsonUtility.FromJson<StageRoot>(json);
+    }
+
+    string GenerateDescription(StageData stageData)
+    {
+        int waveCount = 0;
+        int enemyCount = 0;
+        int targetCount = 0;
+        bool hasReinforcements = false;
+        Dictionary<string, int> enemyTypeCounts = new Dictionary<string, int>();
+
+        if (stageData.spawns != null)
+        {
+            waveCount = stageData.spawns.Count;
+
+            foreach (WaveDefinition wave in stageData.spawns)
+            {
+                if (wave == null)
+                    continue;
+
+                wave.Normalize();
+                if (wave.requireClearedWaves != null && wave.requireClearedWaves.Count > 0)
+                    hasReinforcements = true;
+
+                CountNewFormatEnemies(wave, ref enemyCount, ref targetCount, enemyTypeCounts);
+                CountLegacyEnemies(wave, ref enemyCount, ref targetCount, enemyTypeCounts);
+            }
+        }
+
+        string objective = targetCount > 0
+            ? "ミッション目標 " + targetCount + " 体をすべて撃破せよ。"
+            : "作戦空域内の敵戦力を掃討せよ。";
+
+        string enemySummary = enemyCount > 0
+            ? "敵戦力は " + enemyCount + " 体" + BuildEnemyTypeSummary(enemyTypeCounts) + " と推定される。"
+            : "敵戦力は不明。";
+
+        string waveSummary = waveCount > 1
+            ? waveCount + " 段階の交戦を想定。" + (hasReinforcements ? "重要目標の撃破後、増援が出現する可能性がある。" : "")
+            : "単独の交戦を想定。";
+
+        return objective + "\n" + enemySummary + "\n" + waveSummary;
+    }
+
+    void CountNewFormatEnemies(WaveDefinition wave, ref int enemyCount, ref int targetCount, Dictionary<string, int> enemyTypeCounts)
+    {
+        if (wave.enemies == null)
+            return;
+
+        foreach (EnemySpawnDefinition enemy in wave.enemies)
+        {
+            if (enemy == null)
+                continue;
+
+            int count = enemy.placement != null ? Mathf.Max(1, enemy.placement.count) : 1;
+            enemyCount += count;
+            if (enemy.missionTarget)
+                targetCount += count;
+
+            string type = EnemyTypeName(enemy.prefabType);
+            AddCount(enemyTypeCounts, type, count);
+        }
+    }
+
+    string EnemyTypeName(string prefabType)
+    {
+        switch (prefabType)
+        {
+            case "AA_GUN":
+                return "対空砲";
+            case "SAM":
+                return "地対空ミサイル";
+            case "LASM":
+                return "長射程地対空ミサイル";
+            default:
+                return string.IsNullOrEmpty(prefabType) ? "敵" : prefabType;
+        }
+    }
+
+    void CountLegacyEnemies(WaveDefinition wave, ref int enemyCount, ref int targetCount, Dictionary<string, int> enemyTypeCounts)
+    {
+        if (wave.enemyIds == null)
+            return;
+
+        for (int i = 0; i < wave.enemyIds.Count; i++)
+        {
+            enemyCount++;
+            if (wave.isMissionTarget != null && i < wave.isMissionTarget.Count && wave.isMissionTarget[i])
+                targetCount++;
+
+            AddCount(enemyTypeCounts, "敵", 1);
+        }
+    }
+
+    void AddCount(Dictionary<string, int> counts, string key, int value)
+    {
+        if (counts.ContainsKey(key))
+            counts[key] += value;
+        else
+            counts.Add(key, value);
+    }
+
+    string BuildEnemyTypeSummary(Dictionary<string, int> enemyTypeCounts)
+    {
+        if (enemyTypeCounts.Count == 0)
+            return "";
+
+        List<string> parts = new List<string>();
+        foreach (var pair in enemyTypeCounts)
+        {
+            parts.Add(pair.Key + " x" + pair.Value);
+            if (parts.Count >= 3)
+                break;
+        }
+
+        return " (" + string.Join(", ", parts) + ")";
+    }
+
+    string GetFallbackDescription(string stageName)
+    {
+        if (missionText.TryGetValue(stageName, out string description))
+            return description;
+
+        return "作戦空域内のすべての敵目標を撃破せよ。";
+    }
 
     string Line(int index, string label, string value)
     {
