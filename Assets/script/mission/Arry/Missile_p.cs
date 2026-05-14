@@ -25,6 +25,7 @@ public class Missile_p : MonoBehaviour
     public bool isheatseeker = true;
 
     LineRenderer lr;
+    Rigidbody rb;
 
     // 初期化
     public void missileInit(Vector3 startPos, Vector3 startVelocity, float lifetime = 10f)
@@ -33,6 +34,16 @@ public class Missile_p : MonoBehaviour
         lifeTime = lifetime;
         target = null;
 
+        rb ??= GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.useGravity = false;
+            rb.isKinematic = true;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        transform.position = startPos;
         previousPos = currentPos = transform.position;
         speed = startVelocity.magnitude;
 
@@ -48,7 +59,6 @@ public class Missile_p : MonoBehaviour
 
         gameObject.SetActive(true);
 
-        transform.position = startPos;
         transform.rotation = Quaternion.LookRotation(startVelocity.normalized);
 
     }
