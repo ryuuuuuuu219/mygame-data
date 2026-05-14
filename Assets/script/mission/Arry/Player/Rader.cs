@@ -23,12 +23,26 @@ public class Rader : MonoBehaviour
     public Color friendColor = Color.cyan;
     public Color enemyColor = Color.green;
     public Color targetColor = Color.red;
+    public Color missileAlertColor = Color.red;
+
+    Image radarImage;
+    Image playerBlipImage;
+    Color normalRadarColor;
+    Color normalPlayerBlipColor;
+    bool missileAlertActive;
 
     // Use this for initialization
     void Start()
     {
         // 初期プール作成
         CreatePool(10, 10,10);  // 初期数は適当に設定、足りないときは動的追加
+
+        radarRect = GetComponent<RectTransform>();
+        radarImage = GetComponent<Image>();
+        if (PlayerBlip != null) playerBlipRect = PlayerBlip.GetComponent<RectTransform>();
+        if (PlayerBlip != null) playerBlipImage = PlayerBlip.GetComponent<Image>();
+        if (radarImage != null) normalRadarColor = radarImage.color;
+        if (playerBlipImage != null) normalPlayerBlipColor = playerBlipImage.color;
 
         if (worldCamera == null) worldCamera = Camera.main;
         if (player == null) Debug.LogError("RadarSystem: player not assigned.");
@@ -37,11 +51,15 @@ public class Rader : MonoBehaviour
     [Header("Radar Settings")]
     public float detectRange = 3000f;       // レーダー探知範囲（m）
     public float radarRadius = 100f;        // UI上の半径(px)（blipContainer上の最大距離）
+    RectTransform radarRect;
+    RectTransform playerBlipRect;
 
     // Update is called once per frame
     void Update()
     {
         RefreshDetections();
+        missileAlertActive = IsMissileAlertActive();
+        UpdateRadarAlertVisual();
 
         UpdateBlipGroup(arrys, arrysUI, friendColor);
         UpdateEnemyBlipGroup(enemys, enemysUI);
@@ -63,7 +81,7 @@ public class Rader : MonoBehaviour
             Image img = uiList[i].GetComponent<Image>();
             Vector2 pos = RadarSquarePosition(objects[i].transform.position, rt);
 
-            rt.localPosition = PlayerBlip.transform.localPosition + (Vector3)pos;
+            rt.anchoredPosition = GetPlayerBlipPosition() + pos;
             img.color = color;
             img.enabled = true;
         }
@@ -87,10 +105,46 @@ public class Rader : MonoBehaviour
             Image img = uiList[i].GetComponent<Image>();
             Vector2 pos = RadarSquarePosition(objects[i].transform.position, rt);
 
-            rt.localPosition = PlayerBlip.transform.localPosition + (Vector3)pos;
+            rt.anchoredPosition = GetPlayerBlipPosition() + pos;
             img.color = IsMissionTarget(objects[i]) ? targetColor : enemyColor;
             img.enabled = true;
         }
+    }
+
+    void UpdateRadarAlertVisual()
+    {
+        if (radarImage != null)
+        {
+            radarImage.color = missileAlertActive ? missileAlertColor : normalRadarColor;
+        }
+
+        if (playerBlipImage != null)
+        {
+            playerBlipImage.color = missileAlertActive ? missileAlertColor : normalPlayerBlipColor;
+        }
+    }
+
+    bool IsMissileAlertActive()
+    {
+        if (player == null || ObjectManager.Instance == null || ObjectManager.Instance.missiles_e == null)
+        {
+            return false;
+        }
+
+        List<GameObject> missiles = ObjectManager.Instance.missiles_e;
+        for (int i = 0; i < missiles.Count; i++)
+        {
+            GameObject missileObject = missiles[i];
+            if (missileObject == null) continue;
+
+            Missile missile = missileObject.GetComponent<Missile>();
+            if (missile != null && missile.target == player)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
     Vector2 RadarSquarePosition(Vector3 worldPos, RectTransform blipRect)
     {
@@ -105,22 +159,40 @@ public class Rader : MonoBehaviour
         // 探知距離で正規化
         p /= detectRange;
 
-        // 正方形外なら外周へ投影
-        float max = Mathf.Max(Mathf.Abs(p.x), Mathf.Abs(p.y));
-        if (max > 1f)
+        // レーダー枠外なら円周へ投影
+        float magnitude = p.magnitude;
+        if (magnitude > 1f)
         {
-            p /= max;
+            p /= magnitude;
         }
 
         float halfBlipSize = 0f;
         if (blipRect != null)
         {
             Rect rect = blipRect.rect;
-            halfBlipSize = Mathf.Max(rect.width, rect.height) * 0.5f;
+            Vector3 scale = blipRect.lossyScale;
+            halfBlipSize = Mathf.Max(rect.width * scale.x, rect.height * scale.y) * 0.5f;
         }
 
-        float effectiveRadius = Mathf.Max(0f, radarRadius - halfBlipSize);
+        float rectRadius = radarRadius;
+        if (radarRect != null)
+        {
+            Rect rect = radarRect.rect;
+            rectRadius = Mathf.Min(rect.width, rect.height) * 0.5f;
+        }
+
+        float effectiveRadius = Mathf.Max(0f, Mathf.Min(radarRadius, rectRadius) - halfBlipSize);
         return p * effectiveRadius;
+    }
+
+    Vector2 GetPlayerBlipPosition()
+    {
+        if (playerBlipRect != null)
+        {
+            return playerBlipRect.anchoredPosition;
+        }
+
+        return PlayerBlip != null ? (Vector2)PlayerBlip.transform.localPosition : Vector2.zero;
     }
 
     bool IsMissionTarget(GameObject obj)

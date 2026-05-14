@@ -10,6 +10,11 @@ public class Gun_e : MonoBehaviour
     private Vector3 currentPos;
     public Vector3 velocity;
 
+    private void OnEnable()
+    {
+        previousPos = transform.position;
+        currentPos = transform.position;
+    }
 
     private void FixedUpdate()
     {
@@ -22,6 +27,12 @@ public class Gun_e : MonoBehaviour
         previousPos = transform.position;
         transform.position += velocity * Time.fixedDeltaTime;
         currentPos = transform.position;
+
+        if (HitTerrainBetweenPreviousAndCurrent())
+        {
+            gameObject.SetActive(false);
+            return;
+        }
 
         // Raycastで途中の衝突をチェック
         Vector3 dir = (currentPos - previousPos).normalized;
@@ -53,5 +64,21 @@ public class Gun_e : MonoBehaviour
                 return;
             }
         }
+    }
+
+    private bool HitTerrainBetweenPreviousAndCurrent()
+    {
+        Vector3 delta = currentPos - previousPos;
+        float distance = delta.magnitude;
+        if (distance <= 0.0001f) return false;
+
+        return Physics.Raycast(
+            previousPos,
+            delta / distance,
+            out RaycastHit hit,
+            distance,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore) &&
+            hit.collider is TerrainCollider;
     }
 }

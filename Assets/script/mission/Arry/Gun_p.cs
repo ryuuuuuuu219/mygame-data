@@ -42,10 +42,22 @@ public class Gun_p : MonoBehaviour
         previousPos = transform.position;
         transform.position += velocity * Time.fixedDeltaTime;
         currentPos = transform.position;
+
+        if (HitTerrainBetweenPreviousAndCurrent())
+        {
+            gameObject.SetActive(false);
+            return;
+        }
     }
 
     private void OnTriggerEnter(Collider other)
     {
+        if (other is TerrainCollider)
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+
         var status = other.GetComponent<AugumentStatus>();
         if (status != null && status.isEnemy)
         {
@@ -53,6 +65,22 @@ public class Gun_p : MonoBehaviour
             ObjectManager.Instance.hitUIflag = true;
         gameObject.SetActive(false);
         }
+    }
+
+    private bool HitTerrainBetweenPreviousAndCurrent()
+    {
+        Vector3 delta = currentPos - previousPos;
+        float distance = delta.magnitude;
+        if (distance <= 0.0001f) return false;
+
+        return Physics.Raycast(
+            previousPos,
+            delta / distance,
+            out RaycastHit hit,
+            distance,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore) &&
+            hit.collider is TerrainCollider;
     }
 
 }

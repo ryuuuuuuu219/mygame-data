@@ -1,5 +1,15 @@
 # 機銃・ミサイル Terrain 判定
 
+## 状態
+
+実装中
+
+## 実装メモ
+
+- プレイヤー機銃、敵機銃、プレイヤーミサイル、敵ミサイルに TerrainCollider 判定を追加。
+- 高速弾のすり抜け対策として、前フレーム位置から現フレーム位置までの Raycast で TerrainCollider を検出する。
+- 機銃は TerrainCollider への Trigger 接触でも消滅する。
+
 ## 優先度
 
 2

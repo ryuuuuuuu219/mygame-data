@@ -59,6 +59,7 @@ public class BombProjectile : MonoBehaviour
     // State
     float timer = 0f;
     bool isExploded = false;
+    Vector3 previousPos;
 
     // =========================
     void Awake()
@@ -74,6 +75,11 @@ public class BombProjectile : MonoBehaviour
         Mat = meshRenderer.material;
     }
 
+    void OnEnable()
+    {
+        previousPos = transform.position;
+    }
+
     // =========================
     void FixedUpdate()
     {
@@ -84,55 +90,27 @@ public class BombProjectile : MonoBehaviour
         {
             Explode();
         }
-    }
 
-    // =========================
-    // 近接信管（数学判定）
-    void LateUpdate()
-    {
-        if (isExploded) return;
-        if (!useProximityFuse) return;
-
-        Vector3 p = transform.position;
-        Vector3 v = rb.linearVelocity;
-
-        if (v.sqrMagnitude < 0.01f) return;
-
-        Vector3 vDir = v.normalized;
-
-        foreach (var t in ObjectManager.Instance.Enemies)
+        if (HitTerrainBetweenPreviousAndCurrent(out Vector3 hitPoint))
         {
-            if (t == null) continue;
-
-            Vector3 toTarget = t.transform.position - p;
-            float dist = toTarget.magnitude;
-
-            if (dist < physicalRadius)
-            {
-                // 物理衝突扱いで爆発
-                Explode();
-                return;
-            }
-
-            if (dist > proximityRadius) continue;
-
-            // 進行方向90度以内
-            float dot = Vector3.Dot(vDir, toTarget.normalized);
-            if (dot > 0f) {
-                continue;
-            }
-            Explode();
+            Explode(hitPoint);
             return;
         }
+
+        previousPos = transform.position;
     }
 
     // =========================
     void Explode()
     {
+        Explode(transform.position);
+    }
+
+    void Explode(Vector3 center)
+    {
         if (isExploded) return;
         isExploded = true;
-
-        Vector3 center = transform.position;
+        transform.position = center;
 
         // -------- 見た目切替
         if (sphereVisual != null)
@@ -191,6 +169,7 @@ public class BombProjectile : MonoBehaviour
             if (t.TryGetComponent(out AugumentStatus status))
             {
                 status.damage(finalDamage);
+                ObjectManager.Instance.hitUIflag = true;
             }
         }
 
@@ -250,5 +229,30 @@ public class BombProjectile : MonoBehaviour
     public void Initialize(Vector3 initialVelocity)
     {
         rb.linearVelocity = initialVelocity;
+        previousPos = transform.position;
+    }
+
+    bool HitTerrainBetweenPreviousAndCurrent(out Vector3 hitPoint)
+    {
+        hitPoint = transform.position;
+        Vector3 currentPos = transform.position;
+        Vector3 delta = currentPos - previousPos;
+        float distance = delta.magnitude;
+        if (distance <= 0.0001f) return false;
+
+        if (Physics.Raycast(
+            previousPos,
+            delta / distance,
+            out RaycastHit hit,
+            distance,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore) &&
+            hit.collider is TerrainCollider)
+        {
+            hitPoint = hit.point;
+            return true;
+        }
+
+        return false;
     }
 }

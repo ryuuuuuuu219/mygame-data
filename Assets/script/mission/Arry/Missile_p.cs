@@ -154,6 +154,14 @@ public class Missile_p : MonoBehaviour
     {
         Vector3 dir = (currentPos - previousPos).normalized;
         float dist = Vector3.Distance(previousPos, currentPos);
+        if (dist <= 0.0001f) return;
+
+        if (Physics.Raycast(previousPos, dir, out RaycastHit hit, dist, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) &&
+            hit.collider is TerrainCollider)
+        {
+            rangeover();
+            return;
+        }
 
         var enemys = ObjectManager.Instance.Enemies;
         foreach (var i in enemys)
