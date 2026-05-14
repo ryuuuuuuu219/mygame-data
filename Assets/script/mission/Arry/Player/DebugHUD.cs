@@ -679,10 +679,11 @@ public class DebugHUD : MonoBehaviour
             return; 
         }
 
-        Vector3 screenPos = mainCam.WorldToScreenPoint(target.transform.position);
+        Vector3 viewportPos = mainCam.WorldToViewportPoint(target.transform.position);
+        Vector3 screenPos = mainCam.ViewportToScreenPoint(viewportPos);
         float dist = Vector3.Distance(plane.transform.position, target.transform.position);
 
-        if (dist > detectRange || screenPos.z <= 0f)
+        if (dist > detectRange || !IsValidViewportPoint(viewportPos))
         {
             renderer.enabled = false;
             ClearTexts(container);
@@ -692,12 +693,21 @@ public class DebugHUD : MonoBehaviour
         // ===== UI（RectTransform）=====
         RectTransform canvasRect = cameraCanvas.GetComponent<RectTransform>();
 
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+        Camera uiCamera = cameraCanvas.renderMode == RenderMode.ScreenSpaceOverlay
+            ? null
+            : cameraCanvas.worldCamera;
+
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
             canvasRect,
             screenPos,
-            mainCam,
+            uiCamera,
             out Vector2 localPos
-        );
+        ))
+        {
+            renderer.enabled = false;
+            ClearTexts(container);
+            return;
+        }
 
         containerRect.localPosition = localPos;
 
@@ -723,6 +733,25 @@ public class DebugHUD : MonoBehaviour
 
         // ===== Text =====
         SetTexts(container, target, text);
+    }
+
+    bool IsValidViewportPoint(Vector3 viewportPos)
+    {
+        if (float.IsNaN(viewportPos.x) ||
+            float.IsNaN(viewportPos.y) ||
+            float.IsNaN(viewportPos.z) ||
+            float.IsInfinity(viewportPos.x) ||
+            float.IsInfinity(viewportPos.y) ||
+            float.IsInfinity(viewportPos.z))
+        {
+            return false;
+        }
+
+        return viewportPos.z > mainCam.nearClipPlane &&
+               viewportPos.x >= 0f &&
+               viewportPos.x <= 1f &&
+               viewportPos.y >= 0f &&
+               viewportPos.y <= 1f;
     }
 
     void ClearTexts(GameObject container)

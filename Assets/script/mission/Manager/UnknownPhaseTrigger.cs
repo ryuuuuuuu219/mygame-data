@@ -2,14 +2,14 @@ using UnityEngine;
 
 public class UnknownPhaseTrigger : MonoBehaviour
 {
-    M02DesignController controller;
+    UAVStorageMissionController controller;
     GameObject player;
     AugumentStatus status;
     float approachDistance;
     float initialHp;
     bool activated;
 
-    public void Initialize(M02DesignController owner, GameObject playerObject, float triggerDistance)
+    public void Initialize(UAVStorageMissionController owner, GameObject playerObject, float triggerDistance)
     {
         controller = owner;
         player = playerObject;

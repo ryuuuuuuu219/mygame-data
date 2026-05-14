@@ -307,67 +307,93 @@ public class CCIP : MonoBehaviour
         }
 
         float bulletSpeed = weapon.bulletSpeed;
+        if (bulletSpeed <= 0f)
+        {
+            gunMarker.gameObject.SetActive(false);
+            return;
+        }
 
-        Vector3 muzzlePos = plane.transform.position;
-        Vector3 bulletVel0 = rb.linearVelocity + plane.transform.forward * bulletSpeed;
+        Transform muzzle = weapon.gunMuzzle != null ? weapon.gunMuzzle : plane.transform;
+        Vector3 muzzlePos = muzzle.position;
+        Vector3 targetVelocity = GetTargetVelocity(tgt, targetStatus);
 
-        // 軽量反復で衝突予測
-        Vector3 interceptPoint = PredictIntercept(
+        if (!TryPredictGunAimPoint(
             muzzlePos,
-            bulletVel0,
+            rb.linearVelocity,
             tgt.transform.position,
-            targetStatus.Velocity,
-            bulletSpeed
-        );
+            targetVelocity,
+            bulletSpeed,
+            out Vector3 aimPoint))
+        {
+            gunMarker.gameObject.SetActive(false);
+            return;
+        }
 
-        // スクリーン座標に投影
-        Vector3 screenLead = mainCam.WorldToScreenPoint(interceptPoint);
-        Vector3 screenNose = mainCam.WorldToScreenPoint(muzzlePos + plane.transform.forward * 100f);
-
-        // 偏差オフセット
-        Vector3 offset = screenLead - screenNose;
-
-        // ガンリード = noseMarker + 偏差
-        gunMarker.position = screenNose + offset;
+        Vector3 screenLead = mainCam.WorldToScreenPoint(aimPoint);
+        gunMarker.position = screenLead;
         gunMarker.gameObject.SetActive(screenLead.z > 0);
     }
 
-    // ---------------------------------------
-    // 軽量衝突予測関数
-    Vector3 PredictIntercept(
+    Vector3 GetTargetVelocity(GameObject target, AugumentStatus targetStatus)
+    {
+        Rigidbody targetRb = target.GetComponent<Rigidbody>();
+        if (targetRb != null)
+            return targetRb.linearVelocity;
+
+        return targetStatus.Velocity / Mathf.Max(Time.deltaTime, 0.0001f);
+    }
+
+    bool TryPredictGunAimPoint(
         Vector3 muzzlePos,
-        Vector3 bulletVel0,
+        Vector3 shooterVelocity,
         Vector3 targetPos,
         Vector3 targetVel,
-        float bulletSpeed)
+        float bulletSpeed,
+        out Vector3 aimPoint)
     {
-        // 初期推定
-        float t = Vector3.Distance(muzzlePos, targetPos) / (bulletSpeed + rb.linearVelocity.magnitude);
+        Vector3 toTarget = targetPos - muzzlePos;
+        Vector3 relativeVelocity = targetVel - shooterVelocity;
 
-        Vector3 bulletFuture;
+        float a = Vector3.Dot(relativeVelocity, relativeVelocity) - bulletSpeed * bulletSpeed;
+        float b = 2f * Vector3.Dot(toTarget, relativeVelocity);
+        float c = Vector3.Dot(toTarget, toTarget);
 
-        // 5回程度の反復で十分
-        for (int i = 0; i < 5; i++)
+        if (!TrySolvePositiveInterceptTime(a, b, c, out float t))
         {
-            // ターゲット未来位置
-            Vector3 futureTarget = targetPos + targetVel * t;
-
-            // 弾道未来位置（重力あり）
-            bulletFuture = muzzlePos + bulletVel0 * t + 0.5f * Physics.gravity * t * t;
-
-            // 誤差小さければ打ち切り
-            if (Vector3.Distance(bulletFuture, futureTarget) < 1f)
-            {
-                return targetPos;
-            }
-
-            // 次の推定時間を更新
-            float dist = Vector3.Distance(muzzlePos, futureTarget);
-            t = dist / (bulletSpeed + rb.linearVelocity.magnitude);
+            aimPoint = Vector3.zero;
+            return false;
         }
-        bulletFuture = muzzlePos + bulletVel0 * t + 0.5f * Physics.gravity * t * t;
 
-        return bulletFuture - targetVel * t;
+        aimPoint = targetPos + targetVel * t;
+        return true;
+    }
+
+    bool TrySolvePositiveInterceptTime(float a, float b, float c, out float t)
+    {
+        const float epsilon = 0.0001f;
+        t = 0f;
+
+        if (Mathf.Abs(a) < epsilon)
+        {
+            if (Mathf.Abs(b) < epsilon) return false;
+
+            t = -c / b;
+            return t > epsilon;
+        }
+
+        float discriminant = b * b - 4f * a * c;
+        if (discriminant < 0f) return false;
+
+        float sqrt = Mathf.Sqrt(discriminant);
+        float t1 = (-b - sqrt) / (2f * a);
+        float t2 = (-b + sqrt) / (2f * a);
+
+        bool t1ok = t1 > epsilon;
+        bool t2ok = t2 > epsilon;
+        if (!t1ok && !t2ok) return false;
+
+        t = t1ok && t2ok ? Mathf.Min(t1, t2) : (t1ok ? t1 : t2);
+        return true;
     }
 
 }
