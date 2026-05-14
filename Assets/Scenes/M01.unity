@@ -986,11 +986,6 @@ Terrain:
   m_EnableHeightmapRayTracing: 1
   m_EnableTreesAndDetailsRayTracing: 0
   m_TreeMotionVectorModeOverride: 3
---- !u!1 &219998402 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8923875824590251343, guid: 0ad90a41f8330d14ea6c0d46e26566d6, type: 3}
-  m_PrefabInstance: {fileID: 1124059568}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &220738460
 GameObject:
   m_ObjectHideFlags: 0
@@ -1249,6 +1244,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpawnPlacementManager
   prefabRegistry: {fileID: 245426233}
+  worldGenerator: {fileID: 0}
 --- !u!114 &245426233
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1664,13 +1660,15 @@ MonoBehaviour:
   cloudMinAltitude: 900
   cloudMaxAltitude: 1600
   cloudAreaPadding: 150
-  cloudParticleCount: 400
-  cloudHeight: 420
-  cloudBaseRadius: 320
-  cloudTopRadius: 220
-  cloudBulge: 240
-  cloudShapeScale: 10
-  cloudParticleSizeScale: 5
+  cloudSizeX: 18
+  cloudSizeY: 26
+  cloudSizeZ: 18
+  cloudCellSize: 55
+  cloudCellularSteps: 4
+  cloudInitialFillRate: 0.42
+  cloudAlpha: 0.3
+  cloudAngleFadePower: 2
+  cloudMinAngleAlphaFactor: 0.12
   playerHueShift: 0
   playerSaturation: 0.8
   playerValue: 0.6
@@ -2524,11 +2522,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3958602714798318470, guid: a8f39d91b5109fc419044e9b4c30a6af, type: 3}
   m_PrefabInstance: {fileID: 590190206}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &610255292 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8923875824590251343, guid: 0ad90a41f8330d14ea6c0d46e26566d6, type: 3}
-  m_PrefabInstance: {fileID: 860901830}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &611650106
 GameObject:
   m_ObjectHideFlags: 0
@@ -3175,7 +3168,7 @@ Transform:
   m_GameObject: {fileID: 796543696}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 863.12, z: -1200}
+  m_LocalPosition: {x: 0, y: 700, z: -3200}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -9849,11 +9842,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1098930380 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8923875824590251343, guid: 0ad90a41f8330d14ea6c0d46e26566d6, type: 3}
-  m_PrefabInstance: {fileID: 2031473087}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1124059568
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11294,17 +11282,12 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1459937818}
   m_CullTransparentMesh: 1
---- !u!1 &1469356796 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8923875824590251343, guid: 0ad90a41f8330d14ea6c0d46e26566d6, type: 3}
-  m_PrefabInstance: {fileID: 1930456648}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1469356797 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5949140234686369841, guid: 0ad90a41f8330d14ea6c0d46e26566d6, type: 3}
   m_PrefabInstance: {fileID: 1930456648}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1469356796}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 062268485fcb2644696721d969d9ceb1, type: 3}
@@ -15034,11 +15017,6 @@ CanvasRenderer:
 GameObject:
   m_CorrespondingSourceObject: {fileID: 287339356655383430, guid: a8f39d91b5109fc419044e9b4c30a6af, type: 3}
   m_PrefabInstance: {fileID: 2107987103}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &2098113285 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8923875824590251343, guid: 0ad90a41f8330d14ea6c0d46e26566d6, type: 3}
-  m_PrefabInstance: {fileID: 1132775388}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2100707015
 PrefabInstance:

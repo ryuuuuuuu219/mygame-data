@@ -407,7 +407,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyMissileShooter_longrange
   missileHardpoint: {fileID: 3958602714798318470}
-  vlsFirstStagePrefab: {fileID: 0}
+  vlsFirstStagePrefab: {fileID: 8541818180842832201, guid: 81243469fee040fa88dbdab43594f6a4, type: 3}
   missileSpeed: 260
   missileCooldown: 3
   missileLifeTime: 24
@@ -415,7 +415,7 @@ MonoBehaviour:
   missileAcceleration: 35
   missileMaxSpeed: 360
   missileTurnRate: 45
-  missileBreakAngle: 90
+  missileBreakAngle: 12
   missileProportionalConstant: 3
   requireLineOfSight: 1
   lineOfSightMask:

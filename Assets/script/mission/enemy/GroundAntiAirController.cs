@@ -42,7 +42,12 @@ public class GroundAntiAirController : MonoBehaviour
             missileShooter.TryFire(direction, platformVelocity, targetSelector.target.transform);
 
         if (useMissile && longrangeMissileShooter != null)
-            longrangeMissileShooter.TryFire(direction, platformVelocity, targetSelector.target.transform);
+            longrangeMissileShooter.TryFire(
+                direction,
+                platformVelocity,
+                targetSelector.target.transform,
+                targetSelector.IsAirsuppression
+            );
     }
 
     Vector3 GetPlatformVelocity()

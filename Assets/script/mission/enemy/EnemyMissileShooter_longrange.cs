@@ -27,11 +27,11 @@ public class EnemyMissileShooter_longrange : MonoBehaviour
 
     float nextMissileTime;
 
-    public void TryFire(Vector3 direction, Vector3 platformVelocity, Transform target)
+    public void TryFire(Vector3 direction, Vector3 platformVelocity, Transform target, bool ignoreLineOfSight = false)
     {
         if (Time.time < nextMissileTime) return;
         if (direction.sqrMagnitude <= 0.001f) return;
-        if (requireLineOfSight && !HasLineOfSight(target)) return;
+        if (!ignoreLineOfSight && requireLineOfSight && !HasLineOfSight(target)) return;
 
         Fire(direction.normalized, platformVelocity, target);
         nextMissileTime = Time.time + missileCooldown;
@@ -72,13 +72,9 @@ public class EnemyMissileShooter_longrange : MonoBehaviour
             bulletpool = FindFirstObjectByType<Gun_e_pool>();
         if (bulletpool == null) return;
 
-        Vector3 direction = target.position - launchPosition;
-        if (direction.sqrMagnitude <= 0.001f)
-            direction = Vector3.up;
-
-        direction.Normalize();
+        Vector3 direction = CalculateSecondStageDirection(target, launchPosition);
         Vector3 velocity = platformVelocity + direction * missileSpeed;
-        GameObject missileObject = bulletpool.missilepull(missileHardpoint.position, velocity, missileLifeTime);
+        GameObject missileObject = bulletpool.missilepull(launchPosition, velocity, missileLifeTime);
         Missile missile = missileObject.GetComponent<Missile>();
 
         if (missile == null) return;
@@ -94,6 +90,15 @@ public class EnemyMissileShooter_longrange : MonoBehaviour
         );
         missile.isheatseeker = false;
         missile.target = target;
+    }
+
+    Vector3 CalculateSecondStageDirection(Transform target, Vector3 launchPosition)
+    {
+        Vector3 direction = target.position - launchPosition;
+        if (direction.sqrMagnitude <= 0.001f)
+            return Vector3.up;
+
+        return ClampLaunchDirection(direction.normalized);
     }
 
     Vector3 ClampLaunchDirection(Vector3 direction)
