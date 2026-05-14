@@ -327,7 +327,7 @@ public class SetupUI : MonoBehaviour
         }
 
         var detail = WeaponStorage.BuildDetailColumns(weapon, detailPage);
-        hudText.text = detail.title + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+        hudText.text = detail.title + GetEquippedLabel(weapon) + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
         hudText.text += $"ページ {detailPage + 1}/3 {GetPageName()} </>\n";
         hudText.text += $"ID {CurrentIndex() + 1}/{list.Count} ↑/↓";
         SetSplitText(
@@ -370,6 +370,24 @@ public class SetupUI : MonoBehaviour
             case ScreenMode.Gun: return "機銃を選択します";
             case ScreenMode.SpecialWeapon: return "特殊兵装を選択します";
             default: return "";
+        }
+    }
+
+    string GetEquippedLabel(WeaponDropData weapon)
+    {
+        if (weapon == null || !weapon.equipped) return "";
+
+        if (screenMode != ScreenMode.SpecialWeapon)
+            return " [装備中]";
+
+        switch ((WeaponDropType)weapon.weaponTypeId)
+        {
+            case WeaponDropType.UGB:
+                return " [装備中1]";
+            case WeaponDropType.nAAM:
+                return " [装備中2]";
+            default:
+                return " [装備中]";
         }
     }
 

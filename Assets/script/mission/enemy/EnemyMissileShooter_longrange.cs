@@ -65,19 +65,20 @@ public class EnemyMissileShooter_longrange : MonoBehaviour
         );
     }
 
-    public void LaunchSecondStage(Transform target, Vector3 platformVelocity, Vector3 launchPosition)
+    public bool LaunchSecondStage(Transform target, Vector3 platformVelocity, Vector3 launchPosition, out Missile launchedMissile)
     {
-        if (!IsAlive(target)) return;
+        launchedMissile = null;
+        if (!IsAlive(target)) return false;
         if (bulletpool == null)
             bulletpool = FindFirstObjectByType<Gun_e_pool>();
-        if (bulletpool == null) return;
+        if (bulletpool == null) return false;
 
         Vector3 direction = CalculateSecondStageDirection(target, launchPosition);
         Vector3 velocity = platformVelocity + direction * missileSpeed;
         GameObject missileObject = bulletpool.missilepull(launchPosition, velocity, missileLifeTime);
         Missile missile = missileObject.GetComponent<Missile>();
 
-        if (missile == null) return;
+        if (missile == null) return false;
 
         missile.missileInit(launchPosition, velocity, missileLifeTime);
         missile.StatusSetting(
@@ -90,6 +91,8 @@ public class EnemyMissileShooter_longrange : MonoBehaviour
         );
         missile.isheatseeker = false;
         missile.target = target;
+        launchedMissile = missile;
+        return true;
     }
 
     Vector3 CalculateSecondStageDirection(Transform target, Vector3 launchPosition)
@@ -182,8 +185,38 @@ public class VlsFirstStageMissileUnit : MonoBehaviour
         if (Vector3.Distance(startPosition, transform.position) < riseDistance)
             return;
 
-        if (launcher != null && target != null)
-            launcher.LaunchSecondStage(target, platformVelocity, transform.position);
+        if (launcher != null && target != null &&
+            launcher.LaunchSecondStage(target, platformVelocity, transform.position, out Missile missile) &&
+            missile != null)
+        {
+            transform.SetParent(missile.transform, true);
+            enabled = false;
+            Destroy(gameObject, GetTrailRetentionTime());
+            return;
+        }
+
         Destroy(gameObject);
+    }
+
+    float GetTrailRetentionTime()
+    {
+        float retentionTime = 0f;
+
+        foreach (var trail in GetComponentsInChildren<TrailRenderer>())
+        {
+            if (trail == null) continue;
+            trail.emitting = false;
+            retentionTime = Mathf.Max(retentionTime, trail.time);
+        }
+
+        foreach (var particle in GetComponentsInChildren<ParticleSystem>())
+        {
+            if (particle == null) continue;
+            particle.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+            var main = particle.main;
+            retentionTime = Mathf.Max(retentionTime, main.duration + main.startLifetime.constantMax);
+        }
+
+        return Mathf.Max(0.1f, retentionTime);
     }
 }

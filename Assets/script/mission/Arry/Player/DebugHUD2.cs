@@ -6,6 +6,7 @@ public class DebugHUD2 : MonoBehaviour
     public AlartSystem alartSystem;
     public AugumentStatus status;
     public TextMeshProUGUI hpText;
+    TextMeshProUGUI scoreTimeText;
 
 
     public GameObject alarttextUI;
@@ -19,8 +20,15 @@ public class DebugHUD2 : MonoBehaviour
 
     public WeaponSystem weaponSystem;
 
+    void Start()
+    {
+        CreateScoreTimeText();
+    }
+
     private void LateUpdate()
     {
+        UpdateScoreTimeText();
+
         if (spawnTableManager.isStageClear)
         {
             altTimerUI.GetComponent<TextMeshProUGUI>().text = "Stage Clear!" +
@@ -112,5 +120,44 @@ public class DebugHUD2 : MonoBehaviour
         {
             hitUI.GetComponent<TextMeshProUGUI>().text = "";
         }
+    }
+
+    void CreateScoreTimeText()
+    {
+        if (scoreTimeText != null) return;
+
+        Canvas parentCanvas = hpText != null ? hpText.GetComponentInParent<Canvas>() : FindFirstObjectByType<Canvas>();
+        if (parentCanvas == null) return;
+
+        var obj = new GameObject("ScoreTimeText", typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        obj.transform.SetParent(parentCanvas.transform, false);
+
+        var rect = obj.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0f, 1f);
+        rect.anchoredPosition = new Vector2(20f, -20f);
+        rect.sizeDelta = new Vector2(360f, 90f);
+
+        scoreTimeText = obj.GetComponent<TextMeshProUGUI>();
+        scoreTimeText.fontSize = 24f;
+        scoreTimeText.alignment = TextAlignmentOptions.TopLeft;
+        scoreTimeText.raycastTarget = false;
+        scoreTimeText.text = "";
+    }
+
+    void UpdateScoreTimeText()
+    {
+        if (scoreTimeText == null)
+            CreateScoreTimeText();
+        if (scoreTimeText == null) return;
+
+        float score = ObjectManager.Instance != null ? ObjectManager.Instance.score : 0f;
+        float timePenalty = spawnTableManager != null ? Time.time * spawnTableManager.Weight_time : Time.time;
+
+        scoreTimeText.text =
+            "Score: " + score.ToString("F0") +
+            "\nTime: " + Time.time.ToString("F1") + "s" +
+            "\nTime Penalty: -" + timePenalty.ToString("F0");
     }
 }

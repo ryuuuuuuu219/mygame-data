@@ -286,7 +286,7 @@ public class SpawnTableManager : MonoBehaviour
         PlayerPrefs.SetFloat("TimeBonus", Time.time * Weight_time);
 
         Player.GetComponent<AugumentStatus>().TryGetHP(out float hp, out float max);
-        PlayerPrefs.SetFloat("hpBonus", hp * Weight_hp);
+        PlayerPrefs.SetFloat("HpRate", max > 0f ? Mathf.Clamp01(hp / max) : 0f);
         PlayerPrefs.Save();
 
         isStageClear = true;

@@ -14,6 +14,8 @@ public class Missile : MonoBehaviour
     public float turnRate = 90f; // 最大旋回速度 (deg/sec)
     public float breakAngle = 90f; // 誘導解除角度 (deg)
     public float ProportionalConstant = 3f; // 比例航法定数
+    public float turnRateDecay = 1f; // 誘導力減衰率 (deg/sec/sec)
+    public float totalDeltaTheta = 90f; // 累積誘導旋回角度上限 (deg)
 
     [Header("内部状態")]
     private Vector3 previousPos;
@@ -24,6 +26,8 @@ public class Missile : MonoBehaviour
 
     private List<GameObject> allies;
     private Vector3 lastDirToTarget;
+    private float currentTurnRate;
+    private float usedDeltaTheta;
 
     public bool isheatseeker = true;
 
@@ -42,10 +46,18 @@ public class Missile : MonoBehaviour
         speed = startVelocity.magnitude;
 
         newDir = velocity.normalized;
+        lastDirToTarget = Vector3.zero;
+        currentTurnRate = turnRate;
+        usedDeltaTheta = 0f;
         gameObject.SetActive(true);
     }
 
     public void StatusSetting(float Power, float accel, float maxspe, float turn, float breakAng, float pConst)
+    {
+        StatusSetting(Power, accel, maxspe, turn, breakAng, pConst, turnRateDecay, totalDeltaTheta);
+    }
+
+    public void StatusSetting(float Power, float accel, float maxspe, float turn, float breakAng, float pConst, float turnDecay, float totalTheta)
     {
         power = Power;
 
@@ -55,6 +67,10 @@ public class Missile : MonoBehaviour
         turnRate = turn;
         breakAngle = breakAng;
         ProportionalConstant = pConst;
+        turnRateDecay = turnDecay;
+        totalDeltaTheta = totalTheta;
+        currentTurnRate = turnRate;
+        usedDeltaTheta = 0f;
     }
 
     void FixedUpdate()
@@ -90,11 +106,19 @@ public class Missile : MonoBehaviour
                 Vector3 rotAxis = LOSrate.normalized;
                 float rotMag = LOSrate.magnitude * ProportionalConstant * Mathf.Rad2Deg / Time.fixedDeltaTime;
 
-                // 旋回速度上限
-                rotMag = Mathf.Min(rotMag, turnRate);
+                float remainingTheta = Mathf.Max(0f, totalDeltaTheta - usedDeltaTheta);
+                currentTurnRate = Mathf.Max(0f, currentTurnRate - turnRateDecay * Time.fixedDeltaTime);
+
+                // 旋回速度上限と累積旋回角度上限
+                rotMag = Mathf.Min(rotMag, currentTurnRate);
+                float frameDeltaTheta = Mathf.Min(rotMag * Time.fixedDeltaTime, remainingTheta);
 
                 // 進行方向更新
-                newDir = Quaternion.AngleAxis(rotMag * Time.fixedDeltaTime, rotAxis) * velocity.normalized;
+                if (frameDeltaTheta > 0f)
+                {
+                    newDir = Quaternion.AngleAxis(frameDeltaTheta, rotAxis) * velocity.normalized;
+                    usedDeltaTheta += frameDeltaTheta;
+                }
             }
 
             lastDirToTarget = dirToTarget;
