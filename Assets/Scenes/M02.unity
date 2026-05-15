@@ -619,6 +619,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afc0b097b3657ed46a8b5a54377cba56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  normalHudColor: {r: 0, g: 1, b: 0, a: 1}
+  missileAlertHudColor: {r: 1, g: 0, b: 0, a: 1}
   alartSystem: {fileID: 796543708}
   status: {fileID: 796543710}
   hpText: {fileID: 1487593356}
@@ -1222,7 +1224,7 @@ MonoBehaviour:
   enemies: []
   spawnPlacementManager: {fileID: 245426232}
   disableSceneEnemiesOnStart: 1
-  jsonUrl: 'https://ryuuuuuuu219.github.io/mygame-data/stage_spawns.json '
+  jsonUrl: https://ryuuuuuuu219.github.io/mygame-data/Assets/StreamingAssets/stage_spawns.json
   isUseRemoteJSON: 0
   isInit: 0
   isStageClear: 0
@@ -11905,7 +11907,6 @@ MonoBehaviour:
   friendColor: {r: 0, g: 1, b: 1, a: 1}
   enemyColor: {r: 0, g: 1, b: 0, a: 1}
   targetColor: {r: 1, g: 0, b: 0, a: 1}
-  missileAlertColor: {r: 1, g: 0, b: 0, a: 1}
   detectRange: 3000
   radarRadius: 100
   arrysUI: []

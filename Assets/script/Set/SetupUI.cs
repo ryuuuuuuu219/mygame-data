@@ -66,7 +66,10 @@ public class SetupUI : MonoBehaviour
         }
         EnsureSplitTextObjects();
 
+        RemoveUnavailableScenes();
         selectedstage = PlayerPrefs.GetInt("selectedstage", 0);
+        selectedstage = ClampIndex(selectedstage, scene_name.Count);
+        PlayerPrefs.SetInt("selectedstage", selectedstage);
         stdmIndex = PlayerPrefs.GetInt(StdIndexKey, 0);
         gunIndex = PlayerPrefs.GetInt(GunIndexKey, 0);
         spwIndex = PlayerPrefs.GetInt(SpwIndexKey, 0);
@@ -251,8 +254,32 @@ public class SetupUI : MonoBehaviour
 
         if (selectedstage >= 0 && selectedstage < scene_name.Count)
         {
-            SceneManager.LoadScene(scene_name[selectedstage]);
+            string sceneName = scene_name[selectedstage];
+            if (IsSceneAvailable(sceneName))
+                SceneManager.LoadScene(sceneName);
+            else
+                Debug.LogError("[SetupUI] Scene is not available in build settings: " + sceneName);
         }
+    }
+
+    void RemoveUnavailableScenes()
+    {
+        for (int i = scene_name.Count - 1; i >= 0; i--)
+        {
+            if (!IsSceneAvailable(scene_name[i]))
+            {
+                Debug.LogWarning("[SetupUI] Removed unavailable scene from sortie list: " + scene_name[i]);
+                scene_name.RemoveAt(i);
+            }
+        }
+    }
+
+    bool IsSceneAvailable(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName))
+            return false;
+
+        return SceneUtility.GetBuildIndexByScenePath("Assets/Scenes/" + sceneName + ".unity") >= 0;
     }
 
     void Repeat(System.Action action)

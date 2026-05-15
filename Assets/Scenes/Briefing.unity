@@ -744,7 +744,6 @@ MonoBehaviour:
   hudText: {fileID: 1345541830}
   stage_name:
   - M01
-  - MVP
   - M02
   selectedstage: 0
 --- !u!1660057539 &9223372036854775807

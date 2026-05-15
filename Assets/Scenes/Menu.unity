@@ -699,13 +699,19 @@ MonoBehaviour:
   fireMissile: 0
   changeWeapon: 0
   targetChange: 0
+  north: 0
+  south: 0
+  west: 0
+  east: 0
   up: 0
   down: 0
   left: 0
   right: 0
   stickL: 0
   stickR: 0
+  l1: 0
   altl2: 0
+  r1: 0
   altr2: 0
   menu: 0
 --- !u!4 &1855472784
@@ -738,7 +744,6 @@ MonoBehaviour:
   hudText: {fileID: 1345541830}
   stage_name:
   - M01
-  - MVP
   - M02
   selectedstage: 0
 --- !u!1660057539 &9223372036854775807

@@ -171,8 +171,10 @@ public class SpawnTableManager : MonoBehaviour
                 if (request.result == UnityWebRequest.Result.Success)
                 {
                     Debug.Log("[SpawnTableManager] Loaded JSON from Remote");
-                    ParseJSON(request.downloadHandler.text);
-                    yield break;
+                    if (TryParseJSON(request.downloadHandler.text, "Remote"))
+                        yield break;
+
+                    Debug.LogWarning("[SpawnTableManager] Remote JSON parse failed. Fallback to StreamingAssets.");
                 }
                 else
                 {
@@ -196,18 +198,34 @@ public class SpawnTableManager : MonoBehaviour
             }
 
             Debug.Log("[SpawnTableManager] Loaded JSON from StreamingAssets");
-            ParseJSON(request.downloadHandler.text);
+            TryParseJSON(request.downloadHandler.text, "StreamingAssets");
         }
 
     }
-    void ParseJSON(string json)
+    bool TryParseJSON(string json, string source)
     {
-        stageRoot = JsonUtility.FromJson<StageRoot>(json);
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            Debug.LogError($"[SpawnTableManager] {source} JSON is empty.");
+            return false;
+        }
+
+        json = SanitizeJson(json);
+
+        try
+        {
+            stageRoot = JsonUtility.FromJson<StageRoot>(json);
+        }
+        catch (System.ArgumentException ex)
+        {
+            Debug.LogError($"[SpawnTableManager] {source} JSON parse error: {ex.Message}\nPreview: {BuildJsonPreview(json)}");
+            return false;
+        }
 
         if (stageRoot == null || stageRoot.stages == null)
         {
-            Debug.LogError("[SpawnTableManager] JSON parse failed or no stages found");
-            return;
+            Debug.LogError($"[SpawnTableManager] {source} JSON parse failed or no stages found.\nPreview: {BuildJsonPreview(json)}");
+            return false;
         }
 
         Debug.Log($"[SpawnTableManager] Loaded {stageRoot.stages.Count} stages from JSON");
@@ -217,6 +235,21 @@ public class SpawnTableManager : MonoBehaviour
         }
 
         InitializeStage();
+        return true;
+    }
+
+    string SanitizeJson(string json)
+    {
+        return json.Trim('\uFEFF', '\u200B', '\u0000', ' ', '\r', '\n', '\t');
+    }
+
+    string BuildJsonPreview(string json)
+    {
+        if (string.IsNullOrEmpty(json))
+            return "";
+
+        int length = Mathf.Min(180, json.Length);
+        return json.Substring(0, length).Replace("\r", "\\r").Replace("\n", "\\n");
     }
 
     void InitializeStage()

@@ -20,10 +20,14 @@ public class selectmenuUI : MonoBehaviour
     void Start()
     {
         Time.timeScale = 1f;
+        RemoveUnavailableStages();
         if (SceneManager.GetActiveScene().name == "Briefing")
         {
             selectedstage = PlayerPrefs.GetInt("selectedstage", 0);
         }
+
+        selectedstage = ClampStageIndex(selectedstage);
+        PlayerPrefs.SetInt("selectedstage", selectedstage);
     }
 
     bool maruflag = false;
@@ -146,7 +150,6 @@ public class selectmenuUI : MonoBehaviour
     readonly Dictionary<string, string> missionText = new Dictionary<string, string>()
     {
         {"M01","対空陣地中央の長射程地対空ミサイルを破壊せよ\n一定高度（900）以上を飛ぶと目標から長距離ミサイルが飛んでくるので低空侵入を推奨する" },
-        {"MVP","対空陣地中央の長射程地対空ミサイルを破壊せよ\n一定高度（900）以上を飛ぶと目標から長距離ミサイルが飛んでくるので低空侵入を推奨する" },
         {"M02","作戦空域内の未確認物体を強行偵察せよ" }
     };
 
@@ -208,8 +211,15 @@ public class selectmenuUI : MonoBehaviour
         if (!File.Exists(path))
             return;
 
-        string json = File.ReadAllText(path);
-        stageRoot = JsonUtility.FromJson<StageRoot>(json);
+        string json = File.ReadAllText(path).Trim('\uFEFF', '\u200B', '\u0000', ' ', '\r', '\n', '\t');
+        try
+        {
+            stageRoot = JsonUtility.FromJson<StageRoot>(json);
+        }
+        catch (System.ArgumentException ex)
+        {
+            Debug.LogError("[selectmenuUI] stage_spawns.json parse error: " + ex.Message);
+        }
     }
 
     string GenerateDescription(StageData stageData)
@@ -344,6 +354,9 @@ public class selectmenuUI : MonoBehaviour
 
     void StageChange(float value)
     {
+        if (stage_name.Count == 0)
+            return;
+
         bool increase = value > 0;
         int numSubjects = stage_name.Count - 1;
         if (increase)
@@ -356,6 +369,34 @@ public class selectmenuUI : MonoBehaviour
             selectedstage--;
             if (selectedstage < 0) selectedstage = numSubjects;
         }
+    }
+
+    void RemoveUnavailableStages()
+    {
+        for (int i = stage_name.Count - 1; i >= 0; i--)
+        {
+            if (!IsSceneAvailable(stage_name[i]))
+            {
+                Debug.LogWarning("[selectmenuUI] Removed unavailable stage from list: " + stage_name[i]);
+                stage_name.RemoveAt(i);
+            }
+        }
+    }
+
+    bool IsSceneAvailable(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName))
+            return false;
+
+        return SceneUtility.GetBuildIndexByScenePath("Assets/Scenes/" + sceneName + ".unity") >= 0;
+    }
+
+    int ClampStageIndex(int index)
+    {
+        if (stage_name.Count <= 0)
+            return 0;
+
+        return Mathf.Clamp(index, 0, stage_name.Count - 1);
     }
 }
 
