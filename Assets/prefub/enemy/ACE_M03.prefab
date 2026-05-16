@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 4665868336162120001}
   - component: {fileID: 5949140234686369841}
   m_Layer: 0
-  m_Name: Ace
+  m_Name: ACE_M03
   m_TagString: enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -276,6 +276,7 @@ MonoBehaviour:
   hp: 0
   maxhp: 100
   lifeTime: 10
+  preferInspectorStatus: 1
   CurrentStatus:
     statusdic:
     - pageName: Aircraft
@@ -285,7 +286,7 @@ MonoBehaviour:
           min: 100
           max: 5000
           step: 10
-        value: 0
+        value: 1000
       - key: "\u6A5F\u52D5\u6027(\u30D4\u30C3\u30C1)"
         range:
           min: 4
@@ -315,7 +316,7 @@ MonoBehaviour:
           min: 300
           max: 800
           step: 5
-        value: 0
+        value: 500
     - pageName: Gun
       stats:
       - key: "\u9283\u5F3E\uFF1A\u767A\u5C04\u30EC\u30FC\u30C8"
@@ -323,7 +324,7 @@ MonoBehaviour:
           min: 1
           max: 60
           step: 0.1
-        value: 0
+        value: 8
       - key: "\u9283\u5F3E\uFF1A\u5C04\u7A0B"
         range:
           min: 450
@@ -335,7 +336,7 @@ MonoBehaviour:
           min: 30
           max: 150
           step: 1
-        value: 0
+        value: 1
       - key: "\u9283\u5F3E\uFF1A\u5F53\u305F\u308A\u5224\u5B9A\u30B5\u30A4\u30BA"
         range:
           min: 3
@@ -353,7 +354,7 @@ MonoBehaviour:
           min: 100
           max: 1200
           step: 5
-        value: 0
+        value: 400
     - pageName: StandardMissile
       stats:
       - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u521D\u901F"
@@ -361,17 +362,17 @@ MonoBehaviour:
           min: 100
           max: 600
           step: 5
-        value: 0
-      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u5A01\u529B"
-        range:
-          min: 50
-          max: 200
-          step: 5
-        value: 0
+        value: 100
       - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u6700\u9AD8\u901F"
         range:
           min: 100
           max: 800
+          step: 5
+        value: 600
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u5A01\u529B"
+        range:
+          min: 50
+          max: 200
           step: 5
         value: 0
       - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u52A0\u901F\u5EA6"
@@ -379,7 +380,7 @@ MonoBehaviour:
           min: 0
           max: 100
           step: 1
-        value: 0
+        value: 4
       - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u8A98\u5C0E\u529B"
         range:
           min: 45

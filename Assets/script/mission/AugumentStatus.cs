@@ -21,6 +21,8 @@ public class AugumentStatus : MonoBehaviour
     public float hp,maxhp = 100;
     public float lifeTime = 10f;
 
+    [Header("Status Overrides")]
+    public bool preferInspectorStatus = true;
     
     public StatusTable CurrentStatus;
     public bool TryGetHP(out float current, out float max)
@@ -84,11 +86,18 @@ public class AugumentStatus : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        StatusTable inspectorStatus = CurrentStatus;
         CurrentStatus = new StatusTable();
+
         if (isPlayer)
         {
             WeaponStorage.ApplyEquippedToPlayerPrefs();
             CurrentStatus = Clone_player();
+        }
+
+        if (preferInspectorStatus)
+        {
+            ApplyInspectorOverrides(CurrentStatus, inspectorStatus);
         }
 
         if (CurrentStatus != null)
@@ -140,6 +149,46 @@ public class AugumentStatus : MonoBehaviour
         }
         return clone;
     }
+
+    void ApplyInspectorOverrides(StatusTable target, StatusTable inspector)
+    {
+        if (target == null || inspector?.statusdic == null) return;
+
+        foreach (var page in inspector.statusdic)
+        {
+            if (page?.stats == null) continue;
+
+            foreach (var stat in page.stats)
+            {
+                if (stat == null || string.IsNullOrEmpty(stat.key)) continue;
+                if (Mathf.Approximately(stat.value, 0f)) continue;
+
+                var targetStat = TryGetStat(target, page.pageName, stat.key);
+                if (targetStat == null) continue;
+
+                targetStat.range = stat.range;
+                targetStat.value = stat.value;
+            }
+        }
+    }
+
+    StatEntry TryGetStat(StatusTable table, string pageName, string key)
+    {
+        if (table?.statusdic == null) return null;
+
+        foreach (var page in table.statusdic)
+        {
+            if (page == null || page.pageName != pageName || page.stats == null) continue;
+
+            foreach (var stat in page.stats)
+            {
+                if (stat != null && stat.key == key) return stat;
+            }
+        }
+
+        return null;
+    }
+
     public StatusTable Clone_player()
     {
         var clone = new StatusTable();

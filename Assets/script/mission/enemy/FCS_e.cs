@@ -291,7 +291,7 @@ public class FCS_e : MonoBehaviour
             bulletpool = FindFirstObjectByType<Gun_e_pool>();
         if (rb == null || bulletpool == null) return;
 
-        Vector3 velocity = rb.linearVelocity + transform.forward * bulletSpeed;
+        Vector3 velocity = rb.linearVelocity + transform.forward * missileSpeed;
         GameObject MSL = bulletpool.missilepull(missileHardpoint.position, velocity, 10f);
         Missile missile = MSL.GetComponent<Missile>();
         if (missile != null && target != null)

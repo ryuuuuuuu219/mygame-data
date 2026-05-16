@@ -99,11 +99,7 @@ public class DebugHUD : MonoBehaviour
         detectPairs = new ();
 
         status = plane.GetComponent<AugumentStatus>();
-        enemyNameConverter = GetComponent<EnemyNameConverterToUI>();
-        if (enemyNameConverter == null)
-        {
-            enemyNameConverter = FindFirstObjectByType<EnemyNameConverterToUI>();
-        }
+        enemyNameConverter = EnsureEnemyNameConverter();
 
         if (status.IsInitialized)
         {
@@ -746,10 +742,27 @@ public class DebugHUD : MonoBehaviour
     {
         if (enemyNameConverter == null)
         {
-            enemyNameConverter = FindFirstObjectByType<EnemyNameConverterToUI>();
+            enemyNameConverter = EnsureEnemyNameConverter();
         }
 
-        return enemyNameConverter != null ? enemyNameConverter.converter(obj) : obj.name;
+        return enemyNameConverter.converter(obj);
+    }
+
+    EnemyNameConverterToUI EnsureEnemyNameConverter()
+    {
+        EnemyNameConverterToUI converter = GetComponent<EnemyNameConverterToUI>();
+        if (converter != null)
+        {
+            return converter;
+        }
+
+        converter = FindFirstObjectByType<EnemyNameConverterToUI>();
+        if (converter != null)
+        {
+            return converter;
+        }
+
+        return gameObject.AddComponent<EnemyNameConverterToUI>();
     }
 
     bool IsValidViewportPoint(Vector3 viewportPos)
