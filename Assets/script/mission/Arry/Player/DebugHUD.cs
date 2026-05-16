@@ -53,6 +53,7 @@ public class DebugHUD : MonoBehaviour
     AircraftController ac; 
 
     AugumentStatus status;
+    EnemyNameConverterToUI enemyNameConverter;
 
     List<(GameObject obj, LineRenderer lr, GameObject boundTarget)> conteiners;
 
@@ -98,6 +99,12 @@ public class DebugHUD : MonoBehaviour
         detectPairs = new ();
 
         status = plane.GetComponent<AugumentStatus>();
+        enemyNameConverter = GetComponent<EnemyNameConverterToUI>();
+        if (enemyNameConverter == null)
+        {
+            enemyNameConverter = FindFirstObjectByType<EnemyNameConverterToUI>();
+        }
+
         if (status.IsInitialized)
         {
             InitFromStatus();
@@ -607,7 +614,7 @@ public class DebugHUD : MonoBehaviour
                 }
                     UpdateContainer(idx, obj,
                         isLocked ? Color.red : Color.green,
-                        obj.name + "\n" +
+                        ConvertEnemyName(obj) + "\n" +
                         $"{Vector3.Distance(plane.transform.position, obj.transform.position):F1}m" + "\n" +
                         hptext);
 
@@ -733,6 +740,16 @@ public class DebugHUD : MonoBehaviour
 
         // ===== Text =====
         SetTexts(container, target, text);
+    }
+
+    string ConvertEnemyName(GameObject obj)
+    {
+        if (enemyNameConverter == null)
+        {
+            enemyNameConverter = FindFirstObjectByType<EnemyNameConverterToUI>();
+        }
+
+        return enemyNameConverter != null ? enemyNameConverter.converter(obj) : obj.name;
     }
 
     bool IsValidViewportPoint(Vector3 viewportPos)

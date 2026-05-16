@@ -295,6 +295,7 @@ public class selectmenuUI : MonoBehaviour
                 return "地対空ミサイル";
             case "LASM":
                 return "長射程地対空ミサイル";
+            case "ace_m03":
             case "fighter":
             case "fighter_m03_special":
                 return "敵航空機";

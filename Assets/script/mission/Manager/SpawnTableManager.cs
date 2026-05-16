@@ -20,8 +20,10 @@ public class SpawnTableManager : MonoBehaviour
 
     private StageRoot stageRoot;
     private StageData currentStage;
+    private float missionStartTime;
 
     public int currentWave = 0;
+    public float MissionElapsedTime => isInit ? Mathf.Max(0f, Time.time - missionStartTime) : 0f;
 
     public class WaveRuntime
     {
@@ -289,6 +291,7 @@ public class SpawnTableManager : MonoBehaviour
         }
 
         spawnPlacementManager.SetRandomSeed(currentStage.randomSeed);
+        missionStartTime = Time.time;
         isInit = true;
 
     }
@@ -344,6 +347,7 @@ public class SpawnTableManager : MonoBehaviour
         }
 
         spawnPlacementManager.SetRandomSeed(currentStage.randomSeed);
+        missionStartTime = Time.time;
         isInit = true;
     }
 
@@ -406,7 +410,7 @@ public class SpawnTableManager : MonoBehaviour
         float currentScore = ObjectManager.Instance.score;
         PlayerPrefs.SetFloat("LastScore", currentScore);
         PlayerPrefs.SetString("LastScene", currentStage.sceneName);
-        PlayerPrefs.SetFloat("TimeBonus", Time.time * Weight_time);
+        PlayerPrefs.SetFloat("TimeBonus", MissionElapsedTime * Weight_time);
 
         Player.GetComponent<AugumentStatus>().TryGetHP(out float hp, out float max);
         PlayerPrefs.SetFloat("HpRate", max > 0f ? Mathf.Clamp01(hp / max) : 0f);

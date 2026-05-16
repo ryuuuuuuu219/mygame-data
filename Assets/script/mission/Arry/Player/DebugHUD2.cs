@@ -152,11 +152,12 @@ public class DebugHUD2 : MonoBehaviour
         if (scoreTimeText == null) return;
 
         float score = ObjectManager.Instance != null ? ObjectManager.Instance.score : 0f;
-        float timePenalty = spawnTableManager != null ? Time.time * spawnTableManager.Weight_time : Time.time;
+        float elapsedTime = spawnTableManager != null ? spawnTableManager.MissionElapsedTime : Time.timeSinceLevelLoad;
+        float timePenalty = spawnTableManager != null ? elapsedTime * spawnTableManager.Weight_time : elapsedTime;
 
         scoreTimeText.text =
             "Score: " + score.ToString("F0") +
-            "\nTime: " + Time.time.ToString("F1") + "s" +
+            "\nTime: " + elapsedTime.ToString("F1") + "s" +
             "\nTime Penalty: -" + timePenalty.ToString("F0");
     }
 
