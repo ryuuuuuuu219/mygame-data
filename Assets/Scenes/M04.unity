@@ -1224,7 +1224,7 @@ MonoBehaviour:
   enemies: []
   spawnPlacementManager: {fileID: 245426232}
   disableSceneEnemiesOnStart: 1
-  jsonUrl: https://ryuuuuuuu219.github.io/mygame-data/Assets/StreamingAssets/stage_spawns.json
+  jsonUrl: 'https://ryuuuuuuu219.github.io/mygame-data/stage_spawns.json '
   isUseRemoteJSON: 0
   isInit: 0
   isStageClear: 0
@@ -1266,8 +1266,6 @@ MonoBehaviour:
     prefab: {fileID: 287339356655383430, guid: a8f39d91b5109fc419044e9b4c30a6af, type: 3}
   - prefabTypeName: LASM
     prefab: {fileID: 287339356655383430, guid: 9c61ccc9d85242acb1e018ab81b752ea, type: 3}
-  - prefabTypeName: fighter
-    prefab: {fileID: 8923875824590251343, guid: 0ad90a41f8330d14ea6c0d46e26566d6, type: 3}
 --- !u!1001 &277640307
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1645,19 +1643,21 @@ MonoBehaviour:
   generateOnStart: 1
   terrainSize: 12000
   heightmapResolution: 1025
-  heightScale: 600
+  heightScale: 1500
   noiseScale: 0.006
   octaves: 4
   persistence: 0.5
   lacunarity: 2
+  canyonThreshold: 0.868
+  canyonMinimumHeight: 0.143
   water: {fileID: 0}
   waterHeight: 8
   boundaryOffset: 2
   ceilingHeight: 2000
   generateClouds: 1
   cloudCount: 12
-  cloudMinAltitude: 900
-  cloudMaxAltitude: 1600
+  cloudMinAltitude: 2000
+  cloudMaxAltitude: 2600
   cloudAreaPadding: 150
   cloudSizeX: 18
   cloudSizeY: 26
@@ -2934,7 +2934,7 @@ Transform:
   m_GameObject: {fileID: 796543696}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 700, z: -3200}
+  m_LocalPosition: {x: 0, y: 1200, z: -3500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

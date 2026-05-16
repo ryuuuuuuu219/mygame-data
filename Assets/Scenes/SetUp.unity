@@ -1237,6 +1237,8 @@ MonoBehaviour:
   scene_name:
   - M01
   - M02
+  - M03
+  - M04
 --- !u!4 &1855472784
 Transform:
   m_ObjectHideFlags: 0

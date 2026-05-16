@@ -1639,7 +1639,7 @@ MonoBehaviour:
   usePlayerPrefsSeed: 1
   disableExistingTerrains: 1
   generateOnStart: 1
-  terrainSize: 6000
+  terrainSize: 12000
   heightmapResolution: 1025
   heightScale: 600
   noiseScale: 0.006

@@ -1823,6 +1823,195 @@
                                                       ]
                                       }
                                   ]
+                   },
+                   {
+                       "sceneName":  "M03",
+                       "randomSeed":  260517,
+                       "spawns":  [
+                                      {
+                                          "waveId":  0,
+                                          "requireClearedWaves":  [
+
+                                                                  ],
+                                          "enemies":  [
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "fighter",
+                                                              "missionTarget":  true,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "fixed",
+                                                                                "count":  1,
+                                                                                "position":  {
+                                                                                                 "x":  -1800,
+                                                                                                 "y":  1800,
+                                                                                                 "z":  -1600
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  45,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "vector":  {
+                                                                                               "x":  0,
+                                                                                               "y":  0,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  false,
+                                                                                "snapToTerrain":  false,
+                                                                                "areaId":  "m03_fighter_01",
+                                                                                "minAltitude":  800,
+                                                                                "maxAltitude":  3000,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  0
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "fighter",
+                                                              "missionTarget":  true,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "fixed",
+                                                                                "count":  1,
+                                                                                "position":  {
+                                                                                                 "x":  -900,
+                                                                                                 "y":  2100,
+                                                                                                 "z":  -2200
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  25,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "vector":  {
+                                                                                               "x":  0,
+                                                                                               "y":  0,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  false,
+                                                                                "snapToTerrain":  false,
+                                                                                "areaId":  "m03_fighter_02",
+                                                                                "minAltitude":  800,
+                                                                                "maxAltitude":  3000,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  0
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "fighter",
+                                                              "missionTarget":  true,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "fixed",
+                                                                                "count":  1,
+                                                                                "position":  {
+                                                                                                 "x":  900,
+                                                                                                 "y":  2100,
+                                                                                                 "z":  -2200
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  335,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "vector":  {
+                                                                                               "x":  0,
+                                                                                               "y":  0,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  false,
+                                                                                "snapToTerrain":  false,
+                                                                                "areaId":  "m03_fighter_03",
+                                                                                "minAltitude":  800,
+                                                                                "maxAltitude":  3000,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  0
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "fighter",
+                                                              "missionTarget":  true,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "fixed",
+                                                                                "count":  1,
+                                                                                "position":  {
+                                                                                                 "x":  1800,
+                                                                                                 "y":  1800,
+                                                                                                 "z":  -1600
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  315,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "vector":  {
+                                                                                               "x":  0,
+                                                                                               "y":  0,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  false,
+                                                                                "snapToTerrain":  false,
+                                                                                "areaId":  "m03_fighter_04",
+                                                                                "minAltitude":  800,
+                                                                                "maxAltitude":  3000,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  0
+                                                                            }
+                                                          },
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "fighter_m03_special",
+                                                              "missionTarget":  true,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "fixed",
+                                                                                "count":  1,
+                                                                                "position":  {
+                                                                                                 "x":  0,
+                                                                                                 "y":  2400,
+                                                                                                 "z":  -3000
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  0,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "vector":  {
+                                                                                               "x":  0,
+                                                                                               "y":  0,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  false,
+                                                                                "snapToTerrain":  false,
+                                                                                "areaId":  "m03_fighter_special_05",
+                                                                                "minAltitude":  800,
+                                                                                "maxAltitude":  3000,
+                                                                                "terrainLayer":  "Terrain",
+                                                                                "radius":  0
+                                                                            }
+                                                          }
+                                                      ]
+                                      }
+                                  ]
+                   },
+                   {
+                       "sceneName":  "M04",
+                       "randomSeed":  260518,
+                       "spawns":  [
+                                      {
+                                          "waveId":  0,
+                                          "requireClearedWaves":  [
+
+                                                                  ],
+                                          "enemies":  [
+
+                                                      ]
+                                      }
+                                  ]
                    }
                ]
 }

@@ -150,7 +150,9 @@ public class selectmenuUI : MonoBehaviour
     readonly Dictionary<string, string> missionText = new Dictionary<string, string>()
     {
         {"M01","対空陣地中央の長射程地対空ミサイルを破壊せよ\n一定高度（900）以上を飛ぶと目標から長距離ミサイルが飛んでくるので低空侵入を推奨する" },
-        {"M02","作戦空域内の未確認物体を強行偵察せよ" }
+        {"M02","作戦空域内の未確認物体を強行偵察せよ" },
+        {"M03","通常地形の作戦空域で敵航空隊を撃破せよ" },
+        {"M04","渓谷地形の作戦空域で敵戦力を掃討せよ" }
     };
 
     string GetSelectedStageName()
@@ -293,6 +295,9 @@ public class selectmenuUI : MonoBehaviour
                 return "地対空ミサイル";
             case "LASM":
                 return "長射程地対空ミサイル";
+            case "fighter":
+            case "fighter_m03_special":
+                return "敵航空機";
             default:
                 return string.IsNullOrEmpty(prefabType) ? "敵" : prefabType;
         }

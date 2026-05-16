@@ -1,7 +1,14 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class WorldGenerator : MonoBehaviour
 {
+    private enum TerrainGenerationMode
+    {
+        Mode1,
+        Canyon
+    }
+
     [Header("Seed")]
     public int seed = 12345;
     public bool usePlayerPrefsSeed = true;
@@ -11,13 +18,17 @@ public class WorldGenerator : MonoBehaviour
     public bool generateOnStart = true;
 
     [Header("Terrain Settings")]
-    public int terrainSize = 6000;
+    public int terrainSize = 12000;
     public int heightmapResolution = 1025;
     public float heightScale = 600f;
     public float noiseScale = 0.006f;
     public int octaves = 4;
     public float persistence = 0.5f;
     public float lacunarity = 2f;
+
+    [Header("Canyon Mode")]
+    [Range(0f, 1f)] public float canyonThreshold = 0.45f;
+    [Range(0f, 1f)] public float canyonMinimumHeight = 0.08f;
 
     [Header("Water")]
     public GameObject water;
@@ -121,34 +132,38 @@ public class WorldGenerator : MonoBehaviour
 
     private float[,] GenerateHeights()
     {
-        float[,] heights = new float[heightmapResolution, heightmapResolution];
-        float offsetX = rng.Next(-100000, 100000);
-        float offsetY = rng.Next(-100000, 100000);
+        WorldTerrainGenerationSettings settings = new WorldTerrainGenerationSettings(
+            heightmapResolution,
+            noiseScale,
+            octaves,
+            persistence,
+            lacunarity
+        );
 
-        for (int x = 0; x < heightmapResolution; x++)
+        switch (GetTerrainGenerationModeForActiveScene())
         {
-            for (int y = 0; y < heightmapResolution; y++)
-            {
-                float amplitude = 1f;
-                float frequency = 1f;
-                float noiseHeight = 0f;
-
-                for (int i = 0; i < octaves; i++)
-                {
-                    float sampleX = (x + offsetX) * noiseScale * frequency;
-                    float sampleY = (y + offsetY) * noiseScale * frequency;
-                    float perlin = Mathf.PerlinNoise(sampleX, sampleY) * 2f - 1f;
-
-                    noiseHeight += perlin * amplitude;
-                    amplitude *= persistence;
-                    frequency *= lacunarity;
-                }
-
-                heights[x, y] = Mathf.InverseLerp(-1f, 1f, noiseHeight);
-            }
+            case TerrainGenerationMode.Canyon:
+                return WorldTerrainCanyonGenerator.Generate(settings, rng, canyonThreshold, canyonMinimumHeight);
+            case TerrainGenerationMode.Mode1:
+            default:
+                return WorldTerrainMode1Generator.Generate(settings, rng);
         }
+    }
 
-        return heights;
+    private TerrainGenerationMode GetTerrainGenerationModeForActiveScene()
+    {
+        switch (SceneManager.GetActiveScene().name)
+        {
+            case "M01":
+            case "M02":
+            case "M03":
+                return TerrainGenerationMode.Mode1;
+            case "Canyon":
+            case "M04":
+                return TerrainGenerationMode.Canyon;
+            default:
+                return TerrainGenerationMode.Mode1;
+        }
     }
 
     private void CreateWater()

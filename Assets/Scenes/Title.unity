@@ -739,6 +739,8 @@ MonoBehaviour:
   stage_name:
   - M01
   - M02
+  - M03
+  - M04
   selectedstage: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

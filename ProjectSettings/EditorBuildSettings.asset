@@ -23,6 +23,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/M02.unity
     guid: 9cdb15cfdbd1987468224acb8daabb0d
+  - enabled: 1
+    path: Assets/Scenes/M03.unity
+    guid: 27e6cfdd51f64e53afea47c430b411c3
+  - enabled: 1
+    path: Assets/Scenes/M04.unity
+    guid: c0c92b10df4e4d0fb12e2cff2f9d4d57
   - enabled: 0
     path: Assets/Scenes/MVP.unity
     guid: e84d44e0ff9545739af61a3b48b840c9
