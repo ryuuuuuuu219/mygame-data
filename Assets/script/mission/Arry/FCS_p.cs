@@ -12,7 +12,15 @@ public class FCS_p : MonoBehaviour
     [Header("Missile Settings")]
     public GameObject missilePrefab;
     public Transform missileHardpoint;
+    public float missileSpeed = 100f;
     public float missileCooldown = 0.3f; // ミサイル発射間隔
+    public float missilelifeTime = 10f;
+    public float mslPower = 50f;
+    public float mslacceleration = 20f;
+    public float mslmaxspeed = 150f;
+    public float mslturnRate = 90f;
+    public float mslbreakAngle = 90f;
+    public float mslProportionalConstant = 3f;
 
     private float nextFireTime = 0f;
     private float nextMissileTimeA = 0f;
@@ -65,6 +73,11 @@ public class FCS_p : MonoBehaviour
 
     void Update()
     {
+        if (ObjectManager.Instance == null)
+        {
+            return;
+        }
+
         changetimer -= Time.deltaTime;
         // -------- 目標探索 --------
         if (changetimer < 0f)
@@ -165,20 +178,23 @@ public class FCS_p : MonoBehaviour
 
         // ------------------------
 
-        if (lockon && Time.time >= nextFireTime)
+        if (lockon && Time.time >= nextFireTime &&
+            bulletPrefab != null)
         {
             FireGun();
             nextFireTime = Time.time + fireRate;
         }
 
-        if (lockon && Time.time >= nextMissileTimeA)
+        if (lockon && Time.time >= nextMissileTimeA &&
+            missilePrefab != null)
         {
             FireMissile();
             nextMissileTimeA = Time.time + missileCooldown;
             nextMissileTimeB += 0.3f;
         }
 
-        if (lockon && Time.time >= nextMissileTimeB)
+        if (lockon && Time.time >= nextMissileTimeB &&
+            missilePrefab != null)
         {
             FireMissile();
             nextMissileTimeB = Time.time + missileCooldown;
@@ -188,20 +204,47 @@ public class FCS_p : MonoBehaviour
 
     void FireGun()
     {
+        if (rb == null)
+            rb = GetComponent<Rigidbody>();
+        if (gunMuzzle == null)
+            gunMuzzle = transform;
+        if (bulletpool == null)
+            bulletpool = FindFirstObjectByType<Gun_p_pool>();
+
+        Vector3 velocity = (rb != null ? rb.linearVelocity : Vector3.zero) + gunMuzzle.forward * bulletSpeed;
+        if (bulletpool != null)
+        {
+            bulletpool.bulletpull(0.5f, gunMuzzle.position, velocity, 3f);
+            return;
+        }
+
         GameObject bullet = Instantiate(bulletPrefab, gunMuzzle.position, gunMuzzle.rotation);
-        Rigidbody rb = bullet.GetComponent<Rigidbody>();
-        rb.linearVelocity = rb.linearVelocity + gunMuzzle.forward * bulletSpeed;
+        Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
+        if (bulletRb != null)
+            bulletRb.linearVelocity = velocity;
     }
 
     void FireMissile()
     {
-        Vector3 velocity = rb.linearVelocity + transform.forward * bulletSpeed;
-        GameObject MSL = bulletpool.missilepull(missileHardpoint.position, velocity, 10f);
-        Missile missile = MSL.GetComponent<Missile>();
+        if (rb == null)
+            rb = GetComponent<Rigidbody>();
+        if (missileHardpoint == null)
+            missileHardpoint = transform;
+        if (bulletpool == null)
+            bulletpool = FindFirstObjectByType<Gun_p_pool>();
+        if (rb == null || bulletpool == null) return;
 
-        if (missile != null && target != null)
+        Vector3 velocity = rb.linearVelocity + transform.forward * missileSpeed;
+        GameObject MSL = bulletpool.missilepull(missileHardpoint.position, velocity, missilelifeTime);
+        Missile_p missile = MSL.GetComponent<Missile_p>();
+
+        if (missile != null)
         {
-            missile.target = target.transform;
+            missile.StatusSetting(mslPower, mslacceleration, mslmaxspeed, mslturnRate, mslbreakAngle, mslProportionalConstant);
+            if (target != null)
+            {
+                missile.target = target.transform;
+            }
 
         }
     }

@@ -19,7 +19,7 @@ public class AlartSystem : MonoBehaviour
     [Header("警告音距離間隔")]
     public float warningNearDistance = 300f;
     public float warningFarDistance = 3500f;
-    public float missileNearInterval = 0.18f;
+    public float missileNearInterval = 0.05f;
     public float missileFarInterval = 0.8f;
     public float lockNearInterval = 0.45f;
     public float lockFarInterval = 1.4f;

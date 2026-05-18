@@ -56,6 +56,38 @@ public class ArryAceAircraft : AircraftController
     float saving_t = 0;
     private void Update()
     {
+        if (target == null)
+        {
+            weapon = GetComponent<FCS_p>();
+            if (weapon == null) return;
+            if (weapon.target != null)
+            {
+                target = weapon.target.transform;
+            }
+            else if (weapon.waytarget != null)
+            {
+                target = weapon.waytarget.transform;
+            }
+        }
+
+        if (weapon == null)
+        {
+            weapon = GetComponent<FCS_p>();
+            if (weapon == null) return;
+        }
+        if (target != weapon.waytarget)
+        {
+            if (weapon.target != null)
+            {
+                target = weapon.target.transform;
+            }
+            else if (weapon.waytarget != null)
+            {
+                target = weapon.waytarget.transform;
+            }
+        }
+        if (target == null) return;
+
         if (statetimer > 0f)
         {
             statetimer -= Time.deltaTime;
@@ -107,23 +139,6 @@ public class ArryAceAircraft : AircraftController
             {
                 currentstate = AIState.Pursuit;
                 statetimer = stateinterval;
-            }
-        }
-
-        if (weapon == null)
-        {
-            weapon = GetComponent<FCS_p>();
-            if (weapon == null) return;
-        }
-        if (target != weapon.waytarget)
-        {
-            if (weapon.target != null)
-            {
-                target = weapon.target.transform;
-            }
-            else if (weapon.waytarget != null)
-            {
-                target = weapon.waytarget.transform;
             }
         }
 

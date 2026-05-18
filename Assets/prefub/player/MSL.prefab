@@ -116,6 +116,7 @@ MonoBehaviour:
   velocity: {x: 0, y: 0, z: 0}
   speed: 200
   isheatseeker: 1
+  showDebugLine: 0
   seekerFoV: 30
   flareHeatModifier: 1
   seekerDir: {x: 0, y: 0, z: 1}

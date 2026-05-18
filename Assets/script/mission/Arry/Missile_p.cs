@@ -23,6 +23,7 @@ public class Missile_p : MonoBehaviour
     private Vector3 lastDirToTarget;
 
     public bool isheatseeker = true;
+    public bool showDebugLine = false;
 
     LineRenderer lr;
     Rigidbody rb;
@@ -47,11 +48,24 @@ public class Missile_p : MonoBehaviour
         previousPos = currentPos = transform.position;
         speed = startVelocity.magnitude;
 
-        lr = (lr == null) ? gameObject.AddComponent<LineRenderer>() : lr;
-        lr.enabled = false;
-        lr.positionCount = 2;
-
         speed = startVelocity.magnitude;
+        if (maxspeed <= 0f)
+        {
+            maxspeed = speed;
+        }
+
+        lr = GetComponent<LineRenderer>();
+        if (showDebugLine)
+        {
+            lr = (lr == null) ? gameObject.AddComponent<LineRenderer>() : lr;
+            lr.positionCount = 2;
+            lr.enabled = false;
+        }
+        else if (lr != null)
+        {
+            lr.enabled = false;
+        }
+
         newDir = startVelocity.normalized;
 
         lastDirToTarget = Vector3.zero;
@@ -77,9 +91,12 @@ public class Missile_p : MonoBehaviour
 
     void FixedUpdate()
     {
-        lr.enabled = true;
-        lr.SetPosition(0, target != null ? target.position : currentPos + newDir * 100f);
-        lr.SetPosition(1, currentPos);
+        if (showDebugLine && lr != null)
+        {
+            lr.enabled = true;
+            lr.SetPosition(0, target != null ? target.position : currentPos + newDir * 100f);
+            lr.SetPosition(1, currentPos);
+        }
 
         // --- 寿命 ---
         lifeTime -= Time.fixedDeltaTime;
