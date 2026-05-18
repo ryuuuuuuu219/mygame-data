@@ -229,6 +229,7 @@ public class AugumentStatus : MonoBehaviour
             OM.destroyedUIflag = true;
             OM.score += maxhp * 200f;
             Debug.Log($"{name} destroyed. Score awarded: {maxhp * 200f}");
+            GeneratedAudioManager.Play(GeneratedAudioCue.Destroyed, transform.position, 0.85f);
 
             OnDestroyed?.Invoke();
             OM.UnregisterEnemy(gameObject, waveID);

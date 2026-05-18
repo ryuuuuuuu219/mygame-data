@@ -64,6 +64,7 @@ public class EnemyMissileShooter : MonoBehaviour
             missile.isheatseeker = false;
             missile.target = target;
         }
+        GeneratedAudioManager.Play(GeneratedAudioCue.EnemyMissileLaunch, missileHardpoint.position, 0.75f);
     }
 
     Vector3 GetSalvoDirection(Vector3 baseDirection, int index, int count)

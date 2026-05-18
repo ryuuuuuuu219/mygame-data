@@ -159,7 +159,10 @@ public class WeaponSystem : MonoBehaviour
         if (!inputSafe) return;
 
         if (input.changeWeapon)
+        {
             mode = (WeaponMode)(((int)mode + 1) % 3);
+            GeneratedAudioManager.Play(GeneratedAudioCue.WeaponChange);
+        }
 
         if (input.fireGun)
             TryFireGun();
@@ -179,7 +182,11 @@ public class WeaponSystem : MonoBehaviour
     void TryFireGun()
     {
         if (Time.time < nextFireTime) return;
-        if (currentBullets <= 0) return;
+        if (currentBullets <= 0)
+        {
+            GeneratedAudioManager.Play(GeneratedAudioCue.Empty, null, 0.45f);
+            return;
+        }
 
         nextFireTime = Time.time + fireRate;
         currentBullets--;
@@ -189,6 +196,7 @@ public class WeaponSystem : MonoBehaviour
 
         GameObject bullet = bulletpool.bulletpull(1f, gunMuzzle.position, vel, 3f);
         bullet.GetComponent<Gun_p>()?.Init(gunPower, gunSize);
+        GeneratedAudioManager.Play(GeneratedAudioCue.GunFire, gunMuzzle.position, 0.55f);
     }
 
     // ========================
@@ -211,7 +219,11 @@ public class WeaponSystem : MonoBehaviour
     // ========================
     void FireSingleMissile()
     {
-        if (currentMissiles <= 0) return;
+        if (currentMissiles <= 0)
+        {
+            GeneratedAudioManager.Play(GeneratedAudioCue.Empty, null, 0.45f);
+            return;
+        }
         bool launched = false;
 
         if (missileTimerA <= 0)
@@ -232,7 +244,11 @@ public class WeaponSystem : MonoBehaviour
 
     void FireMultiMissile()
     {
-        if (currentnAAM <= 0) return;
+        if (currentnAAM <= 0)
+        {
+            GeneratedAudioManager.Play(GeneratedAudioCue.Empty, null, 0.45f);
+            return;
+        }
         int id = 0;
         bool launched = false;
         for (int i = 0; i < multiTimers.Count; i++)
@@ -263,6 +279,8 @@ public class WeaponSystem : MonoBehaviour
 
         if (index < debugHUD.Lockedtargets.Count)
             missile.target = debugHUD.Lockedtargets[index]?.transform;
+
+        GeneratedAudioManager.Play(GeneratedAudioCue.MissileLaunch, missileHardpoint.position, 0.8f);
     }
 
     // ========================
@@ -270,7 +288,11 @@ public class WeaponSystem : MonoBehaviour
     {
         if (ugbTimer > 0) return;
 
-        if (currentUGB <= 0) return;
+        if (currentUGB <= 0)
+        {
+            GeneratedAudioManager.Play(GeneratedAudioCue.Empty, null, 0.45f);
+            return;
+        }
         currentUGB--;
 
         GameObject obj = Instantiate(UGBPrefab, missileHardpoint.position, Quaternion.identity);
@@ -286,5 +308,6 @@ public class WeaponSystem : MonoBehaviour
         }
 
         ugbTimer = ugbcooldown;
+        GeneratedAudioManager.Play(GeneratedAudioCue.BombDrop, missileHardpoint.position, 0.7f);
     }
 }

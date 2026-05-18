@@ -16,10 +16,20 @@ public class AlartSystem : MonoBehaviour
     public GameObject AlartUIprefub;
     public Canvas Canvas;
 
+    [Header("警告音距離間隔")]
+    public float warningNearDistance = 300f;
+    public float warningFarDistance = 3500f;
+    public float missileNearInterval = 0.18f;
+    public float missileFarInterval = 0.8f;
+    public float lockNearInterval = 0.45f;
+    public float lockFarInterval = 1.4f;
+
     // プール
     public List<GameObject> lockAlerts = new List<GameObject>();
     public List<GameObject> missileAlerts = new List<GameObject>();
     [SerializeField]Camera Camera;
+    bool hadLockThreat;
+    bool hadMissileThreat;
 
     void Start()
     {
@@ -180,5 +190,56 @@ public class AlartSystem : MonoBehaviour
         UpdateenemyInfo();
         UpdatemissileInfo();
         UpdateAlartUI();
+        UpdateAudioWarnings();
+    }
+
+    void UpdateAudioWarnings()
+    {
+        bool lockThreat = HasAnyTrue(LockingArray);
+        bool missileThreat = HasAnyTrue(MissileArray);
+        float lockInterval = GetThreatInterval(Lockingenemys, LockingArray, lockNearInterval, lockFarInterval);
+        float missileInterval = GetThreatInterval(Missiles, MissileArray, missileNearInterval, missileFarInterval);
+
+        if (lockThreat && !hadLockThreat)
+            GeneratedAudioManager.Play(GeneratedAudioCue.LockWarning, null, 0.7f);
+        if (missileThreat && !hadMissileThreat)
+            GeneratedAudioManager.Play(GeneratedAudioCue.MissileWarning, null, 0.9f);
+
+        GeneratedAudioManager.SetWarning(missileThreat, lockThreat, missileInterval, lockInterval);
+        hadLockThreat = lockThreat;
+        hadMissileThreat = missileThreat;
+    }
+
+    float GetThreatInterval(List<GameObject> threats, bool[] activeFlags, float nearInterval, float farInterval)
+    {
+        if (threats == null || activeFlags == null) return farInterval;
+
+        float nearestDistance = float.MaxValue;
+        int count = Mathf.Min(threats.Count, activeFlags.Length);
+        for (int i = 0; i < count; i++)
+        {
+            if (!activeFlags[i] || threats[i] == null) continue;
+
+            float distance = Vector3.Distance(transform.position, threats[i].transform.position);
+            if (distance < nearestDistance)
+                nearestDistance = distance;
+        }
+
+        if (nearestDistance == float.MaxValue) return farInterval;
+
+        float near = Mathf.Max(0f, warningNearDistance);
+        float far = Mathf.Max(near + 1f, warningFarDistance);
+        float t = Mathf.InverseLerp(far, near, nearestDistance);
+        return Mathf.Lerp(farInterval, nearInterval, t);
+    }
+
+    bool HasAnyTrue(bool[] values)
+    {
+        if (values == null) return false;
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (values[i]) return true;
+        }
+        return false;
     }
 }

@@ -111,6 +111,7 @@ public class BombProjectile : MonoBehaviour
         if (isExploded) return;
         isExploded = true;
         transform.position = center;
+        GeneratedAudioManager.Play(GeneratedAudioCue.BombExplosion, center, 0.9f);
 
         // -------- 見た目切替
         if (sphereVisual != null)

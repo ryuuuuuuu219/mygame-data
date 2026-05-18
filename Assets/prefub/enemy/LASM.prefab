@@ -167,6 +167,7 @@ MonoBehaviour:
   hp: 100
   maxhp: 100
   lifeTime: 0
+  preferInspectorStatus: 1
   CurrentStatus:
     statusdic:
     - pageName: Aircraft
@@ -383,8 +384,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fc8f97bd8cf43f5ae1bc79f6f6bd711, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetSelector
-  detectRange: 2000
-  lockRange: 800
+  detectRange: Infinity
+  lockRange: Infinity
   retargetInterval: 0.25
   alternateClosestTarget: 1
   IsAirsuppression: 1
@@ -442,6 +443,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GroundAntiAirController
   useGun: 0
   useMissile: 1
+  gunRange: 900
+  missileRange: Infinity
   targetSelector: {fileID: 22001002}
   gunShooter: {fileID: 0}
   missileShooter: {fileID: 0}

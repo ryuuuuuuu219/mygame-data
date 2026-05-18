@@ -63,6 +63,7 @@ public class EnemyMissileShooter_longrange : MonoBehaviour
             vlsRiseDistance,
             vlsRiseSpeed
         );
+        GeneratedAudioManager.Play(GeneratedAudioCue.EnemyMissileLaunch, missileHardpoint.position, 0.85f);
     }
 
     public bool LaunchSecondStage(Transform target, Vector3 platformVelocity, Vector3 launchPosition, out Missile launchedMissile)
@@ -92,6 +93,7 @@ public class EnemyMissileShooter_longrange : MonoBehaviour
         missile.isheatseeker = false;
         missile.target = target;
         launchedMissile = missile;
+        GeneratedAudioManager.Play(GeneratedAudioCue.EnemyMissileLaunch, launchPosition, 0.7f);
         return true;
     }
 

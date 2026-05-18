@@ -63,6 +63,7 @@ public class Gun_p : MonoBehaviour
         {
             status.damage(power);
             ObjectManager.Instance.hitUIflag = true;
+            GeneratedAudioManager.Play(GeneratedAudioCue.Hit, transform.position, 0.45f);
             gameObject.SetActive(false);
         }
     }
@@ -98,6 +99,7 @@ public class Gun_p : MonoBehaviour
             status.damage(power);
             if (ObjectManager.Instance != null)
                 ObjectManager.Instance.hitUIflag = true;
+            GeneratedAudioManager.Play(GeneratedAudioCue.Hit, hit.point, 0.45f);
             return true;
         }
 

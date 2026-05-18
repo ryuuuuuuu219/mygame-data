@@ -184,6 +184,7 @@ public class Missile_p : MonoBehaviour
             status.damage(power); // ダメージ量は適宜調整
             if (ObjectManager.Instance != null)
                 ObjectManager.Instance.hitUIflag = true;
+            GeneratedAudioManager.Play(GeneratedAudioCue.Hit, hit.point, 0.65f);
             rangeover();
             return;
         }

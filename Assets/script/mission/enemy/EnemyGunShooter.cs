@@ -84,6 +84,7 @@ public class EnemyGunShooter : MonoBehaviour
             Vector3 velocity = platformVelocity + shootDirection * bulletSpeed;
             bulletpool.bulletpull(bulletSize, gunMuzzle.position, velocity, bulletLifetime);
         }
+        GeneratedAudioManager.Play(GeneratedAudioCue.EnemyGunFire, gunMuzzle.position, 0.45f);
     }
 
     Vector3 GetBarrelDirection(Vector3 baseDirection, int index, int count)

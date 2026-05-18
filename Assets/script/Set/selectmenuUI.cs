@@ -52,6 +52,7 @@ public class selectmenuUI : MonoBehaviour
                 if (!batsuflag)
                 {
                     batsuflag = true;
+                    GeneratedAudioManager.Play(GeneratedAudioCue.UiCancel);
                     if (SceneManager.GetActiveScene().name == "Menu")
                     {
                         SceneManager.LoadScene("Title");
@@ -72,6 +73,7 @@ public class selectmenuUI : MonoBehaviour
                 if (!maruflag)
                 {
                     maruflag = true;
+                    GeneratedAudioManager.Play(GeneratedAudioCue.UiSubmit);
                     if (SceneManager.GetActiveScene().name == "Briefing")
                     {
                         PlayerPrefs.SetInt("selectedstage", selectedstage);
@@ -375,6 +377,7 @@ public class selectmenuUI : MonoBehaviour
             selectedstage--;
             if (selectedstage < 0) selectedstage = numSubjects;
         }
+        GeneratedAudioManager.Play(GeneratedAudioCue.UiMove);
     }
 
     void RemoveUnavailableStages()
