@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class Missile_p : MonoBehaviour
 {
@@ -22,7 +23,8 @@ public class Missile_p : MonoBehaviour
     private List<GameObject> enemys;
     private Vector3 lastDirToTarget;
 
-    public bool isheatseeker = true;
+    [FormerlySerializedAs("isheatseeker")]
+    public bool allowHeatRetargeting = true;
     public bool showDebugLine = false;
 
     LineRenderer lr;
@@ -162,8 +164,15 @@ public class Missile_p : MonoBehaviour
 
         // --- 衝突判定 ---
         RaycastHitCheck();
+        if (!gameObject.activeSelf) return;
 
-        detectflare(isheatseeker);
+        if (ProjectileGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        {
+            rangeover();
+            return;
+        }
+
+        detectflare(allowHeatRetargeting);
     }
 
     // 命中判定

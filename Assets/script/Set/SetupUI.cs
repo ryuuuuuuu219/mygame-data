@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -51,6 +52,7 @@ public class SetupUI : MonoBehaviour
     readonly List<WeaponDropData> stdmWeapons = new List<WeaponDropData>();
     readonly List<WeaponDropData> gunWeapons = new List<WeaponDropData>();
     readonly List<WeaponDropData> spwWeapons = new List<WeaponDropData>();
+    readonly StringBuilder textBuilder = new StringBuilder(512);
 
     void Start()
     {
@@ -325,12 +327,15 @@ public class SetupUI : MonoBehaviour
     {
         SetSplitTextVisible(false);
 
-        hudText.text = "setting\n\n";
-        hudText.text += MainLine(0, "MSL") + "\n";
-        hudText.text += MainLine(1, "GUN") + "\n";
-        hudText.text += MainLine(2, "SPW") + "\n\n";
-        hudText.text += MainLine(3, "sortie") + "\n";
-        hudText.text += MainLine(4, "cancel") + "\n";
+        textBuilder.Clear();
+        textBuilder.Append("setting\n\n");
+        AppendMainLine(0, "MSL");
+        AppendMainLine(1, "GUN");
+        AppendMainLine(2, "SPW");
+        textBuilder.Append('\n');
+        AppendMainLine(3, "sortie");
+        AppendMainLine(4, "cancel");
+        hudText.text = textBuilder.ToString();
 
         if (pointText != null)
             pointText.text = GetMainDescription();
@@ -345,8 +350,10 @@ public class SetupUI : MonoBehaviour
 
         if (weapon == null)
         {
-            hudText.text = GetModeTitle();
-            hudText.text += "\nNo weapon.\n";
+            textBuilder.Clear();
+            textBuilder.Append(GetModeTitle());
+            textBuilder.Append("\nNo weapon.\n");
+            hudText.text = textBuilder.ToString();
             SetSplitText("", "", "", "", "", "", "");
             if (pointText != null)
                 pointText.text = "候補がありません";
@@ -354,9 +361,20 @@ public class SetupUI : MonoBehaviour
         }
 
         var detail = WeaponStorage.BuildDetailColumns(weapon, detailPage);
-        hudText.text = detail.title + GetEquippedLabel(weapon) + "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-        hudText.text += $"ページ {detailPage + 1}/3 {GetPageName()} </>\n";
-        hudText.text += $"ID {CurrentIndex() + 1}/{list.Count} ↑/↓";
+        textBuilder.Clear();
+        textBuilder.Append(detail.title);
+        textBuilder.Append(GetEquippedLabel(weapon));
+        textBuilder.Append("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+        textBuilder.Append("ページ ");
+        textBuilder.Append(detailPage + 1);
+        textBuilder.Append("/3 ");
+        textBuilder.Append(GetPageName());
+        textBuilder.Append(" </>\nID ");
+        textBuilder.Append(CurrentIndex() + 1);
+        textBuilder.Append('/');
+        textBuilder.Append(list.Count);
+        textBuilder.Append(" ↑/↓");
+        hudText.text = textBuilder.ToString();
         SetSplitText(
             "\n\n\n" + detail.labels,
             "\n\n" + detail.pointHeader,
@@ -370,10 +388,12 @@ public class SetupUI : MonoBehaviour
             pointText.text = GetWeaponDescription();
     }
 
-    string MainLine(int index, string label)
+    void AppendMainLine(int index, string label)
     {
-        string head = mainIndex == index ? "> " : "  ";
-        return head + "\t" + label;
+        textBuilder.Append(mainIndex == index ? "> " : "  ");
+        textBuilder.Append('\t');
+        textBuilder.Append(label);
+        textBuilder.Append('\n');
     }
 
     string GetMainDescription()

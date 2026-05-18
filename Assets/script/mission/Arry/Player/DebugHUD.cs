@@ -2,10 +2,9 @@
 using TMPro;
 using System.Collections.Generic;
 using UnityEngine.UI;
-using System.Linq;
-using NUnit.Framework;
 using static WeaponSystem;
 using System;
+using System.Text;
 
 public class DebugHUD : MonoBehaviour
 {
@@ -38,13 +37,14 @@ public class DebugHUD : MonoBehaviour
 
     private List<GameObject> arrys;
     private List<GameObject> targets;       // 敵機リスト
-    public int LockedFrame = 1;             // ロック維持フレーム数
+    public int LockedFrame = 1;             // ロック可能数
+    public int multiLockCount = 1;
     public List<GameObject> detecttargets;  //コンテナ表示ターゲット
     public List<GameObject> markingtargets; //ターゲット切り替え用配列
-    private List<float> targetsfovs;
     public List<GameObject> Lockedtargets;  //ロック条件を満たすターゲット配列
 
     List<(GameObject target, float fov)> detectPairs;
+    readonly StringBuilder hudBuilder = new StringBuilder(128);
 
     bool isBlinking;
     float blinkInterval = 0.4f;
@@ -95,7 +95,6 @@ public class DebugHUD : MonoBehaviour
         detecttargets = new ();
         markingtargets.Clear();
         Lockedtargets = new ();
-        targetsfovs = new ();
         detectPairs = new ();
 
         status = plane.GetComponent<AugumentStatus>();
@@ -116,6 +115,8 @@ public class DebugHUD : MonoBehaviour
 
         status.altGetVar("ミサイル：射程（ロック可能距離）", out SlockRange);
         status.altGetVar("長射程マルチロックミサイル：射程（ロック可能距離）", out LlockRange);
+        status.altGetVar("長射程マルチロックミサイル：マルチロック数", out float lockCount);
+        multiLockCount = Mathf.Max(1, Mathf.RoundToInt(lockCount));
     }
 
     void LateUpdate()
@@ -129,11 +130,10 @@ public class DebugHUD : MonoBehaviour
         bool stdm = weapon.mode == WeaponMode.MSL;
 
         lockRange = stdm ? SlockRange : LlockRange;
+        LockedFrame = stdm ? 1 : multiLockCount;
 
         if (targets.Count > 1)
         {
-            targetsfovs.Clear();
-
             detectPairs.Clear();
 
             foreach (var t in targets)
@@ -151,8 +151,11 @@ public class DebugHUD : MonoBehaviour
 
             detectPairs.Sort((a, b) => a.fov.CompareTo(b.fov)); // 昇順
 
-            detecttargets = detectPairs.Select(p => p.target).ToList();
-            //targetsfovs = detectPairs.Select(p => p.fov).ToList();
+            detecttargets.Clear();
+            for (int i = 0; i < detectPairs.Count; i++)
+            {
+                detecttargets.Add(detectPairs[i].target);
+            }
 
             var input=InputManager.Instance;
 
@@ -798,7 +801,6 @@ public class DebugHUD : MonoBehaviour
         if (obj1?.TryGetComponent(out TextMeshProUGUI tm) == true)
         { 
             tm.text = text;
-            Debug.Log(target.name + ":" + obj1.localRotation);
             obj1.localRotation = Quaternion.identity;
         }
 
@@ -819,12 +821,19 @@ public class DebugHUD : MonoBehaviour
         float roll = plane.transform.eulerAngles.z;
         float thr = ac.throttle;
 
-        hudText.text =
-            $"SPD: {speed:F1} m/s\n" +
-            $"ALT: {altitude:F1} m\n" +
-            $"THR: {thr:F2}\n" +
-            $"PITCH: {pitch:F1}°\n" +
-            $"ROLL: {roll:F1}°";
+        hudBuilder.Clear();
+        hudBuilder.Append("SPD: ");
+        hudBuilder.Append(speed.ToString("F1"));
+        hudBuilder.Append(" m/s\nALT: ");
+        hudBuilder.Append(altitude.ToString("F1"));
+        hudBuilder.Append(" m\nTHR: ");
+        hudBuilder.Append(thr.ToString("F2"));
+        hudBuilder.Append("\nPITCH: ");
+        hudBuilder.Append(pitch.ToString("F1"));
+        hudBuilder.Append("°\nROLL: ");
+        hudBuilder.Append(roll.ToString("F1"));
+        hudBuilder.Append('°');
+        hudText.text = hudBuilder.ToString();
     }
     #endregion
 }

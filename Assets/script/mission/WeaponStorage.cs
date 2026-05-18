@@ -381,7 +381,7 @@ public static class WeaponStorage
                     "ミサイル：比例航法定数",
                     "ミサイル：弾数",
                     "ミサイル：装填時間",
-                    "ミサイル：熱源誘導有効化"
+                    "ミサイル：誘導目標の固定"
                 };
             case WeaponDropType.UGB:
                 return new[]

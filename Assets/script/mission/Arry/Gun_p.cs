@@ -48,6 +48,12 @@ public class Gun_p : MonoBehaviour
             gameObject.SetActive(false);
             return;
         }
+
+        if (ProjectileGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        {
+            gameObject.SetActive(false);
+            return;
+        }
     }
 
     private void OnTriggerEnter(Collider other)

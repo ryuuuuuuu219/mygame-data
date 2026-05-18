@@ -339,7 +339,7 @@ public class StatusTable
                 new StatEntry{ key = "ミサイル：比例航法定数", range = new modify{ min=1f, max=10f, step=0.1f } },
                 new StatEntry{ key = "ミサイル：弾数", range = new modify{ min=20f, max=180f, step=0.25f } },
                 new StatEntry{ key = "ミサイル：装填時間", range = new modify{ min=5f, max=0.5f, step=-0.1f } },
-                new StatEntry{ key = "ミサイル：熱源誘導有効化", range = new modify{ min=0.01f, max=1f, step=0.01f } }
+                new StatEntry{ key = "ミサイル：誘導目標の固定", range = new modify{ min=0.01f, max=1f, step=0.01f } }
             }
         },
         // ■4ページ

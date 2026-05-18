@@ -139,6 +139,13 @@ public class Missile : MonoBehaviour
 
         // --- è’ìÀîªíË ---
         RaycastHitCheck();
+        if (!gameObject.activeSelf) return;
+
+        if (ProjectileGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        {
+            rangeover();
+            return;
+        }
 
         detectflare(isheatseeker);
     }

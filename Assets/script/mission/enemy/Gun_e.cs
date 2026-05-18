@@ -34,6 +34,12 @@ public class Gun_e : MonoBehaviour
             return;
         }
 
+        if (ProjectileGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+
         // Raycastで途中の衝突をチェック
         Vector3 dir = (currentPos - previousPos).normalized;
         float dist = Vector3.Distance(previousPos, currentPos);

@@ -42,6 +42,7 @@ public class WeaponSystem : MonoBehaviour
     public float mslturnRate;
     public float mslbreakAngle;
     public float mslProportionalConstant;
+    public bool mslFixedTarget;
 
     public float missileTimerA;
     public float missileTimerB;
@@ -108,6 +109,8 @@ public class WeaponSystem : MonoBehaviour
         status.altGetVar("ミサイル：誘導力", out mslturnRate);
         status.altGetVar("ミサイル：誘導象限", out mslbreakAngle);
         status.altGetVar("ミサイル：比例航法定数", out mslProportionalConstant);
+        status.altGetVar("ミサイル：誘導目標の固定", out dummy);
+        mslFixedTarget = dummy >= 1f;
 
         // --- Gun ---
         status.altGetVar("銃弾：初速", out bulletSpeed);
@@ -276,6 +279,7 @@ public class WeaponSystem : MonoBehaviour
         missile.missileInit(missileHardpoint.position, vel, missilelifeTime);
         missile.StatusSetting(mslPower, mslacceleration, mslmaxspeed,
                               mslturnRate, mslbreakAngle, mslProportionalConstant);
+        missile.allowHeatRetargeting = !mslFixedTarget;
 
         if (index < debugHUD.Lockedtargets.Count)
             missile.target = debugHUD.Lockedtargets[index]?.transform;
@@ -302,8 +306,6 @@ public class WeaponSystem : MonoBehaviour
         {
             bomb.damageRadius = damageRadius;
             bomb.damage = damage;
-            bomb.proximityRadius = proximityRadius;
-            bomb.useProximityFuse = useProximityFuse;
             bomb.Initialize(rb.linearVelocity);
         }
 

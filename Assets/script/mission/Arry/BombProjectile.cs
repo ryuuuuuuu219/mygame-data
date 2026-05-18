@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 public static class PrimitiveHelper
 {
     static Mesh sphereMesh;
@@ -26,20 +27,12 @@ public class BombProjectile : MonoBehaviour
     // Physics
     [Header("Physics")]
     public Rigidbody rb;
-    public float lifeTime = 30f;
 
     // =========================
     // Damage
     [Header("Damage")]
     public float damageRadius = 50f;
     public float damage = 100f;
-
-    // =========================
-    // Proximity Fuse
-    [Header("Proximity Fuse")]
-    public float physicalRadius = 0.5f;
-    public float proximityRadius = 30f;
-    public bool useProximityFuse = true;
 
     // =========================
     // Visuals
@@ -49,15 +42,24 @@ public class BombProjectile : MonoBehaviour
     public float sphereStartAlpha = 0.25f;
     public float fadeOutTime = 0.4f;
 
+    [Header("Ground Radius Preview")]
+    public LineRenderer groundRadiusLine;
+    public Material groundRadiusLineMaterial;
+    public Color groundRadiusLineColor = new Color(1f, 0.15f, 0.05f, 0.85f);
+    public float groundRadiusLineWidth = 2f;
+    public int groundRadiusLineSegments = 96;
+    public float groundRadiusLineHeightOffset = 1f;
+    public float groundPreviewRayDistance = 5000f;
+
     [Header("Explosion Particle")]
     public ParticleSystem explosionParticle;
 
     Material Mat;
     MeshRenderer meshRenderer;
     MeshFilter meshFilter;
+    Transform groundRadiusLineTransform;
     // =========================
     // State
-    float timer = 0f;
     bool isExploded = false;
     Vector3 previousPos;
 
@@ -73,11 +75,14 @@ public class BombProjectile : MonoBehaviour
             meshRenderer.material = cubeVisual;
 
         Mat = meshRenderer.material;
+
+        EnsureGroundRadiusLine();
     }
 
     void OnEnable()
     {
         previousPos = transform.position;
+        UpdateGroundRadiusLine();
     }
 
     // =========================
@@ -85,25 +90,26 @@ public class BombProjectile : MonoBehaviour
     {
         if (isExploded) return;
 
-        timer += Time.fixedDeltaTime;
-        if (timer > lifeTime)
-        {
-            Explode();
-        }
-
         if (HitTerrainBetweenPreviousAndCurrent(out Vector3 hitPoint))
         {
             Explode(hitPoint);
             return;
         }
 
+        if (ProjectileGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        {
+            ExplodeAtCurrentGroundOrPosition();
+            return;
+        }
+
+        UpdateGroundRadiusLine();
         previousPos = transform.position;
     }
 
     // =========================
     void Explode()
     {
-        Explode(transform.position);
+        ExplodeAtCurrentGroundOrPosition();
     }
 
     void Explode(Vector3 center)
@@ -111,6 +117,7 @@ public class BombProjectile : MonoBehaviour
         if (isExploded) return;
         isExploded = true;
         transform.position = center;
+        SetGroundRadiusLineVisible(false);
         GeneratedAudioManager.Play(GeneratedAudioCue.BombExplosion, center, 0.9f);
 
         // -------- 見た目切替
@@ -155,24 +162,7 @@ public class BombProjectile : MonoBehaviour
         rb.linearVelocity = Vector3.zero;
         rb.isKinematic = true;
 
-        // -------- ダメージ（1回のみ）
-
-        foreach (var t in ObjectManager.Instance.Enemies)
-        {
-            if (t == null) continue;
-
-            float dist = Vector3.Distance(center, t.transform.position);
-            if (dist > damageRadius) continue;
-
-            float factor = 1f - (dist / damageRadius);
-            float finalDamage = damage * factor;
-
-            if (t.TryGetComponent(out AugumentStatus status))
-            {
-                status.damage(finalDamage);
-                ObjectManager.Instance.hitUIflag = true;
-            }
-        }
+        ApplyExplosionDamage(center);
 
         // -------- フェードアウト開始
         StartCoroutine(FadeOutSphere());
@@ -186,12 +176,6 @@ public class BombProjectile : MonoBehaviour
         Gizmos.color = new Color(1f, 0f, 0f, 0.25f); // 半透明赤
         Gizmos.DrawSphere(center, damageRadius);
 
-        // 近接信管範囲（任意）
-        if (useProximityFuse)
-        {
-            Gizmos.color = new Color(1f, 1f, 0f, 0.25f); // 半透明黄色
-            Gizmos.DrawSphere(center, proximityRadius);
-        }
     }
     // =========================
     IEnumerator FadeOutSphere()
@@ -255,5 +239,145 @@ public class BombProjectile : MonoBehaviour
         }
 
         return false;
+    }
+
+    void ExplodeAtCurrentGroundOrPosition()
+    {
+        if (TryGetGroundPose(out Vector3 groundPoint, out _))
+            Explode(groundPoint);
+        else
+            Explode(transform.position);
+    }
+
+    void ApplyExplosionDamage(Vector3 center)
+    {
+        if (ObjectManager.Instance == null) return;
+
+        var damaged = new HashSet<AugumentStatus>();
+        Collider[] hits = Physics.OverlapSphere(
+            center,
+            damageRadius,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Collide);
+
+        foreach (Collider hit in hits)
+        {
+            if (hit == null) continue;
+
+            var status = hit.GetComponentInParent<AugumentStatus>();
+            if (status == null || !status.isEnemy) continue;
+            if (!damaged.Add(status)) continue;
+
+            Vector3 closestPoint = hit.ClosestPoint(center);
+            float dist = Vector3.Distance(center, closestPoint);
+            if (dist > damageRadius) continue;
+
+            float factor = 1f - Mathf.Clamp01(dist / damageRadius);
+            float finalDamage = damage * factor;
+            if (finalDamage <= 0f) continue;
+
+            status.damage(finalDamage);
+            ObjectManager.Instance.hitUIflag = true;
+        }
+    }
+
+    void EnsureGroundRadiusLine()
+    {
+        if (groundRadiusLine != null)
+        {
+            groundRadiusLineTransform = groundRadiusLine.transform;
+            ConfigureGroundRadiusLine();
+            return;
+        }
+
+        var lineObject = new GameObject("UGB_GroundRadiusLine");
+        lineObject.transform.SetParent(null);
+        groundRadiusLineTransform = lineObject.transform;
+        groundRadiusLine = lineObject.AddComponent<LineRenderer>();
+        ConfigureGroundRadiusLine();
+    }
+
+    void ConfigureGroundRadiusLine()
+    {
+        if (groundRadiusLine == null) return;
+
+        groundRadiusLine.loop = true;
+        groundRadiusLine.useWorldSpace = false;
+        groundRadiusLine.positionCount = Mathf.Max(8, groundRadiusLineSegments);
+        groundRadiusLine.startWidth = groundRadiusLineWidth;
+        groundRadiusLine.endWidth = groundRadiusLineWidth;
+        groundRadiusLine.startColor = groundRadiusLineColor;
+        groundRadiusLine.endColor = groundRadiusLineColor;
+        groundRadiusLine.material = groundRadiusLineMaterial != null
+            ? groundRadiusLineMaterial
+            : new Material(Shader.Find("Sprites/Default"));
+    }
+
+    void UpdateGroundRadiusLine()
+    {
+        EnsureGroundRadiusLine();
+        if (groundRadiusLine == null || isExploded)
+        {
+            SetGroundRadiusLineVisible(false);
+            return;
+        }
+
+        if (!TryGetGroundPose(out Vector3 groundPoint, out Vector3 groundNormal))
+        {
+            SetGroundRadiusLineVisible(false);
+            return;
+        }
+
+        SetGroundRadiusLineVisible(true);
+        groundRadiusLineTransform.position = groundPoint + groundNormal * groundRadiusLineHeightOffset;
+        groundRadiusLineTransform.rotation = Quaternion.FromToRotation(Vector3.up, groundNormal);
+
+        int segments = Mathf.Max(8, groundRadiusLineSegments);
+        if (groundRadiusLine.positionCount != segments)
+            groundRadiusLine.positionCount = segments;
+
+        float radius = Mathf.Max(0f, damageRadius);
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = (Mathf.PI * 2f * i) / segments;
+            groundRadiusLine.SetPosition(i, new Vector3(
+                Mathf.Cos(angle) * radius,
+                0f,
+                Mathf.Sin(angle) * radius));
+        }
+    }
+
+    bool TryGetGroundPose(out Vector3 point, out Vector3 normal)
+    {
+        Vector3 rayStart = transform.position + Vector3.up * 10f;
+        if (Physics.Raycast(
+            rayStart,
+            Vector3.down,
+            out RaycastHit hit,
+            groundPreviewRayDistance,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore) &&
+            hit.collider is TerrainCollider)
+        {
+            point = hit.point;
+            normal = hit.normal;
+            return true;
+        }
+
+        point = transform.position;
+        normal = Vector3.up;
+        return false;
+    }
+
+    void SetGroundRadiusLineVisible(bool visible)
+    {
+        if (groundRadiusLine != null)
+            groundRadiusLine.enabled = visible;
+    }
+
+    void OnDestroy()
+    {
+        if (groundRadiusLineTransform != null)
+            Destroy(groundRadiusLineTransform.gameObject);
     }
 }

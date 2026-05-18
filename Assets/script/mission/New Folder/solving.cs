@@ -181,15 +181,9 @@ public class solving : MonoBehaviour
         }
     }
 
-    Vector3 BP2Vec3(params BP[] bp)
+    Vector3 BP2Vec3(BP bp)
     {
-        Vector3 res = Vector3.zero;
-        foreach (var b in bp)
-        {
-            res += basePoints[(int)b];
-        }
-        res /= bp.Length;
-        return res;
+        return basePoints[(int)bp];
     }
 
     
@@ -326,8 +320,8 @@ public class solving : MonoBehaviour
             vertices[i].rot = localrot;
             vertices[i].obj.transform.rotation = vertices[i].rot;
 
-            vertices[i].obj.GetComponent<LineRenderer>().startWidth = totalsize / 1000;
-            vertices[i].obj.GetComponent<LineRenderer>().endWidth = totalsize / 1000;
+            vertices[i].lr.startWidth = totalsize / 1000;
+            vertices[i].lr.endWidth = totalsize / 1000;
 
             vertices[i].VcenterWorldPos = vertices[i].obj.transform.position;
         }
