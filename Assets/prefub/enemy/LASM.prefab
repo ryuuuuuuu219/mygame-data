@@ -223,7 +223,7 @@ MonoBehaviour:
         value: 0
       - key: "\u9283\u5F3E\uFF1A\u5A01\u529B"
         range:
-          min: 30
+          min: 3
           max: 150
           step: 1
         value: 0
@@ -255,7 +255,7 @@ MonoBehaviour:
         value: 0
       - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u5A01\u529B"
         range:
-          min: 50
+          min: 10
           max: 200
           step: 5
         value: 0
@@ -411,7 +411,7 @@ MonoBehaviour:
   missileSpeed: 260
   missileCooldown: 3
   missileLifeTime: 24
-  missilePower: 80
+  missilePower: 10
   missileAcceleration: 35
   missileMaxSpeed: 360
   missileTurnRate: 45

@@ -3,6 +3,8 @@ using UnityEngine;
 public class EnemyGunShooter : MonoBehaviour
 {
     public Transform gunMuzzle;
+    public int barrelCount = 1;
+    public float barrelArcAngle = 0f;
     public float bulletSpeed = 200f;
     public float fireRate = 0.1f;
     public float spreadAngle = 2f;
@@ -74,9 +76,29 @@ public class EnemyGunShooter : MonoBehaviour
             bulletpool = FindFirstObjectByType<Gun_e_pool>();
         if (bulletpool == null) return;
 
-        Vector3 shootDirection = ApplySpread(direction);
-        Vector3 velocity = platformVelocity + shootDirection * bulletSpeed;
-        bulletpool.bulletpull(bulletSize, gunMuzzle.position, velocity, bulletLifetime);
+        int count = Mathf.Max(1, barrelCount);
+        for (int i = 0; i < count; i++)
+        {
+            Vector3 barrelDirection = GetBarrelDirection(direction, i, count);
+            Vector3 shootDirection = ApplySpread(barrelDirection);
+            Vector3 velocity = platformVelocity + shootDirection * bulletSpeed;
+            bulletpool.bulletpull(bulletSize, gunMuzzle.position, velocity, bulletLifetime);
+        }
+    }
+
+    Vector3 GetBarrelDirection(Vector3 baseDirection, int index, int count)
+    {
+        if (count <= 1 || Mathf.Abs(barrelArcAngle) <= 0.001f)
+            return baseDirection;
+
+        float step = barrelArcAngle >= 359.9f
+            ? barrelArcAngle / count
+            : barrelArcAngle / Mathf.Max(1, count - 1);
+        float offset = barrelArcAngle >= 359.9f
+            ? step * index
+            : -barrelArcAngle * 0.5f + step * index;
+
+        return (Quaternion.AngleAxis(offset, Vector3.up) * baseDirection).normalized;
     }
 
     Vector3 ApplySpread(Vector3 direction)

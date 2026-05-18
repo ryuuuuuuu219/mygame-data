@@ -4,6 +4,8 @@ public class GroundAntiAirController : MonoBehaviour
 {
     public bool useGun = true;
     public bool useMissile;
+    public float gunRange = 900f;
+    public float missileRange = 800f;
 
     public EnemyTargetSelector targetSelector;
     public EnemyGunShooter gunShooter;
@@ -29,8 +31,9 @@ public class GroundAntiAirController : MonoBehaviour
 
         Vector3 platformVelocity = GetPlatformVelocity();
         Vector3 direction = targetSelector.lastDirToTarget;
+        float targetDistance = Vector3.Distance(transform.position, targetSelector.target.transform.position);
 
-        if (useGun && gunShooter != null)
+        if (useGun && gunShooter != null && targetDistance <= gunRange)
             gunShooter.TryFire(
                 direction,
                 platformVelocity,
@@ -38,10 +41,10 @@ public class GroundAntiAirController : MonoBehaviour
                 targetSelector.targetVelocity
             );
 
-        if (useMissile && missileShooter != null)
+        if (useMissile && missileShooter != null && targetDistance <= missileRange)
             missileShooter.TryFire(direction, platformVelocity, targetSelector.target.transform);
 
-        if (useMissile && longrangeMissileShooter != null)
+        if (useMissile && longrangeMissileShooter != null && targetDistance <= missileRange)
             longrangeMissileShooter.TryFire(
                 direction,
                 platformVelocity,

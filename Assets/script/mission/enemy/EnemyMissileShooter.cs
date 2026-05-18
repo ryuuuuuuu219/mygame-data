@@ -3,6 +3,9 @@ using UnityEngine;
 public class EnemyMissileShooter : MonoBehaviour
 {
     public Transform missileHardpoint;
+    public int salvoCount = 1;
+    public float salvoSpreadAngle = 0f;
+    public float salvoVerticalSpreadAngle = 0f;
     public float missileSpeed = 100f;
     public float missileCooldown = 3f;
     public float missileLifeTime = 10f;
@@ -39,24 +42,47 @@ public class EnemyMissileShooter : MonoBehaviour
             bulletpool = FindFirstObjectByType<Gun_e_pool>();
         if (bulletpool == null) return;
 
-        direction = ClampLaunchDirection(direction);
-        Vector3 velocity = platformVelocity + direction * missileSpeed;
-        GameObject missileObject = bulletpool.missilepull(missileHardpoint.position, velocity, missileLifeTime);
-        Missile missile = missileObject.GetComponent<Missile>();
+        int count = Mathf.Max(1, salvoCount);
+        for (int i = 0; i < count; i++)
+        {
+            Vector3 launchDirection = ClampLaunchDirection(GetSalvoDirection(direction, i, count));
+            Vector3 velocity = platformVelocity + launchDirection * missileSpeed;
+            GameObject missileObject = bulletpool.missilepull(missileHardpoint.position, velocity, missileLifeTime);
+            Missile missile = missileObject.GetComponent<Missile>();
 
-        if (missile == null) return;
+            if (missile == null) continue;
 
-        missile.missileInit(missileHardpoint.position, velocity, missileLifeTime);
-        missile.StatusSetting(
-            missilePower,
-            missileAcceleration,
-            missileMaxSpeed,
-            missileTurnRate,
-            missileBreakAngle,
-            missileProportionalConstant
-        );
-        missile.isheatseeker = false;
-        missile.target = target;
+            missile.missileInit(missileHardpoint.position, velocity, missileLifeTime);
+            missile.StatusSetting(
+                missilePower,
+                missileAcceleration,
+                missileMaxSpeed,
+                missileTurnRate,
+                missileBreakAngle,
+                missileProportionalConstant
+            );
+            missile.isheatseeker = false;
+            missile.target = target;
+        }
+    }
+
+    Vector3 GetSalvoDirection(Vector3 baseDirection, int index, int count)
+    {
+        if (count <= 1 || (Mathf.Abs(salvoSpreadAngle) <= 0.001f && Mathf.Abs(salvoVerticalSpreadAngle) <= 0.001f))
+            return baseDirection;
+
+        float t = count == 1 ? 0.5f : index / (float)(count - 1);
+        float yaw = Mathf.Lerp(-salvoSpreadAngle * 0.5f, salvoSpreadAngle * 0.5f, t);
+        float pitch = Mathf.Lerp(-salvoVerticalSpreadAngle * 0.5f, salvoVerticalSpreadAngle * 0.5f, Mathf.PingPong(index, 2f) * 0.5f);
+
+        Vector3 right = Vector3.Cross(Vector3.up, baseDirection);
+        if (right.sqrMagnitude <= 0.001f)
+            right = Vector3.Cross(Vector3.forward, baseDirection);
+
+        right.Normalize();
+        Quaternion yawRotation = Quaternion.AngleAxis(yaw, Vector3.up);
+        Quaternion pitchRotation = Quaternion.AngleAxis(pitch, right);
+        return (yawRotation * pitchRotation * baseDirection).normalized;
     }
 
     Vector3 ClampLaunchDirection(Vector3 direction)

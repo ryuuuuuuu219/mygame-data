@@ -315,7 +315,7 @@ public class StatusTable
             {
                 new StatEntry{ key = "銃弾：発射レート", range = new modify{ min=1f, max=60f, step=0.1f } },
                 new StatEntry{ key = "銃弾：射程", range = new modify{ min=450f, max=1000f, step=10f } },
-                new StatEntry{ key = "銃弾：威力", range = new modify{ min=30f, max=150f, step=1f } },
+                new StatEntry{ key = "銃弾：威力", range = new modify{ min=3f, max=150f, step=1f } },
                 new StatEntry{ key = "銃弾：当たり判定サイズ", range = new modify{ min=3f, max=8f, step=0.05f } },
                 new StatEntry{ key = "銃弾：弾数", range = new modify{ min=120f, max=2000f, step=5f } },
                 new StatEntry{ key = "銃弾：初速", range = new modify{ min=100f, max=1200f, step=5f } }
@@ -328,7 +328,7 @@ public class StatusTable
             stats = new StatEntry[]
             {
                 new StatEntry{ key = "ミサイル：初速", range = new modify{ min=100f, max=600f, step=5f } },
-                new StatEntry{ key = "ミサイル：威力", range = new modify{ min=50f, max=200f, step=5f } },
+                new StatEntry{ key = "ミサイル：威力", range = new modify{ min=10f, max=200f, step=5f } },
                 new StatEntry{ key = "ミサイル：最高速", range = new modify{ min=100f, max=800f, step=5f } },
                 new StatEntry{ key = "ミサイル：加速度", range = new modify{ min=0f, max=100f, step=1f } },
                 new StatEntry{ key = "ミサイル：誘導力", range = new modify{ min=45f, max=360f, step=1f } },

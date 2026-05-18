@@ -226,7 +226,7 @@ MonoBehaviour:
   bulletSpeed: 200
   fireRate: 0.1
   spreadAngle: 2
-  gunPower: 10
+  gunPower: 3
   gunSize: 0.5
   maxMissiles: 2
   currentMissiles: 0
@@ -235,7 +235,7 @@ MonoBehaviour:
   missileSpeed: 100
   missilelifeTime: 2
   missileCooldown: 6
-  mslPower: 50
+  mslPower: 10
   mslacceleration: 20
   mslmaxspeed: 150
   mslturnRate: 90
@@ -332,7 +332,7 @@ MonoBehaviour:
         value: 0
       - key: "\u9283\u5F3E\uFF1A\u5A01\u529B"
         range:
-          min: 30
+          min: 3
           max: 150
           step: 1
         value: 0
@@ -364,7 +364,7 @@ MonoBehaviour:
         value: 0
       - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u5A01\u529B"
         range:
-          min: 50
+          min: 10
           max: 200
           step: 5
         value: 0
