@@ -23,18 +23,34 @@ public class Rader : MonoBehaviour
     public Color friendColor = Color.cyan;
     public Color enemyColor = Color.green;
     public Color targetColor = Color.red;
+    public Color jammerWaveColor = new(0f, 1f, 0f, 1f);
+    public Material jammerWaveMaterial;
+    public int jammerWavePoolSize = 4;
+
+    [Header("Mask")]
+    public RectTransform radarMaskRoot;
+    public bool createRadarMask = true;
+
+    readonly List<Image> jammerWaveImages = new();
 
     // Use this for initialization
     void Start()
     {
-        // 初期プール作成
-        CreatePool(10, 10,10);  // 初期数は適当に設定、足りないときは動的追加
-
         radarRect = GetComponent<RectTransform>();
         if (PlayerBlip != null) playerBlipRect = PlayerBlip.GetComponent<RectTransform>();
 
         if (worldCamera == null) worldCamera = Camera.main;
         if (player == null) Debug.LogError("RadarSystem: player not assigned.");
+        EnsureRadarMask();
+
+        arrysUI ??= new List<GameObject>();
+        enemysUI ??= new List<GameObject>();
+        targetsUI ??= new List<GameObject>();
+
+        // 初期プール作成
+        CreatePool(10, 10,10);  // 初期数は適当に設定、足りないときは動的追加
+
+        EnsureJammerWavePool();
     }
 
     [Header("Radar Settings")]
@@ -50,6 +66,7 @@ public class Rader : MonoBehaviour
 
         UpdateBlipGroup(arrys, arrysUI, friendColor);
         UpdateEnemyBlipGroup(enemys, enemysUI);
+        UpdateJammerWaves();
 
         DisableUnused(arrysUI, arrys.Count);
         DisableUnused(enemysUI, enemys.Count);
@@ -110,30 +127,11 @@ public class Rader : MonoBehaviour
         // 探知距離で正規化
         p /= detectRange;
 
-        // レーダー枠外なら円周へ投影
-        float magnitude = p.magnitude;
-        if (magnitude > 1f)
-        {
-            p /= magnitude;
-        }
+        p.x = Mathf.Clamp(p.x, -1f, 1f);
+        p.y = Mathf.Clamp(p.y, -1f, 1f);
 
-        float halfBlipSize = 0f;
-        if (blipRect != null)
-        {
-            Rect rect = blipRect.rect;
-            Vector3 scale = blipRect.lossyScale;
-            halfBlipSize = Mathf.Max(rect.width * scale.x, rect.height * scale.y) * 0.5f;
-        }
-
-        float rectRadius = radarRadius;
-        if (radarRect != null)
-        {
-            Rect rect = radarRect.rect;
-            rectRadius = Mathf.Min(rect.width, rect.height) * 0.5f;
-        }
-
-        float effectiveRadius = Mathf.Max(0f, Mathf.Min(radarRadius, rectRadius) - halfBlipSize);
-        return p * effectiveRadius;
+        Vector2 halfSize = GetEffectiveRadarHalfSize(blipRect);
+        return new Vector2(p.x * halfSize.x, p.y * halfSize.y);
     }
 
     Vector2 GetPlayerBlipPosition()
@@ -163,19 +161,19 @@ public class Rader : MonoBehaviour
     {
         for (int i = 0; i < arryCount; i++)
         {
-            GameObject u = Instantiate(blipPrefab, RaderUI.transform);
+            GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
             u.GetComponent<Image>().enabled = false;
             arrysUI.Add(u);
         }
         for (int i = 0; i < enemyCount; i++)
         {
-            GameObject u = Instantiate(blipPrefab, RaderUI.transform);
+            GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
             u.GetComponent<Image>().enabled = false;
             enemysUI.Add(u);
         }
         for (int i = 0; i < targetCount; i++)
         {
-            GameObject u = Instantiate(blipPrefab, RaderUI.transform);
+            GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
             u.GetComponent<Image>().enabled = false;
             targetsUI.Add(u);
         }
@@ -188,7 +186,7 @@ public class Rader : MonoBehaviour
         // 足りない場合はプール拡張
         while (enemysUI.Count < enemys.Count)
         {
-            GameObject u = Instantiate(blipPrefab, RaderUI.transform);
+            GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
             u.GetComponent<Image>().enabled = false;
             enemysUI.Add(u);
         }
@@ -197,7 +195,7 @@ public class Rader : MonoBehaviour
         // 足りない場合はプール拡張
         while (arrysUI.Count < arrys.Count)
         {
-            GameObject u = Instantiate(blipPrefab, RaderUI.transform);
+            GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
             u.GetComponent<Image>().enabled = false;
             arrysUI.Add(u);
         }
@@ -214,10 +212,143 @@ public class Rader : MonoBehaviour
         // 足りない場合はプール拡張
         while (targetsUI.Count < targets.Count)
         {
-            GameObject u = Instantiate(blipPrefab,RaderUI.transform);
+            GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
             u.GetComponent<Image>().enabled = false;
             targetsUI.Add(u);
         }
 
+    }
+
+    Transform GetRadarContentRoot()
+    {
+        EnsureRadarMask();
+        if (radarMaskRoot != null) return radarMaskRoot;
+        return RaderUI != null ? RaderUI.transform : transform;
+    }
+
+    void EnsureRadarMask()
+    {
+        if (!createRadarMask || radarRect == null) return;
+
+        if (radarMaskRoot == null)
+        {
+            Transform existing = transform.Find("RadarMask");
+            if (existing != null)
+            {
+                radarMaskRoot = existing.GetComponent<RectTransform>();
+            }
+        }
+
+        if (radarMaskRoot == null)
+        {
+            GameObject maskObject = new GameObject("RadarMask", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Mask));
+            maskObject.transform.SetParent(transform, false);
+            radarMaskRoot = maskObject.GetComponent<RectTransform>();
+        }
+
+        radarMaskRoot.anchorMin = new Vector2(0.5f, 0.5f);
+        radarMaskRoot.anchorMax = new Vector2(0.5f, 0.5f);
+        radarMaskRoot.pivot = new Vector2(0.5f, 0.5f);
+        radarMaskRoot.anchoredPosition = Vector2.zero;
+        radarMaskRoot.sizeDelta = radarRect.rect.size;
+        radarMaskRoot.localScale = Vector3.one;
+
+        Image maskImage = radarMaskRoot.GetComponent<Image>();
+        Image radarImage = GetComponent<Image>();
+        if (maskImage != null && radarImage != null)
+        {
+            maskImage.sprite = radarImage.sprite;
+            maskImage.type = radarImage.type;
+            maskImage.preserveAspect = radarImage.preserveAspect;
+            maskImage.color = Color.white;
+        }
+
+        Mask mask = radarMaskRoot.GetComponent<Mask>();
+        if (mask != null)
+        {
+            mask.showMaskGraphic = false;
+        }
+    }
+
+    void EnsureJammerWavePool()
+    {
+        if (RaderUI == null) return;
+
+        if (jammerWaveMaterial == null)
+        {
+            Shader shader = Shader.Find("Custom/ECMJammerRadarWave");
+            if (shader != null)
+                jammerWaveMaterial = new Material(shader);
+        }
+
+        while (jammerWaveImages.Count < jammerWavePoolSize)
+        {
+            var waveObject = new GameObject("ECMJammerWave", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            waveObject.transform.SetParent(GetRadarContentRoot(), false);
+            var image = waveObject.GetComponent<Image>();
+            image.color = jammerWaveColor;
+            image.raycastTarget = false;
+            image.enabled = false;
+            image.material = jammerWaveMaterial != null ? new Material(jammerWaveMaterial) : null;
+            jammerWaveImages.Add(image);
+        }
+    }
+
+    void UpdateJammerWaves()
+    {
+        EnsureJammerWavePool();
+
+        int used = 0;
+        foreach (var jammer in ECMJammer.ActiveJammers)
+        {
+            if (jammer == null || !jammer.isActiveAndEnabled || !jammer.affectRadar) continue;
+            if (used >= jammerWaveImages.Count) break;
+
+            Image image = jammerWaveImages[used];
+            RectTransform rect = image.rectTransform;
+            Vector2 pos = RadarSquarePosition(jammer.transform.position, rect);
+            Vector2 halfSize = GetEffectiveRadarHalfSize(null);
+            float radiusPixels = Mathf.Clamp01(jammer.interferenceRadius / Mathf.Max(1f, detectRange)) *
+                Mathf.Min(halfSize.x, halfSize.y);
+
+            rect.SetAsFirstSibling();
+            rect.anchoredPosition = GetPlayerBlipPosition() + pos;
+            rect.sizeDelta = Vector2.one * radiusPixels * 2f;
+            image.color = jammerWaveColor;
+            image.enabled = true;
+
+            if (image.material != null)
+            {
+                image.material.SetFloat("_TimeOffset", used * 0.17f);
+                image.material.SetColor("_Color", jammerWaveColor);
+            }
+
+            used++;
+        }
+
+        for (int i = used; i < jammerWaveImages.Count; i++)
+            jammerWaveImages[i].enabled = false;
+    }
+
+    Vector2 GetEffectiveRadarHalfSize(RectTransform blipRect)
+    {
+        float halfBlipSize = 0f;
+        if (blipRect != null)
+        {
+            Rect rect = blipRect.rect;
+            Vector3 scale = blipRect.lossyScale;
+            halfBlipSize = Mathf.Max(rect.width * scale.x, rect.height * scale.y) * 0.5f;
+        }
+
+        Vector2 rectHalfSize = Vector2.one * radarRadius;
+        if (radarRect != null)
+        {
+            Rect rect = radarRect.rect;
+            rectHalfSize = rect.size * 0.5f;
+        }
+
+        return new Vector2(
+            Mathf.Max(0f, Mathf.Min(radarRadius, rectHalfSize.x) - halfBlipSize),
+            Mathf.Max(0f, Mathf.Min(radarRadius, rectHalfSize.y) - halfBlipSize));
     }
 }

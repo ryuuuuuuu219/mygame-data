@@ -55,7 +55,8 @@ public class DebugHUD : MonoBehaviour
     AugumentStatus status;
     EnemyNameConverterToUI enemyNameConverter;
 
-    List<(GameObject obj, LineRenderer lr, GameObject boundTarget)> conteiners;
+    List<(GameObject obj, LineRenderer lr, LineRenderer crossLrA, LineRenderer crossLrB, GameObject boundTarget)> conteiners;
+    public bool deceived;
 
 
     void Start()
@@ -342,6 +343,15 @@ public class DebugHUD : MonoBehaviour
                 }
             }
 
+            deceived = Lockedtargets.Count > 0 &&
+                plane != null &&
+                ECMJammer.IsHudJammed(plane.transform.position);
+
+            if (deceived)
+            {
+                Lockedtargets.Clear();
+            }
+
             // ロック解除条件
             if (Lockedtargets.Count == 0)
             {
@@ -349,6 +359,7 @@ public class DebugHUD : MonoBehaviour
         }
         else if (markingtargets.Count == 0)
         {
+            deceived = false;
         }
 
         // -------- コンテナ更新 --------
@@ -536,7 +547,31 @@ public class DebugHUD : MonoBehaviour
             renderer.startColor = Color.green;
             renderer.endColor = Color.green;
 
-            conteiners.Add((c, renderer, null));
+            GameObject cross = new GameObject("TargetContainerCrossline");
+            cross.transform.SetParent(null);
+            LineRenderer crossRenderer = cross.AddComponent<LineRenderer>();
+            crossRenderer.material = renderer.material;
+            crossRenderer.startWidth = 0.3f;
+            crossRenderer.endWidth = 0.3f;
+            crossRenderer.enabled = false;
+            crossRenderer.loop = false;
+            crossRenderer.positionCount = 2;
+            crossRenderer.startColor = Color.yellow;
+            crossRenderer.endColor = Color.yellow;
+
+            GameObject crossB = new GameObject("TargetContainerCrosslineB");
+            crossB.transform.SetParent(null);
+            LineRenderer crossRendererB = crossB.AddComponent<LineRenderer>();
+            crossRendererB.material = renderer.material;
+            crossRendererB.startWidth = 0.3f;
+            crossRendererB.endWidth = 0.3f;
+            crossRendererB.enabled = false;
+            crossRendererB.loop = false;
+            crossRendererB.positionCount = 2;
+            crossRendererB.startColor = Color.yellow;
+            crossRendererB.endColor = Color.yellow;
+
+            conteiners.Add((c, renderer, crossRenderer, crossRendererB, null));
         }
 
         // 必要な分だけアクティブ化して位置更新
@@ -611,22 +646,27 @@ public class DebugHUD : MonoBehaviour
                 {
                     Debug.LogError("DebugHUD: Target AugumentStatus or HP not found.");
                 }
-                    UpdateContainer(idx, obj,
-                        isLocked ? Color.red : Color.green,
+                UpdateContainer(idx, obj,
+                        deceived ? Color.yellow : isLocked ? Color.red : Color.green,
                         ConvertEnemyName(obj) + "\n" +
                         $"{Vector3.Distance(plane.transform.position, obj.transform.position):F1}m" + "\n" +
-                        hptext);
+                        hptext,
+                        deceived);
 
-                if (!isLocked)
+                if (!isLocked || deceived)
                 {
                     if (!isBlinking)
                     {
                         conteiners[idx].lr.enabled = false;
+                        conteiners[idx].crossLrA.enabled = deceived;
+                        conteiners[idx].crossLrB.enabled = deceived;
                     }
                 }
                 else
                 {
                     conteiners[idx].lr.enabled = true;
+                    conteiners[idx].crossLrA.enabled = false;
+                    conteiners[idx].crossLrB.enabled = false;
                 }
 
             }
@@ -634,7 +674,8 @@ public class DebugHUD : MonoBehaviour
             {
                 UpdateContainer(idx, obj,
                     isLocked ? Color.red : Color.green,
-                    (isNext ? "Next" : ""));
+                    (isNext ? "Next" : ""),
+                    false);
 
             }
             idx++;
@@ -648,7 +689,7 @@ public class DebugHUD : MonoBehaviour
                 continue;
             }
             if (obj.name == "Player") continue;
-            UpdateContainer(idx, obj, Color.cyan, "Arry");
+            UpdateContainer(idx, obj, Color.cyan, "Arry", false);
             idx++;
         }
 
@@ -671,15 +712,19 @@ public class DebugHUD : MonoBehaviour
             tm2.text = "";
 
         conteiners[idx].lr.enabled = false;
+        conteiners[idx].crossLrA.enabled = false;
+        conteiners[idx].crossLrB.enabled = false;
     }
 
 
-    void UpdateContainer(int idx, GameObject target, Color color, string text)
+    void UpdateContainer(int idx, GameObject target, Color color, string text, bool useCrossContainer)
     {
         var container = conteiners[idx].obj;
         var renderer = conteiners[idx].lr;
+        var crossRendererA = conteiners[idx].crossLrA;
+        var crossRendererB = conteiners[idx].crossLrB;
         var containerRect = container.GetComponent<RectTransform>();
-        if (renderer == null || containerRect == null) 
+        if (renderer == null || crossRendererA == null || crossRendererB == null || containerRect == null) 
         { 
             Debug.LogError("DebugHUD: Missing components in container.");
             return; 
@@ -692,6 +737,8 @@ public class DebugHUD : MonoBehaviour
         if (dist > detectRange || !IsValidViewportPoint(viewportPos))
         {
             renderer.enabled = false;
+            crossRendererA.enabled = false;
+            crossRendererB.enabled = false;
             ClearTexts(container);
             return;
         }
@@ -711,6 +758,8 @@ public class DebugHUD : MonoBehaviour
         ))
         {
             renderer.enabled = false;
+            crossRendererA.enabled = false;
+            crossRendererB.enabled = false;
             ClearTexts(container);
             return;
         }
@@ -733,9 +782,24 @@ public class DebugHUD : MonoBehaviour
             renderer.SetPosition(i, worldPos);
         }
 
-        renderer.enabled = true;
+        Vector3 crossA = mainCam.ScreenToWorldPoint(new Vector3(baseScreen.x - 20f, baseScreen.y - 20f, baseScreen.z));
+        Vector3 crossB = mainCam.ScreenToWorldPoint(new Vector3(baseScreen.x + 20f, baseScreen.y + 20f, baseScreen.z));
+        Vector3 crossC = mainCam.ScreenToWorldPoint(new Vector3(baseScreen.x - 20f, baseScreen.y + 20f, baseScreen.z));
+        Vector3 crossD = mainCam.ScreenToWorldPoint(new Vector3(baseScreen.x + 20f, baseScreen.y - 20f, baseScreen.z));
+        crossRendererA.SetPosition(0, crossA);
+        crossRendererA.SetPosition(1, crossB);
+        crossRendererB.SetPosition(0, crossC);
+        crossRendererB.SetPosition(1, crossD);
+
+        renderer.enabled = !useCrossContainer;
+        crossRendererA.enabled = useCrossContainer;
+        crossRendererB.enabled = useCrossContainer;
         renderer.startColor = color;
         renderer.endColor = color;
+        crossRendererA.startColor = color;
+        crossRendererA.endColor = color;
+        crossRendererB.startColor = color;
+        crossRendererB.endColor = color;
 
         // ===== Text =====
         SetTexts(container, target, text);
@@ -833,6 +897,8 @@ public class DebugHUD : MonoBehaviour
         hudBuilder.Append("°\nROLL: ");
         hudBuilder.Append(roll.ToString("F1"));
         hudBuilder.Append('°');
+        if (deceived)
+            hudBuilder.Append("\nDECEIVED");
         hudText.text = hudBuilder.ToString();
     }
     #endregion

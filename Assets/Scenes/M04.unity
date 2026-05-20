@@ -1270,6 +1270,8 @@ MonoBehaviour:
     prefab: {fileID: 287339356655383430, guid: 9c61ccc9d85242acb1e018ab81b752ea, type: 3}
   - prefabTypeName: AIR_BATTLESHIP
     prefab: {fileID: 2692963879148771626, guid: 002c3b3b3897de24f833562365ae92a4, type: 3}
+  - prefabTypeName: JAMMER
+    prefab: {fileID: 640010000000000001, guid: 6d6d2c6255e7488082c2b92a72755119, type: 3}
 --- !u!1001 &277640307
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -16,7 +16,8 @@ public class EnemyNameConverterToUI : MonoBehaviour
         new NameConversion { beforeName = "AceM03Special", afterName = "ACE SPECIAL" },
         new NameConversion { beforeName = "AA_GUN", afterName = "AA GUN" },
         new NameConversion { beforeName = "SAM", afterName = "SAM" },
-        new NameConversion { beforeName = "LASM", afterName = "LASM" }
+        new NameConversion { beforeName = "LASM", afterName = "LASM" },
+        new NameConversion { beforeName = "JAMMER", afterName = "JAMMER" }
     };
 
     public string converter(GameObject obj)
