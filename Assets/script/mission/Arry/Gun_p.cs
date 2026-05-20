@@ -64,8 +64,7 @@ public class Gun_p : MonoBehaviour
             return;
         }
 
-        var status = other.GetComponentInParent<AugumentStatus>();
-        if (status != null && status.isEnemy)
+        if (DamageTargetResolver.TryGetEnemyStatus(other, out AugumentStatus status))
         {
             status.damage(power);
             ObjectManager.Instance.hitUIflag = true;
@@ -99,8 +98,7 @@ public class Gun_p : MonoBehaviour
 
             if (hit.collider is TerrainCollider) return true;
 
-            var status = hit.collider.GetComponentInParent<AugumentStatus>();
-            if (status == null || !status.isEnemy) continue;
+            if (!DamageTargetResolver.TryGetEnemyStatus(hit.collider, out AugumentStatus status)) continue;
 
             status.damage(power);
             if (ObjectManager.Instance != null)

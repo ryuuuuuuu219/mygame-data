@@ -264,8 +264,7 @@ public class BombProjectile : MonoBehaviour
         {
             if (hit == null) continue;
 
-            var status = hit.GetComponentInParent<AugumentStatus>();
-            if (status == null || !status.isEnemy) continue;
+            if (!DamageTargetResolver.TryGetEnemyStatus(hit, out AugumentStatus status)) continue;
             if (!damaged.Add(status)) continue;
 
             Vector3 closestPoint = hit.ClosestPoint(center);

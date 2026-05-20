@@ -2008,7 +2008,38 @@
 
                                                                   ],
                                           "enemies":  [
-
+                                                          {
+                                                              "enemyId":  -1,
+                                                              "prefabType":  "AIR_BATTLESHIP",
+                                                              "missionTarget":  true,
+                                                              "lifetime":  0,
+                                                              "placement":  {
+                                                                                "mode":  "fixed",
+                                                                                "count":  1,
+                                                                                "position":  {
+                                                                                                 "x":  0,
+                                                                                                 "y":  1500,
+                                                                                                 "z":  300
+                                                                                             },
+                                                                                "rotate":  {
+                                                                                               "x":  0,
+                                                                                               "y":  0,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "vector":  {
+                                                                                               "x":  0,
+                                                                                               "y":  0,
+                                                                                               "z":  0
+                                                                                           },
+                                                                                "isstoped":  true,
+                                                                                "snapToTerrain":  false,
+                                                                                "areaId":  "m04_air_battleship",
+                                                                                "minAltitude":  0,
+                                                                                "maxAltitude":  0,
+                                                                                "terrainLayer":  "",
+                                                                                "radius":  0
+                                                                            }
+                                                          }
                                                       ]
                                       }
                                   ]

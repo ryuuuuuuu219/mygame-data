@@ -25,24 +25,26 @@ public class EnemyMissileShooter : MonoBehaviour
 
     float nextMissileTime;
 
-    public void TryFire(Vector3 direction, Vector3 platformVelocity, Transform target)
+    public bool TryFire(Vector3 direction, Vector3 platformVelocity, Transform target)
     {
-        if (Time.time < nextMissileTime) return;
-        if (direction.sqrMagnitude <= 0.001f) return;
-        if (requireLineOfSight && !HasLineOfSight(target)) return;
+        if (Time.time < nextMissileTime) return false;
+        if (direction.sqrMagnitude <= 0.001f) return false;
+        if (requireLineOfSight && !HasLineOfSight(target)) return false;
 
-        Fire(direction.normalized, platformVelocity, target);
+        if (!Fire(direction.normalized, platformVelocity, target)) return false;
         nextMissileTime = Time.time + missileCooldown;
+        return true;
     }
 
-    void Fire(Vector3 direction, Vector3 platformVelocity, Transform target)
+    bool Fire(Vector3 direction, Vector3 platformVelocity, Transform target)
     {
         if (missileHardpoint == null) missileHardpoint = transform;
         if (bulletpool == null)
             bulletpool = FindFirstObjectByType<Gun_e_pool>();
-        if (bulletpool == null) return;
+        if (bulletpool == null) return false;
 
         int count = Mathf.Max(1, salvoCount);
+        bool launchedAny = false;
         for (int i = 0; i < count; i++)
         {
             Vector3 launchDirection = ClampLaunchDirection(GetSalvoDirection(direction, i, count));
@@ -63,8 +65,13 @@ public class EnemyMissileShooter : MonoBehaviour
             );
             missile.isheatseeker = false;
             missile.target = target;
+            launchedAny = true;
         }
-        GeneratedAudioManager.Play(GeneratedAudioCue.EnemyMissileLaunch, missileHardpoint.position, 0.75f);
+
+        if (launchedAny)
+            GeneratedAudioManager.Play(GeneratedAudioCue.EnemyMissileLaunch, missileHardpoint.position, 0.75f);
+
+        return launchedAny;
     }
 
     Vector3 GetSalvoDirection(Vector3 baseDirection, int index, int count)

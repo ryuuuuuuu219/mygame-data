@@ -204,8 +204,7 @@ public class Missile_p : MonoBehaviour
                 return;
             }
 
-            var status = hit.collider.GetComponentInParent<AugumentStatus>();
-            if (status == null || !status.isEnemy) continue;
+            if (!DamageTargetResolver.TryGetEnemyStatus(hit.collider, out AugumentStatus status)) continue;
 
             status.damage(power); // ダメージ量は適宜調整
             if (ObjectManager.Instance != null)

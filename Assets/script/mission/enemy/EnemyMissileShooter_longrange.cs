@@ -22,34 +22,32 @@ public class EnemyMissileShooter_longrange : MonoBehaviour
     public float vlsRiseSpeed = 80f;
     public float vlsSecondStageBreakAngle = 140f;
     public float vlsSecondStageTurnRateMultiplier = 1.5f;
+    public bool createFallbackFirstStageVisual = true;
+    public Vector3 fallbackFirstStageScale = new(1.5f, 6f, 1.5f);
 
     [SerializeField] Gun_e_pool bulletpool;
 
     float nextMissileTime;
 
-    public void TryFire(Vector3 direction, Vector3 platformVelocity, Transform target, bool ignoreLineOfSight = false)
+    public bool TryFire(Vector3 direction, Vector3 platformVelocity, Transform target, bool ignoreLineOfSight = false)
     {
-        if (Time.time < nextMissileTime) return;
-        if (direction.sqrMagnitude <= 0.001f) return;
-        if (!ignoreLineOfSight && requireLineOfSight && !HasLineOfSight(target)) return;
+        if (Time.time < nextMissileTime) return false;
+        if (direction.sqrMagnitude <= 0.001f) return false;
+        if (!ignoreLineOfSight && requireLineOfSight && !HasLineOfSight(target)) return false;
 
-        Fire(direction.normalized, platformVelocity, target);
+        if (!Fire(direction.normalized, platformVelocity, target)) return false;
         nextMissileTime = Time.time + missileCooldown;
+        return true;
     }
 
-    void Fire(Vector3 direction, Vector3 platformVelocity, Transform target)
+    bool Fire(Vector3 direction, Vector3 platformVelocity, Transform target)
     {
         if (missileHardpoint == null) missileHardpoint = transform;
         if (bulletpool == null)
             bulletpool = FindFirstObjectByType<Gun_e_pool>();
-        if (bulletpool == null) return;
+        if (bulletpool == null) return false;
 
-        GameObject firstStageObject = vlsFirstStagePrefab != null
-            ? Instantiate(vlsFirstStagePrefab, missileHardpoint.position, Quaternion.LookRotation(Vector3.up))
-            : new GameObject("VLS_FirstStageMissileUnit");
-
-        if (vlsFirstStagePrefab == null)
-            firstStageObject.transform.position = missileHardpoint.position;
+        GameObject firstStageObject = CreateFirstStageObject();
 
         VlsFirstStageMissileUnit firstStage = firstStageObject.GetComponent<VlsFirstStageMissileUnit>();
         if (firstStage == null)
@@ -64,6 +62,32 @@ public class EnemyMissileShooter_longrange : MonoBehaviour
             vlsRiseSpeed
         );
         GeneratedAudioManager.Play(GeneratedAudioCue.EnemyMissileLaunch, missileHardpoint.position, 0.85f);
+        return true;
+    }
+
+    GameObject CreateFirstStageObject()
+    {
+        if (vlsFirstStagePrefab != null)
+            return Instantiate(vlsFirstStagePrefab, missileHardpoint.position, Quaternion.LookRotation(Vector3.up));
+
+        if (!createFallbackFirstStageVisual)
+        {
+            var empty = new GameObject("VLS_FirstStageMissileUnit");
+            empty.transform.position = missileHardpoint.position;
+            empty.transform.rotation = Quaternion.LookRotation(Vector3.up);
+            return empty;
+        }
+
+        GameObject visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+        visual.name = "VLS_FirstStageMissileUnit";
+        visual.transform.position = missileHardpoint.position;
+        visual.transform.rotation = Quaternion.LookRotation(Vector3.up);
+        visual.transform.localScale = fallbackFirstStageScale;
+
+        if (visual.TryGetComponent(out Collider collider))
+            Destroy(collider);
+
+        return visual;
     }
 
     public bool LaunchSecondStage(Transform target, Vector3 platformVelocity, Vector3 launchPosition, out Missile launchedMissile)

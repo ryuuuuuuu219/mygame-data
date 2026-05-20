@@ -48,6 +48,7 @@ public class SpawnTableManager : MonoBehaviour
             spawnPlacementManager = gameObject.AddComponent<SpawnPlacementManager>();
 
         currentStage = new();
+        currentWave = -1;
 
         if (disableSceneEnemiesOnStart)
             DisableSceneEnemies();
@@ -58,7 +59,6 @@ public class SpawnTableManager : MonoBehaviour
                 enemy.SetActive(false);
         }
 
-        currentWave = -1;
         if (SceneManager.GetActiveScene().name == "M02")
         {
             InitializeM02ManualStage();
@@ -96,7 +96,7 @@ public class SpawnTableManager : MonoBehaviour
         }
 
         // 全Waveクリア判定
-        if (AllWavesCleared())
+        if (!isStageClear && AllWavesCleared())
         {
             FinishStage();
         }

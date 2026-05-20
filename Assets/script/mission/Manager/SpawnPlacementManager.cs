@@ -49,10 +49,27 @@ public class SpawnPlacementManager : MonoBehaviour
     {
         var result = new SpawnResult();
         if (enemy == null || definition == null) return result;
-        if (!enemy.TryGetComponent(out AugumentStatus aug)) return result;
 
         ApplyPlacement(enemy, definition.placement);
         ApplyInitialMotion(enemy, definition.placement);
+
+        GameObject registeredEnemy = enemy;
+        if (definition.prefabType == "AIR_BATTLESHIP" &&
+            !enemy.TryGetComponent(out AirBattleshipBase _))
+        {
+            enemy.AddComponent<AirBattleshipBase>();
+        }
+
+        if (enemy.TryGetComponent(out AirBattleshipBase battleshipBase))
+        {
+            registeredEnemy = battleshipBase.EnsureCoreBlockEntity();
+        }
+        else if (!enemy.TryGetComponent(out AugumentStatus _))
+        {
+            return result;
+        }
+
+        if (!registeredEnemy.TryGetComponent(out AugumentStatus aug)) return result;
 
         aug.missionObjective = definition.missionTarget;
         aug.isEnemy = true;
@@ -62,7 +79,8 @@ public class SpawnPlacementManager : MonoBehaviour
         aug.waveID = waveId;
 
         enemy.SetActive(true);
-        ObjectManager.Instance.RegisterEnemy(enemy, waveId);
+        registeredEnemy.SetActive(true);
+        ObjectManager.Instance.RegisterEnemy(registeredEnemy, waveId);
 
         result.aliveEnemy = 1;
         result.aliveTarget = definition.missionTarget ? 1 : 0;
