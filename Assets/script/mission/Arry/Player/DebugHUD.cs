@@ -270,6 +270,8 @@ public class DebugHUD : MonoBehaviour
                     markingtargets.Remove(t);
                 }
             }
+
+            PromoteNonEcmTarget();
         }
         else if (targets.Count == 1)
         {
@@ -294,12 +296,14 @@ public class DebugHUD : MonoBehaviour
             }
             float sqrdist = (plane.transform.position - markingtargets[0].transform.position).sqrMagnitude;
             if (sqrdist < lockRange * lockRange &&
-                ToTargetFov(markingtargets[0].transform.position) < maxfov)
+                ToTargetFov(markingtargets[0].transform.position) < maxfov &&
+                !IsEcmTarget(markingtargets[0]))
             {
                 Lockedtargets.Clear();
                 for (int i = 0; i < markingtargets.Count; i++)
                 {
                     if (markingtargets[i] == null) continue;
+                    if (IsEcmTarget(markingtargets[i])) continue;
 
                     float sqrdisti = (plane.transform.position - markingtargets[i].transform.position).sqrMagnitude;
                     if (sqrdisti < lockRange * lockRange &&
@@ -343,14 +347,11 @@ public class DebugHUD : MonoBehaviour
                 }
             }
 
-            deceived = Lockedtargets.Count > 0 &&
-                plane != null &&
-                ECMJammer.IsHudJammed(plane.transform.position);
-
-            if (deceived)
-            {
-                Lockedtargets.Clear();
-            }
+            deceived = Lockedtargets.Count == 0 &&
+                markingtargets.Count > 0 &&
+                IsEcmTarget(markingtargets[0]) &&
+                sqrdist < lockRange * lockRange &&
+                ToTargetFov(markingtargets[0].transform.position) < maxfov;
 
             // ロック解除条件
             if (Lockedtargets.Count == 0)
@@ -406,6 +407,30 @@ public class DebugHUD : MonoBehaviour
         // 0〜180°の角度をそのまま返す
         float angle = Vector3.Angle(forward, dirToTarget);
         return angle; // ← 0なら正面、180なら真後ろ
+    }
+
+    void PromoteNonEcmTarget()
+    {
+        if (markingtargets.Count <= 1 || !IsEcmTarget(markingtargets[0]))
+            return;
+
+        for (int i = 1; i < markingtargets.Count; i++)
+        {
+            var candidate = markingtargets[i];
+            if (candidate == null || IsEcmTarget(candidate))
+                continue;
+
+            markingtargets.RemoveAt(i);
+            markingtargets.Insert(0, candidate);
+            return;
+        }
+    }
+
+    bool IsEcmTarget(GameObject target)
+    {
+        return target != null &&
+            target.TryGetComponent(out AugumentStatus targetStatus) &&
+            targetStatus.ECM;
     }
 
     float GetTargetAngle(Transform target, Camera cam, out bool isOutsideView)

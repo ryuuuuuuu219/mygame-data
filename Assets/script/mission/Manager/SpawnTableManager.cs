@@ -59,12 +59,6 @@ public class SpawnTableManager : MonoBehaviour
                 enemy.SetActive(false);
         }
 
-        if (SceneManager.GetActiveScene().name == "M02")
-        {
-            InitializeM02ManualStage();
-            return;
-        }
-
         StartCoroutine(LoadJSON());
     }
 
@@ -116,14 +110,6 @@ public class SpawnTableManager : MonoBehaviour
         runtime.rt.cleared = false;
         runtime.rt.aliveEnemy = 0;
         runtime.rt.aliveTarget = 0;
-
-        if (SceneManager.GetActiveScene().name == "M02")
-        {
-            InitializeM02DesignController();
-            GetComponent<M02DesignController>().StartWave(wave.waveId);
-            Debug.Log($"[SpawnManager] Wave {wave.waveId} started by M02 design controller");
-            return;
-        }
 
         ActivateWave(wave);
 
@@ -295,61 +281,6 @@ public class SpawnTableManager : MonoBehaviour
         missionStartTime = Time.time;
         isInit = true;
 
-    }
-
-    void InitializeM02DesignController()
-    {
-        var controller = GetComponent<M02DesignController>();
-        if (controller == null)
-            controller = gameObject.AddComponent<M02DesignController>();
-
-        controller.Initialize(this, spawnPlacementManager, Player);
-    }
-
-    void InitializeM02ManualStage()
-    {
-        currentStage = new StageData
-        {
-            sceneName = "M02",
-            randomSeed = 260514,
-            spawns = new List<WaveDefinition>
-            {
-                new WaveDefinition
-                {
-                    waveId = 0,
-                    requireClearedWaves = new List<int>()
-                },
-                new WaveDefinition
-                {
-                    waveId = 1,
-                    requireClearedWaves = new List<int> { 0 }
-                }
-            }
-        };
-
-        waveRuntime.Clear();
-        waveDefinitions.Clear();
-
-        foreach (var wave in currentStage.spawns)
-        {
-            waveRuntime.Add(new()
-            {
-                ID = wave.waveId,
-                rt = new WaveRuntime
-                {
-                    waveId = wave.waveId,
-                    started = false,
-                    cleared = false,
-                    aliveEnemy = 0,
-                    aliveTarget = 0
-                }
-            });
-            waveDefinitions.Add(wave);
-        }
-
-        spawnPlacementManager.SetRandomSeed(currentStage.randomSeed);
-        missionStartTime = Time.time;
-        isInit = true;
     }
 
     void DisableSceneEnemies()
@@ -550,6 +481,29 @@ public class EnemySpawnDefinition
     public bool missionTarget;
     public float lifetime;
     public PlacementDefinition placement;
+    public bool hideFromHud;
+    public bool useUnknownPhaseTrigger;
+    public bool isPhaseTrrigersParent;
+    public string phaseTriggerId;
+    public string originName;
+    public float approachDistance;
+    public UAVLaunchDefinition uavLaunch;
+}
+
+[System.Serializable]
+public class UAVLaunchDefinition
+{
+    public bool enabled;
+    public bool launchOnPhaseActivate;
+    public int capacity = 15;
+    public int waveId;
+    public float launchDelay = 0.5f;
+    public int fighterCount = 3;
+    public float fighterSpacingAngle = 45f;
+    public float fighterSpawnRadius = 80f;
+    public float fighterSpawnAltitude = 220f;
+    public float fighterSpeed = 350f;
+    public string fighterPrefabType = "fighter";
 }
 
 [System.Serializable]
@@ -567,6 +521,7 @@ public class PlacementDefinition
     public float maxAltitude;
     public string terrainLayer;
     public float radius;
+    public float terrainOffset;
 }
 
 [System.Serializable]

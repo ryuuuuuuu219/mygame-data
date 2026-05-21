@@ -6,6 +6,7 @@ public class SpawnPlacementManager : MonoBehaviour
     public SpawnPrefabRegistry prefabRegistry;
     public WorldGenerator worldGenerator;
     System.Random random;
+    readonly Dictionary<string, UnknownPhaseTrigger> phaseTriggerParents = new();
 
     void Awake()
     {
@@ -27,7 +28,8 @@ public class SpawnPlacementManager : MonoBehaviour
 
         GameObject source = prefab != null
             ? prefab
-            : GetSceneEnemy(enemies, definition.enemyId);
+            : CreateBuiltinSpawnSource(definition.prefabType);
+        source ??= GetSceneEnemy(enemies, definition.enemyId);
         if (source == null) return result;
 
         int count = definition.placement != null
@@ -36,11 +38,15 @@ public class SpawnPlacementManager : MonoBehaviour
 
         for (int i = 0; i < count; i++)
         {
-            GameObject enemy = prefab != null || i > 0
+            GameObject enemy = prefab != null || IsBuiltinSpawn(definition.prefabType) || i > 0
                 ? Instantiate(source)
                 : source;
-            result.Add(SpawnEnemy(enemy, definition, waveId));
+            SpawnResult spawned = SpawnEnemy(enemy, definition, waveId);
+            result.Add(spawned);
         }
+
+        if (IsBuiltinSpawn(definition.prefabType) && source != null)
+            Destroy(source);
 
         return result;
     }
@@ -77,6 +83,11 @@ public class SpawnPlacementManager : MonoBehaviour
         aug.lifeTime = definition.lifetime;
         aug.issortie = true;
         aug.waveID = waveId;
+        if (definition.hideFromHud)
+            aug.isVisible = false;
+
+        ApplyUnknownPhaseTrigger(enemy, definition);
+        ApplyUAVStorageLauncher(enemy, definition);
 
         enemy.SetActive(true);
         registeredEnemy.SetActive(true);
@@ -84,7 +95,83 @@ public class SpawnPlacementManager : MonoBehaviour
 
         result.aliveEnemy = 1;
         result.aliveTarget = definition.missionTarget ? 1 : 0;
+        result.spawnedEnemy = registeredEnemy;
         return result;
+    }
+
+    GameObject CreateBuiltinSpawnSource(string prefabType)
+    {
+        if (prefabType == "TRIGGER_EMPTY")
+        {
+            var trigger = new GameObject("trigger_empty");
+            trigger.AddComponent<AugumentStatus>();
+            return trigger;
+        }
+
+        if (prefabType == "UAV_STORAGE")
+        {
+            var storage = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            storage.name = "UAV_STORAGE";
+            storage.transform.localScale = new Vector3(40f, 16f, 40f);
+
+            var rb = storage.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            rb.useGravity = false;
+
+            var status = storage.AddComponent<AugumentStatus>();
+            status.hp = 100000f;
+            status.maxhp = 100000f;
+            return storage;
+        }
+
+        return null;
+    }
+
+    bool IsBuiltinSpawn(string prefabType)
+    {
+        return prefabType == "TRIGGER_EMPTY" || prefabType == "UAV_STORAGE";
+    }
+
+    void ApplyUnknownPhaseTrigger(GameObject enemy, EnemySpawnDefinition definition)
+    {
+        if (enemy == null || definition == null) return;
+        if (!definition.useUnknownPhaseTrigger && string.IsNullOrEmpty(definition.phaseTriggerId)) return;
+
+        if (definition.isPhaseTrrigersParent)
+        {
+            var trigger = enemy.GetComponent<UnknownPhaseTrigger>();
+            if (trigger == null)
+                trigger = enemy.AddComponent<UnknownPhaseTrigger>();
+
+            trigger.isPhaseTrrigersParent = true;
+            if (definition.approachDistance > 0f)
+                trigger.approachDistance = definition.approachDistance;
+
+            if (!string.IsNullOrEmpty(definition.originName))
+                trigger.originname = definition.originName;
+
+            if (!string.IsNullOrEmpty(definition.phaseTriggerId))
+                phaseTriggerParents[definition.phaseTriggerId] = trigger;
+
+            return;
+        }
+
+        if (string.IsNullOrEmpty(definition.phaseTriggerId)) return;
+        if (!phaseTriggerParents.TryGetValue(definition.phaseTriggerId, out UnknownPhaseTrigger parent)) return;
+
+        parent.trigger_empty = enemy;
+    }
+
+    void ApplyUAVStorageLauncher(GameObject enemy, EnemySpawnDefinition definition)
+    {
+        if (enemy == null || definition == null || definition.uavLaunch == null || !definition.uavLaunch.enabled)
+            return;
+
+        var launcher = enemy.GetComponent<UAVStorageLauncher>();
+        if (launcher == null)
+            launcher = enemy.AddComponent<UAVStorageLauncher>();
+
+        launcher.Initialize(this, definition.uavLaunch);
     }
 
     void ApplyPlacement(GameObject enemy, PlacementDefinition placement)
@@ -154,7 +241,7 @@ public class SpawnPlacementManager : MonoBehaviour
 
     void SnapToTerrain(GameObject enemy, PlacementDefinition placement)
     {
-        if (TrySnapToUnityTerrain(enemy))
+        if (TrySnapToUnityTerrain(enemy, placement))
             return;
 
         Vector3 origin = enemy.transform.position + Vector3.up * 10000f;
@@ -170,17 +257,17 @@ public class SpawnPlacementManager : MonoBehaviour
         if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 20000f, layerMask) &&
             hit.collider is TerrainCollider)
         {
-            enemy.transform.position = hit.point;
+            enemy.transform.position = hit.point + Vector3.up * placement.terrainOffset;
         }
     }
 
-    bool TrySnapToUnityTerrain(GameObject enemy)
+    bool TrySnapToUnityTerrain(GameObject enemy, PlacementDefinition placement)
     {
         Terrain terrain = GetTerrainAt(enemy.transform.position);
         if (terrain == null) return false;
 
         Vector3 position = enemy.transform.position;
-        position.y = terrain.SampleHeight(position) + terrain.transform.position.y;
+        position.y = terrain.SampleHeight(position) + terrain.transform.position.y + placement.terrainOffset;
         enemy.transform.position = position;
         return true;
     }
@@ -248,6 +335,7 @@ public class SpawnResult
 {
     public int aliveEnemy;
     public int aliveTarget;
+    public GameObject spawnedEnemy;
 
     public void Add(SpawnResult other)
     {
@@ -255,5 +343,6 @@ public class SpawnResult
 
         aliveEnemy += other.aliveEnemy;
         aliveTarget += other.aliveTarget;
+        spawnedEnemy = other.spawnedEnemy;
     }
 }
