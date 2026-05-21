@@ -20,6 +20,9 @@ public class EnemyMissileShooter : MonoBehaviour
     public LayerMask lineOfSightMask = ~0;
     public float lineOfSightOriginOffset = 2f;
     public float minimumLaunchUpDot = 0.15f;
+    public Vector3 launchDirectionOverride;
+    public float guidanceStartDelay;
+    public bool guidanceStartSwitch;
 
     [SerializeField] Gun_e_pool bulletpool;
 
@@ -27,9 +30,14 @@ public class EnemyMissileShooter : MonoBehaviour
 
     public bool TryFire(Vector3 direction, Vector3 platformVelocity, Transform target)
     {
+        return TryFire(direction, platformVelocity, target, false);
+    }
+
+    public bool TryFire(Vector3 direction, Vector3 platformVelocity, Transform target, bool ignoreLineOfSight)
+    {
         if (Time.time < nextMissileTime) return false;
         if (direction.sqrMagnitude <= 0.001f) return false;
-        if (requireLineOfSight && !HasLineOfSight(target)) return false;
+        if (!ignoreLineOfSight && requireLineOfSight && !HasLineOfSight(target)) return false;
 
         if (!Fire(direction.normalized, platformVelocity, target)) return false;
         nextMissileTime = Time.time + missileCooldown;
@@ -54,6 +62,9 @@ public class EnemyMissileShooter : MonoBehaviour
 
             if (missile == null) continue;
 
+            missile.launchDirectionOverride = launchDirectionOverride;
+            missile.guidanceStartDelay = guidanceStartDelay;
+            missile.guidanceStartSwitch = guidanceStartSwitch;
             missile.missileInit(missileHardpoint.position, velocity, missileLifeTime);
             missile.StatusSetting(
                 missilePower,

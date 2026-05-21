@@ -16,6 +16,9 @@ public class Missile : MonoBehaviour
     public float ProportionalConstant = 3f; // ”ä—áq–@’è”
     public float turnRateDecay = 1f; // —U“±—ÍŒ¸Š—¦ (deg/sec/sec)
     public float totalDeltaTheta = 90f; // —İÏ—U“±ù‰ñŠp“xãŒÀ (deg)
+    public Vector3 launchDirectionOverride;
+    public float guidanceStartDelay;
+    public bool guidanceStartSwitch;
 
     [Header("“à•”ó‘Ô")]
     private Vector3 previousPos;
@@ -39,8 +42,11 @@ public class Missile : MonoBehaviour
         target = null;
 
         velocity = startVelocity;
+        if (launchDirectionOverride.sqrMagnitude > 0.001f)
+            velocity = launchDirectionOverride.normalized * startVelocity.magnitude;
+
         transform.position = startPos;
-        transform.rotation = Quaternion.LookRotation(startVelocity.normalized);
+        transform.rotation = Quaternion.LookRotation(velocity.normalized);
 
         previousPos = currentPos = transform.position;
         speed = startVelocity.magnitude;
@@ -86,8 +92,16 @@ public class Missile : MonoBehaviour
         if (newDir == Vector3.zero)
             newDir = velocity.normalized;
 
+        bool manualGuidanceStart = float.IsInfinity(guidanceStartDelay);
+        bool skipGuidance = manualGuidanceStart && guidanceStartSwitch;
+        if (!skipGuidance && !manualGuidanceStart && guidanceStartDelay > 0f)
+        {
+            guidanceStartDelay -= Time.fixedDeltaTime;
+            skipGuidance = guidanceStartDelay > 0f;
+        }
+
         // --- —U“±ˆ— ---
-        if (target != null)
+        if (!skipGuidance && target != null)
         {
             Vector3 dirToTarget = (target.position - transform.position).normalized;
             float angleDiff = Vector3.Angle(velocity, dirToTarget);

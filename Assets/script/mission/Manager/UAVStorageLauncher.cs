@@ -51,7 +51,6 @@ public class UAVStorageLauncher : MonoBehaviour
         if (placementManager == null || launch == null)
             return;
 
-        int count = Mathf.Min(Mathf.Max(0, launch.fighterCount), capacity - launchnum);
         if (UAV == null || UAV.Length != Mathf.Max(1, launch.fighterCount))
             UAV = new GameObject[Mathf.Max(1, launch.fighterCount)];
 
@@ -60,8 +59,11 @@ public class UAVStorageLauncher : MonoBehaviour
             : launch.fighterPrefabType;
         int waveId = launch.waveId;
 
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < UAV.Length; i++)
         {
+            if (UAV[i] != null || launchnum >= capacity)
+                continue;
+
             float angle = i * launch.fighterSpacingAngle;
             Quaternion rotation = transform.rotation * Quaternion.Euler(0f, angle, 0f);
             Vector3 direction = rotation * Vector3.forward;

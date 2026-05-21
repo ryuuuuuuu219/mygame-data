@@ -106,14 +106,9 @@ public class MissileShooterGroupManager : MonoBehaviour
         Vector3 direction = targetSelector.target.transform.position - launcher.transform.position;
         Vector3 platformVelocity = status != null ? status.Velocity : Vector3.zero;
 
-        if (launcher.TryGetComponent(out EnemyMissileShooter_longrange longrangeShooter))
-        {
-            return longrangeShooter.TryFire(direction, platformVelocity, targetSelector.target.transform, true);
-        }
-
         if (launcher.TryGetComponent(out EnemyMissileShooter shooter))
         {
-            return shooter.TryFire(direction, platformVelocity, targetSelector.target.transform);
+            return shooter.TryFire(direction, platformVelocity, targetSelector.target.transform, true);
         }
 
         return false;

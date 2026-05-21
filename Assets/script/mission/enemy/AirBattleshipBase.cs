@@ -200,44 +200,29 @@ public class AirBattleshipBase : MonoBehaviour
     {
         if (launcher == null) return;
 
-        var longrangeShooter = EnsureVlsLongrangeShooter(launcher);
-        longrangeShooter.vlsRiseDistance = deckVlsRiseDistance;
-        longrangeShooter.vlsRiseSpeed = deckVlsRiseSpeed;
-        longrangeShooter.requireLineOfSight = false;
+        var missileShooter = EnsureVlsMissileShooter(launcher);
+        missileShooter.launchDirectionOverride = Vector3.up;
+        missileShooter.guidanceStartDelay = deckVlsRiseSpeed > 0f ? deckVlsRiseDistance / deckVlsRiseSpeed : 0f;
+        missileShooter.guidanceStartSwitch = false;
+        missileShooter.requireLineOfSight = false;
+        missileShooter.minimumLaunchUpDot = 1f;
+        missileShooter.missileBreakAngle = Mathf.Max(missileShooter.missileBreakAngle, 140f);
 
         if (launcher.TryGetComponent(out GroundAntiAirController controller))
         {
             controller.missileRange = deckVlsRange;
-            controller.longrangeMissileShooter = longrangeShooter;
+            controller.missileShooter = missileShooter;
         }
 
         ConfigureTargetSelectorRange(launcher, deckVlsRange);
     }
 
-    EnemyMissileShooter_longrange EnsureVlsLongrangeShooter(GameObject launcher)
+    EnemyMissileShooter EnsureVlsMissileShooter(GameObject launcher)
     {
-        if (launcher.TryGetComponent(out EnemyMissileShooter_longrange longrangeShooter))
-            return longrangeShooter;
+        if (launcher.TryGetComponent(out EnemyMissileShooter missileShooter))
+            return missileShooter;
 
-        longrangeShooter = launcher.AddComponent<EnemyMissileShooter_longrange>();
-        if (launcher.TryGetComponent(out EnemyMissileShooter normalShooter))
-        {
-            longrangeShooter.missileHardpoint = normalShooter.missileHardpoint;
-            longrangeShooter.missileSpeed = normalShooter.missileSpeed;
-            longrangeShooter.missileCooldown = normalShooter.missileCooldown;
-            longrangeShooter.missileLifeTime = normalShooter.missileLifeTime;
-            longrangeShooter.missilePower = normalShooter.missilePower;
-            longrangeShooter.missileAcceleration = normalShooter.missileAcceleration;
-            longrangeShooter.missileMaxSpeed = normalShooter.missileMaxSpeed;
-            longrangeShooter.missileTurnRate = normalShooter.missileTurnRate;
-            longrangeShooter.missileBreakAngle = normalShooter.missileBreakAngle;
-            longrangeShooter.missileProportionalConstant = normalShooter.missileProportionalConstant;
-            longrangeShooter.lineOfSightMask = normalShooter.lineOfSightMask;
-            longrangeShooter.lineOfSightOriginOffset = normalShooter.lineOfSightOriginOffset;
-            longrangeShooter.minimumLaunchUpDot = normalShooter.minimumLaunchUpDot;
-        }
-
-        return longrangeShooter;
+        return launcher.AddComponent<EnemyMissileShooter>();
     }
 
     void ConfigureGunTurret(GameObject turret)
