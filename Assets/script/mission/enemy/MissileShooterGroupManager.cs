@@ -69,8 +69,40 @@ public class MissileShooterGroupManager : MonoBehaviour
         };
 
         ResetSequence();
+        SyncTargetSelectorRangeFromLaunchers(launchers);
         if (disableLauncherControllers)
             DisableLauncherControllers();
+    }
+
+    void SyncTargetSelectorRangeFromLaunchers(IReadOnlyList<GameObject> launchers)
+    {
+        if (targetSelector == null || launchers == null) return;
+
+        float range = 0f;
+        for (int i = 0; i < launchers.Count; i++)
+        {
+            GameObject launcher = launchers[i];
+            if (launcher == null) continue;
+
+            if (launcher.TryGetComponent(out GroundAntiAirController controller))
+            {
+                controller.SyncTargetSelectorRange();
+                if (controller.useGun)
+                    range = Mathf.Max(range, controller.gunRange);
+                if (controller.useMissile)
+                    range = Mathf.Max(range, controller.missileRange);
+            }
+
+            if (launcher.TryGetComponent(out EnemyTargetSelector launcherSelector))
+            {
+                range = Mathf.Max(range, launcherSelector.lockRange);
+            }
+        }
+
+        if (range <= 0f) return;
+
+        targetSelector.detectRange = Mathf.Max(targetSelector.detectRange, range);
+        targetSelector.lockRange = Mathf.Max(targetSelector.lockRange, range);
     }
 
     bool TryGetNextLauncher(out GameObject launcher)

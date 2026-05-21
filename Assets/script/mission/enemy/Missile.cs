@@ -19,6 +19,9 @@ public class Missile : MonoBehaviour
     public Vector3 launchDirectionOverride;
     public float guidanceStartDelay;
     public bool guidanceStartSwitch;
+    public bool usePurePursuitAssistForLaunchOverride = true;
+    public float initialTurnRate = 95f;
+    public float initialTurnBreakAngle = 15f;
     public float effectRadius = 0f;
 
     [Header("内部状態")]
@@ -32,6 +35,7 @@ public class Missile : MonoBehaviour
     private Vector3 lastDirToTarget;
     private float currentTurnRate;
     private float usedDeltaTheta;
+    private bool useInitialPurePursuit;
 
     public bool isheatseeker = true;
 
@@ -56,6 +60,7 @@ public class Missile : MonoBehaviour
         lastDirToTarget = Vector3.zero;
         currentTurnRate = turnRate;
         usedDeltaTheta = 0f;
+        useInitialPurePursuit = ShouldUsePurePursuitAssist();
         gameObject.SetActive(true);
     }
 
@@ -78,6 +83,7 @@ public class Missile : MonoBehaviour
         totalDeltaTheta = totalTheta;
         currentTurnRate = turnRate;
         usedDeltaTheta = 0f;
+        useInitialPurePursuit = ShouldUsePurePursuitAssist();
     }
 
     void FixedUpdate()
@@ -114,25 +120,39 @@ public class Missile : MonoBehaviour
                 return;
             }
 
-            // 比例航法近似
-            if (lastDirToTarget != Vector3.zero)
+            if (useInitialPurePursuit)
             {
-                Vector3 LOSrate = Vector3.Cross(lastDirToTarget, dirToTarget);
-                Vector3 rotAxis = LOSrate.normalized;
-                float rotMag = LOSrate.magnitude * ProportionalConstant * Mathf.Rad2Deg / Time.fixedDeltaTime;
-
-                float remainingTheta = Mathf.Max(0f, totalDeltaTheta - usedDeltaTheta);
-                currentTurnRate = Mathf.Max(0f, currentTurnRate - turnRateDecay * Time.fixedDeltaTime);
-
-                // 旋回速度上限と累積旋回角度上限
-                rotMag = Mathf.Min(rotMag, currentTurnRate);
-                float frameDeltaTheta = Mathf.Min(rotMag * Time.fixedDeltaTime, remainingTheta);
-
-                // 進行方向更新
-                if (frameDeltaTheta > 0f)
+                ApplyPurePursuitAssist(dirToTarget, initialTurnRate);
+                if (Vector3.Angle(newDir, dirToTarget) <= initialTurnBreakAngle)
                 {
-                    newDir = Quaternion.AngleAxis(frameDeltaTheta, rotAxis) * velocity.normalized;
-                    usedDeltaTheta += frameDeltaTheta;
+                    useInitialPurePursuit = false;
+                    lastDirToTarget = dirToTarget;
+                }
+            }
+            else
+            {
+                // 比例航法近似
+                if (lastDirToTarget != Vector3.zero)
+                {
+                    Vector3 LOSrate = Vector3.Cross(lastDirToTarget, dirToTarget);
+                    Vector3 rotAxis = LOSrate.sqrMagnitude > 0.000001f
+                        ? LOSrate.normalized
+                        : Vector3.Cross(velocity.normalized, dirToTarget).normalized;
+                    float rotMag = LOSrate.magnitude * ProportionalConstant * Mathf.Rad2Deg / Time.fixedDeltaTime;
+
+                    float remainingTheta = Mathf.Max(0f, totalDeltaTheta - usedDeltaTheta);
+                    currentTurnRate = Mathf.Max(0f, currentTurnRate - turnRateDecay * Time.fixedDeltaTime);
+
+                    // 旋回速度上限と累積旋回角度上限
+                    rotMag = Mathf.Min(rotMag, currentTurnRate);
+                    float frameDeltaTheta = Mathf.Min(rotMag * Time.fixedDeltaTime, remainingTheta);
+
+                    // 進行方向更新
+                    if (frameDeltaTheta > 0f && rotAxis.sqrMagnitude > 0.000001f)
+                    {
+                        newDir = Quaternion.AngleAxis(frameDeltaTheta, rotAxis) * velocity.normalized;
+                        usedDeltaTheta += frameDeltaTheta;
+                    }
                 }
             }
 
@@ -163,6 +183,32 @@ public class Missile : MonoBehaviour
         }
 
         detectflare(isheatseeker);
+    }
+
+    private bool ShouldUsePurePursuitAssist()
+    {
+        return usePurePursuitAssistForLaunchOverride && launchDirectionOverride.sqrMagnitude > 0.001f;
+    }
+
+    private void ApplyPurePursuitAssist(Vector3 dirToTarget, float purePursuitTurnRate)
+    {
+        Vector3 currentDir = newDir.sqrMagnitude > 0.001f ? newDir.normalized : velocity.normalized;
+        if (currentDir.sqrMagnitude <= 0.001f) return;
+
+        float frameDeltaTheta = Mathf.Max(0f, purePursuitTurnRate * Time.fixedDeltaTime);
+        if (frameDeltaTheta <= 0f) return;
+
+        Vector3 assistedDir = Vector3.RotateTowards(
+            currentDir,
+            dirToTarget,
+            frameDeltaTheta * Mathf.Deg2Rad,
+            0f
+        );
+
+        float actualDeltaTheta = Vector3.Angle(currentDir, assistedDir);
+        if (actualDeltaTheta <= 0.0001f) return;
+
+        newDir = assistedDir.normalized;
     }
 
     // 命中判定

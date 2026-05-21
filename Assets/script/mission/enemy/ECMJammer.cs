@@ -34,17 +34,20 @@ public class ECMJammer : MonoBehaviour
         if (!ActiveJammers.Contains(this))
             ActiveJammers.Add(this);
 
+        ECMManager.RegisterJammer(gameObject);
         SetupInterferenceCollider();
     }
 
     void OnDisable()
     {
         ActiveJammers.Remove(this);
+        ECMManager.UnregisterJammer(gameObject);
     }
 
     void OnDestroy()
     {
         ActiveJammers.Remove(this);
+        ECMManager.UnregisterJammer(gameObject);
     }
 
     void OnValidate()
@@ -70,7 +73,10 @@ public class ECMJammer : MonoBehaviour
 
     public void SetTargetInterference(Collider other, bool value)
     {
-        SetEnemyEcm(other, value);
+        if (!TryGetEnemyStatus(other, out AugumentStatus targetStatus))
+            return;
+
+        ECMManager.SetEffect(gameObject, targetStatus.gameObject, value);
     }
 
     public void RefreshTargetInterference(Collider other)
@@ -78,15 +84,7 @@ public class ECMJammer : MonoBehaviour
         if (!TryGetEnemyStatus(other, out AugumentStatus targetStatus))
             return;
 
-        targetStatus.ECM = IsCoveredByOtherJammer(targetStatus.transform.position);
-    }
-
-    static void SetEnemyEcm(Collider other, bool value)
-    {
-        if (!TryGetEnemyStatus(other, out AugumentStatus targetStatus))
-            return;
-
-        targetStatus.ECM = value;
+        ECMManager.SetEffect(gameObject, targetStatus.gameObject, false);
     }
 
     static bool TryGetEnemyStatus(Collider other, out AugumentStatus targetStatus)
@@ -97,18 +95,6 @@ public class ECMJammer : MonoBehaviour
 
         targetStatus = other.GetComponentInParent<AugumentStatus>();
         return targetStatus != null;
-    }
-
-    bool IsCoveredByOtherJammer(Vector3 worldPosition)
-    {
-        foreach (var jammer in ActiveJammers)
-        {
-            if (jammer == null || jammer == this || !jammer.isActiveAndEnabled) continue;
-            if (jammer.Contains(worldPosition))
-                return true;
-        }
-
-        return false;
     }
 
     public bool Contains(Vector3 worldPosition)

@@ -21,6 +21,7 @@ public class GroundAntiAirController : MonoBehaviour
         missileShooter ??= GetComponent<EnemyMissileShooter>();
         status = GetComponent<AugumentStatus>();
         rb = GetComponent<Rigidbody>();
+        SyncTargetSelectorRange();
     }
 
     void Update()
@@ -57,5 +58,20 @@ public class GroundAntiAirController : MonoBehaviour
             return status.Velocity;
 
         return Vector3.zero;
+    }
+
+    public void SyncTargetSelectorRange()
+    {
+        if (targetSelector == null && !TryGetComponent(out targetSelector)) return;
+
+        float range = 0f;
+        if (useGun)
+            range = Mathf.Max(range, gunRange);
+        if (useMissile)
+            range = Mathf.Max(range, missileRange);
+        if (range <= 0f) return;
+
+        targetSelector.detectRange = Mathf.Max(targetSelector.detectRange, range);
+        targetSelector.lockRange = Mathf.Max(targetSelector.lockRange, range);
     }
 }

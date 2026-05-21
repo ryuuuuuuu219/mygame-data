@@ -212,6 +212,7 @@ public class AirBattleshipBase : MonoBehaviour
         {
             controller.missileRange = deckVlsRange;
             controller.missileShooter = missileShooter;
+            controller.SyncTargetSelectorRange();
         }
 
         ConfigureTargetSelectorRange(launcher, deckVlsRange);
