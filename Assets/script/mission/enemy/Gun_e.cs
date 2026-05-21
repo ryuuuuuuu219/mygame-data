@@ -9,6 +9,7 @@ public class Gun_e : MonoBehaviour
     private Vector3 previousPos;
     private Vector3 currentPos;
     public Vector3 velocity;
+    public float effectRadius = 0f;
 
     private void OnEnable()
     {
@@ -66,6 +67,7 @@ public class Gun_e : MonoBehaviour
                     status.damage(10f); // ダメージ量は適宜調整
                 }
 
+                ImpactEffectFactory.Spawn(closestPoint, effectRadius);
                 gameObject.SetActive(false);
                 return;
             }
@@ -78,13 +80,19 @@ public class Gun_e : MonoBehaviour
         float distance = delta.magnitude;
         if (distance <= 0.0001f) return false;
 
-        return Physics.Raycast(
+        if (Physics.Raycast(
             previousPos,
             delta / distance,
             out RaycastHit hit,
             distance,
             Physics.DefaultRaycastLayers,
             QueryTriggerInteraction.Ignore) &&
-            hit.collider is TerrainCollider;
+            hit.collider is TerrainCollider)
+        {
+            ImpactEffectFactory.Spawn(hit.point, effectRadius);
+            return true;
+        }
+
+        return false;
     }
 }

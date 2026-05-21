@@ -661,6 +661,8 @@ public class DebugHUD : MonoBehaviour
 
             if (targetidx == 0)
             {
+                bool isEcmTarget = IsEcmTarget(obj);
+                bool useCrossContainer = isEcmTarget || deceived;
                 string hptext = "";
                 if (obj.TryGetComponent(out AugumentStatus status) &&
                     status.TryGetHP(out float hp, out float max))
@@ -672,19 +674,19 @@ public class DebugHUD : MonoBehaviour
                     Debug.LogError("DebugHUD: Target AugumentStatus or HP not found.");
                 }
                 UpdateContainer(idx, obj,
-                        deceived ? Color.yellow : isLocked ? Color.red : Color.green,
+                        isEcmTarget ? Color.green : deceived ? Color.yellow : isLocked ? Color.red : Color.green,
                         ConvertEnemyName(obj) + "\n" +
                         $"{Vector3.Distance(plane.transform.position, obj.transform.position):F1}m" + "\n" +
                         hptext,
-                        deceived);
+                        useCrossContainer);
 
-                if (!isLocked || deceived)
+                if (!isLocked || useCrossContainer)
                 {
                     if (!isBlinking)
                     {
                         conteiners[idx].lr.enabled = false;
-                        conteiners[idx].crossLrA.enabled = deceived;
-                        conteiners[idx].crossLrB.enabled = deceived;
+                        conteiners[idx].crossLrA.enabled = useCrossContainer;
+                        conteiners[idx].crossLrB.enabled = useCrossContainer;
                     }
                 }
                 else
@@ -697,10 +699,11 @@ public class DebugHUD : MonoBehaviour
             }
             else
             {
+                bool isEcmTarget = IsEcmTarget(obj);
                 UpdateContainer(idx, obj,
                     isLocked ? Color.red : Color.green,
                     (isNext ? "Next" : ""),
-                    false);
+                    isEcmTarget);
 
             }
             idx++;

@@ -17,6 +17,7 @@ public class AugumentStatus : MonoBehaviour
     public int waveID = -1;
 
     public float currentHeat = 1f;
+    public float destructionEffectRadius = 12f;
 
     public float hp,maxhp = 100;
     public float lifeTime = 10f;
@@ -229,6 +230,7 @@ public class AugumentStatus : MonoBehaviour
             OM.destroyedUIflag = true;
             OM.score += maxhp * 200f;
             Debug.Log($"{name} destroyed. Score awarded: {maxhp * 200f}");
+            ImpactEffectFactory.Spawn(transform.position, destructionEffectRadius);
             GeneratedAudioManager.Play(GeneratedAudioCue.Destroyed, transform.position, 0.85f);
 
             OnDestroyed?.Invoke();

@@ -10,7 +10,7 @@ public class ECMJammer : MonoBehaviour
     public bool affectRadar = true;
 
     AugumentStatus status;
-    SphereCollider interferenceCollider;
+    InterferenceCollider interferenceCollider;
 
     void Awake()
     {
@@ -50,32 +50,30 @@ public class ECMJammer : MonoBehaviour
     void OnValidate()
     {
         if (interferenceCollider != null)
-            interferenceCollider.radius = Mathf.Max(0f, interferenceRadius);
+            interferenceCollider.SetRadius(interferenceRadius);
     }
 
     void SetupInterferenceCollider()
     {
         if (interferenceCollider == null)
-            interferenceCollider = GetComponent<SphereCollider>();
+            interferenceCollider = GetComponentInChildren<InterferenceCollider>(true);
 
         if (interferenceCollider == null)
-            interferenceCollider = gameObject.AddComponent<SphereCollider>();
+        {
+            var colliderObject = new GameObject("InterferenceCollider");
+            colliderObject.transform.SetParent(transform, false);
+            interferenceCollider = colliderObject.AddComponent<InterferenceCollider>();
+        }
 
-        interferenceCollider.isTrigger = true;
-        interferenceCollider.radius = Mathf.Max(0f, interferenceRadius);
+        interferenceCollider.Initialize(this, interferenceRadius);
     }
 
-    void OnTriggerEnter(Collider other)
+    public void SetTargetInterference(Collider other, bool value)
     {
-        SetEnemyEcm(other, true);
+        SetEnemyEcm(other, value);
     }
 
-    void OnTriggerStay(Collider other)
-    {
-        SetEnemyEcm(other, true);
-    }
-
-    void OnTriggerExit(Collider other)
+    public void RefreshTargetInterference(Collider other)
     {
         if (!TryGetEnemyStatus(other, out AugumentStatus targetStatus))
             return;

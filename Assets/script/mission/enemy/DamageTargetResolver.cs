@@ -6,6 +6,7 @@ public static class DamageTargetResolver
     {
         status = null;
         if (collider == null) return false;
+        if (collider.GetComponentInParent<InterferenceCollider>() != null) return false;
 
         status = collider.GetComponentInParent<AugumentStatus>();
         if (status != null && status.isEnemy)

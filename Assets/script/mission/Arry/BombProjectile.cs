@@ -119,53 +119,14 @@ public class BombProjectile : MonoBehaviour
         transform.position = center;
         SetGroundRadiusLineVisible(false);
         GeneratedAudioManager.Play(GeneratedAudioCue.BombExplosion, center, 0.9f);
-
-        // -------- 見た目切替
-        if (sphereVisual != null)
-        {
-            meshRenderer.material = sphereVisual;
-            Mat = meshRenderer.material;
-
-            meshFilter.sharedMesh = PrimitiveHelper.SphereMesh;
-
-            transform.localScale = Vector3.one * damageRadius * 2f;
-            SetSphereAlpha(sphereStartAlpha);
-        }
-        
-        // -------- パーティクル再生
-        if (explosionParticle != null)
-        {
-            explosionParticle.Clear();
-            explosionParticle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-
-            var main = explosionParticle.main;
-            main.loop = false;
-            main.duration = 0.3f;
-            main.startLifetime = 0.3f;
-            main.startSize = 2f/ damageRadius;
-
-            var emission = explosionParticle.emission;
-            emission.rateOverTime = 200f;
-
-            // サイズ減衰（時間で小さく）
-            var size = explosionParticle.sizeOverLifetime;
-            size.enabled = true;
-            size.size = new ParticleSystem.MinMaxCurve(
-                0.1f,
-                AnimationCurve.Linear(0f, 1f, 0.3f, 0f)
-            );
-
-            explosionParticle.Play();
-        }
+        ImpactEffectFactory.Spawn(center, damageRadius);
 
         // -------- Rigidbody停止
         rb.linearVelocity = Vector3.zero;
         rb.isKinematic = true;
 
         ApplyExplosionDamage(center);
-
-        // -------- フェードアウト開始
-        StartCoroutine(FadeOutSphere());
+        Destroy(gameObject);
     }
     void OnDrawGizmosSelected()
     {

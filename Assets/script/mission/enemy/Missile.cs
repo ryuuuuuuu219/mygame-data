@@ -19,6 +19,7 @@ public class Missile : MonoBehaviour
     public Vector3 launchDirectionOverride;
     public float guidanceStartDelay;
     public bool guidanceStartSwitch;
+    public float effectRadius = 0f;
 
     [Header("内部状態")]
     private Vector3 previousPos;
@@ -174,6 +175,7 @@ public class Missile : MonoBehaviour
         if (Physics.Raycast(previousPos, dir, out RaycastHit hit, dist, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) &&
             hit.collider is TerrainCollider)
         {
+            ImpactEffectFactory.Spawn(hit.point, effectRadius);
             rangeover();
             return;
         }
@@ -196,6 +198,7 @@ public class Missile : MonoBehaviour
                 if (status != null)
                 {
                     status.damage(power); // ダメージ量は適宜調整
+                    ImpactEffectFactory.Spawn(closestPoint, effectRadius);
                     rangeover();
                 }
                 return;

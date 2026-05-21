@@ -13,6 +13,7 @@ public class Missile_p : MonoBehaviour
     public float turnRate = 90f; // 最大旋回速度 (deg/sec)
     public float breakAngle = 90f; // 誘導解除角度 (deg)
     public float ProportionalConstant = 3f; // 比例航法定数
+    public float effectRadius = 0f;
 
     [Header("内部状態")]
     private Vector3 previousPos;
@@ -200,6 +201,7 @@ public class Missile_p : MonoBehaviour
 
             if (hit.collider is TerrainCollider)
             {
+                ImpactEffectFactory.Spawn(hit.point, effectRadius);
                 rangeover();
                 return;
             }
@@ -209,6 +211,7 @@ public class Missile_p : MonoBehaviour
             status.damage(power); // ダメージ量は適宜調整
             if (ObjectManager.Instance != null)
                 ObjectManager.Instance.hitUIflag = true;
+            ImpactEffectFactory.Spawn(hit.point, effectRadius);
             GeneratedAudioManager.Play(GeneratedAudioCue.Hit, hit.point, 0.65f);
             rangeover();
             return;

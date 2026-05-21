@@ -13,6 +13,7 @@ public class Gun_p : MonoBehaviour
 
     public float power = 10f;
     public float size = 1f;
+    public float effectRadius = 0f;
 
     private List<GameObject> enemys;
 
@@ -60,6 +61,7 @@ public class Gun_p : MonoBehaviour
     {
         if (other is TerrainCollider)
         {
+            ImpactEffectFactory.Spawn(transform.position, effectRadius);
             gameObject.SetActive(false);
             return;
         }
@@ -68,6 +70,7 @@ public class Gun_p : MonoBehaviour
         {
             status.damage(power);
             ObjectManager.Instance.hitUIflag = true;
+            ImpactEffectFactory.Spawn(transform.position, effectRadius);
             GeneratedAudioManager.Play(GeneratedAudioCue.Hit, transform.position, 0.45f);
             gameObject.SetActive(false);
         }
@@ -96,13 +99,18 @@ public class Gun_p : MonoBehaviour
             if (hit.collider == null) continue;
             if (hit.collider.transform.IsChildOf(transform)) continue;
 
-            if (hit.collider is TerrainCollider) return true;
+            if (hit.collider is TerrainCollider)
+            {
+                ImpactEffectFactory.Spawn(hit.point, effectRadius);
+                return true;
+            }
 
             if (!DamageTargetResolver.TryGetEnemyStatus(hit.collider, out AugumentStatus status)) continue;
 
             status.damage(power);
             if (ObjectManager.Instance != null)
                 ObjectManager.Instance.hitUIflag = true;
+            ImpactEffectFactory.Spawn(hit.point, effectRadius);
             GeneratedAudioManager.Play(GeneratedAudioCue.Hit, hit.point, 0.45f);
             return true;
         }
