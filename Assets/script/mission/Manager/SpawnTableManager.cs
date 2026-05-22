@@ -114,7 +114,6 @@ public class SpawnTableManager : MonoBehaviour
         ActivateWave(wave);
 
         Debug.Log($"[SpawnManager] Wave {wave.waveId} started");
-        GeneratedAudioManager.Play(GeneratedAudioCue.WaveStart, null, 0.75f);
     }
 
 

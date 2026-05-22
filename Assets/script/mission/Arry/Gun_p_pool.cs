@@ -11,30 +11,49 @@ public class Gun_p_pool : MonoBehaviour
     public List<GameObject> missilePool;
     public int poolSize2 = 100;
 
+    bool initialized;
 
     void Start()
     {
+        EnsureInitialized();
+    }
 
-        bulletPool = new List<GameObject>();
-        for (int i = 0; i < poolSize1; i++)
+    void EnsureInitialized()
+    {
+        if (initialized) return;
+        initialized = true;
+
+        if (bulletPool == null)
+            bulletPool = new List<GameObject>();
+        if (bulletPrefab != null)
         {
-            GameObject bullet = Instantiate(bulletPrefab);
-            bullet.SetActive(false);
-            bulletPool.Add(bullet);
+            for (int i = bulletPool.Count; i < poolSize1; i++)
+            {
+                GameObject bullet = Instantiate(bulletPrefab);
+                bullet.SetActive(false);
+                bulletPool.Add(bullet);
+            }
         }
 
-        missilePool = new List<GameObject>();
-        for (int i = 0; i < poolSize2; i++)
+        if (missilePool == null)
+            missilePool = new List<GameObject>();
+        if (missilePrefab != null)
         {
-            GameObject missile = Instantiate(missilePrefab);
-            missile.SetActive(false);
-            missilePool.Add(missile);
+            for (int i = missilePool.Count; i < poolSize2; i++)
+            {
+                GameObject missile = Instantiate(missilePrefab);
+                missile.SetActive(false);
+                missilePool.Add(missile);
+            }
         }
 
     }
 
     public GameObject missilepull(Vector3 StartPos, Vector3 velocity, float lifetime = 10f)
     {
+        EnsureInitialized();
+        if (missilePrefab == null) return null;
+
         foreach (GameObject missile in missilePool)
         {
             if (!missile.activeInHierarchy)
@@ -54,6 +73,9 @@ public class Gun_p_pool : MonoBehaviour
 
     public GameObject bulletpull(float size,Vector3 StartPos, Vector3 velocity,float lifetime=3f)
     {
+        EnsureInitialized();
+        if (bulletPrefab == null) return null;
+
         foreach (GameObject bullet in bulletPool)
         {
             if (!bullet.activeInHierarchy)

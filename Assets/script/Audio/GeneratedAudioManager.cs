@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -50,6 +51,7 @@ public class GeneratedAudioManager : MonoBehaviour
     AudioSource bgmSource;
     AudioSource warningSource;
     AudioSource engineSource;
+    Coroutine bgmFadeRoutine;
     GeneratedBgmState currentBgmState;
     bool hasBgmState;
     float nextMissileWarningTime;
@@ -141,10 +143,14 @@ public class GeneratedAudioManager : MonoBehaviour
 
         currentBgmState = state;
         hasBgmState = true;
+        if (bgmFadeRoutine != null)
+            StopCoroutine(bgmFadeRoutine);
+        bgmSource.volume = 0f;
+        bgmSource.Stop();
         bgmSource.clip = clip;
-        bgmSource.volume = state == GeneratedBgmState.Danger ? 0.28f : 0.2f;
         bgmSource.pitch = 1f;
         bgmSource.Play();
+        bgmFadeRoutine = StartCoroutine(FadeBgmVolume(state == GeneratedBgmState.Danger ? 0.28f : 0.2f, 0.25f));
     }
 
     void SetWarningInternal(bool missileThreat, bool lockThreat, float missileInterval, float lockInterval)
@@ -238,6 +244,23 @@ public class GeneratedAudioManager : MonoBehaviour
         return created;
     }
 
+    IEnumerator FadeBgmVolume(float targetVolume, float seconds)
+    {
+        float startVolume = bgmSource.volume;
+        float elapsed = 0f;
+        seconds = Mathf.Max(0.01f, seconds);
+
+        while (elapsed < seconds)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            bgmSource.volume = Mathf.Lerp(startVolume, targetVolume, Mathf.Clamp01(elapsed / seconds));
+            yield return null;
+        }
+
+        bgmSource.volume = targetVolume;
+        bgmFadeRoutine = null;
+    }
+
     GeneratedBgmState GetBgmForScene(string sceneName)
     {
         switch (sceneName)
@@ -263,7 +286,7 @@ public class GeneratedAudioManager : MonoBehaviour
         clips[GeneratedAudioCue.EnemyMissileLaunch] = MakeSweep("SE_EnemyMissileLaunch", 120f, 420f, 0.3f, 0.45f);
         clips[GeneratedAudioCue.BombDrop] = MakeSweep("SE_BombDrop", 280f, 90f, 0.25f, 0.28f);
         clips[GeneratedAudioCue.BombExplosion] = MakeNoiseClip("SE_BombExplosion", 0.45f, 0.9f, 0.55f);
-        clips[GeneratedAudioCue.LockOn] = MakeTone("SE_LockOn", 1180f, 0.12f, 0.22f, Wave.Square);
+        clips[GeneratedAudioCue.LockOn] = MakeIntermittentTone("SE_LockOn", 880f, 0.55f, 0.2f, Wave.Saw, 12f, 0.48f);
         clips[GeneratedAudioCue.LockLost] = MakeTone("SE_LockLost", 440f, 0.1f, 0.18f, Wave.Triangle, 300f);
         clips[GeneratedAudioCue.MissileWarning] = MakeToneChord(
             "SE_MissileWarning",
@@ -334,6 +357,30 @@ public class GeneratedAudioManager : MonoBehaviour
             }
             value /= volumeSum;
             data[i] = value * volume * Envelope(t);
+        }
+
+        AudioClip clip = AudioClip.Create(clipName, samples, 1, SampleRate, false);
+        clip.SetData(data, 0);
+        return clip;
+    }
+
+    AudioClip MakeIntermittentTone(string clipName, float frequency, float seconds, float volume, Wave wave, float pulseRate, float duty)
+    {
+        int samples = Mathf.CeilToInt(SampleRate * seconds);
+        float[] data = new float[samples];
+        float phase = 0f;
+        pulseRate = Mathf.Max(0.01f, pulseRate);
+        duty = Mathf.Clamp01(duty);
+
+        for (int i = 0; i < samples; i++)
+        {
+            float time = i / (float)SampleRate;
+            float t = i / (float)samples;
+            float pulsePhase = time * pulseRate - Mathf.Floor(time * pulseRate);
+            float gate = pulsePhase < duty ? 1f : 0f;
+            float pulseT = duty > 0f ? Mathf.Clamp01(pulsePhase / duty) : 0f;
+            phase += frequency / SampleRate;
+            data[i] = WaveValue(phase, wave) * volume * gate * Envelope(t) * Envelope(pulseT);
         }
 
         AudioClip clip = AudioClip.Create(clipName, samples, 1, SampleRate, false);

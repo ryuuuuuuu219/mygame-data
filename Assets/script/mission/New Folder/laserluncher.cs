@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class laserluncher : MonoBehaviour
@@ -44,7 +43,7 @@ public class laserluncher : MonoBehaviour
             solvcs.size = 1f;
         }
 
-        lr = transform.AddComponent<LineRenderer>();
+        lr = gameObject.AddComponent<LineRenderer>();
         lr.material = new Material(Shader.Find("Sprites/Default"));
 
         lr.enabled = false;
@@ -57,7 +56,7 @@ public class laserluncher : MonoBehaviour
         #region TargetLine
         lobj = new GameObject("TargetLine");
 
-        lr2 = lobj.transform.AddComponent<LineRenderer>();
+        lr2 = lobj.AddComponent<LineRenderer>();
         lr2.material = new Material(Shader.Find("Sprites/Default"));
 
         lr2.enabled = false;

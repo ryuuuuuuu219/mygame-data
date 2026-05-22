@@ -104,11 +104,11 @@ public class selectmenuUI : MonoBehaviour
         float v = keyInput.verticalL;//Lスティック上下取得→十字キーを優先
         if(keyInput.up)//十字キー上取得
         {
-            v = 1f;
+            v = -1f;
         }
         else if (keyInput.down)//十字キー下取得
         {
-            v = -1f;
+            v = 1f;
         }
         if (SceneManager.GetActiveScene().name == "Menu")
         {

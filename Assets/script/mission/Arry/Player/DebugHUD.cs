@@ -57,6 +57,8 @@ public class DebugHUD : MonoBehaviour
 
     List<(GameObject obj, LineRenderer lr, LineRenderer crossLrA, LineRenderer crossLrB, GameObject boundTarget)> conteiners;
     public bool deceived;
+    bool hadLockedTargets;
+    float nextLockOnAudioTime;
 
 
     void Start()
@@ -291,6 +293,7 @@ public class DebugHUD : MonoBehaviour
             {
                 markingtargets.Clear();
                 Lockedtargets.Clear();
+                hadLockedTargets = false;
                 goto skip;
 
             }
@@ -361,7 +364,20 @@ public class DebugHUD : MonoBehaviour
         else if (markingtargets.Count == 0)
         {
             deceived = false;
+            Lockedtargets.Clear();
         }
+
+        bool hasLockedTargets = Lockedtargets.Count > 0;
+        if (hasLockedTargets && Time.time >= nextLockOnAudioTime)
+        {
+            GeneratedAudioManager.Play(GeneratedAudioCue.LockOn, null, 0.75f);
+            nextLockOnAudioTime = Time.time + 0.55f;
+        }
+        else if (!hasLockedTargets && hadLockedTargets)
+        {
+            nextLockOnAudioTime = 0f;
+        }
+        hadLockedTargets = hasLockedTargets;
 
         // -------- コンテナ更新 --------
         blinkTimer += Time.deltaTime;

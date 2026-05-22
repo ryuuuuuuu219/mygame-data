@@ -90,11 +90,11 @@ public class ECMJammer : MonoBehaviour
     static bool TryGetEnemyStatus(Collider other, out AugumentStatus targetStatus)
     {
         targetStatus = null;
-        if (other == null || !other.CompareTag("enemy"))
+        if (other == null)
             return false;
 
         targetStatus = other.GetComponentInParent<AugumentStatus>();
-        return targetStatus != null;
+        return targetStatus != null && targetStatus.isEnemy;
     }
 
     public bool Contains(Vector3 worldPosition)

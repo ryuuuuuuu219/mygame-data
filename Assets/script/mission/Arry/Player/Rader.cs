@@ -83,7 +83,7 @@ public class Rader : MonoBehaviour
 
             RectTransform rt = uiList[i].GetComponent<RectTransform>();
             Image img = uiList[i].GetComponent<Image>();
-            Vector2 pos = RadarSquarePosition(objects[i].transform.position, rt);
+            Vector2 pos = RadarSquarePosition(objects[i].transform.position);
 
             rt.anchoredPosition = GetPlayerBlipPosition() + pos;
             img.color = color;
@@ -107,14 +107,14 @@ public class Rader : MonoBehaviour
 
             RectTransform rt = uiList[i].GetComponent<RectTransform>();
             Image img = uiList[i].GetComponent<Image>();
-            Vector2 pos = RadarSquarePosition(objects[i].transform.position, rt);
+            Vector2 pos = RadarSquarePosition(objects[i].transform.position);
 
             rt.anchoredPosition = GetPlayerBlipPosition() + pos;
             img.color = IsMissionTarget(objects[i]) ? targetColor : enemyColor;
             img.enabled = true;
         }
     }
-    Vector2 RadarSquarePosition(Vector3 worldPos, RectTransform blipRect)
+    Vector2 RadarSquarePosition(Vector3 worldPos)
     {
         Vector3 dir = worldPos - player.position;
 
@@ -130,7 +130,7 @@ public class Rader : MonoBehaviour
         p.x = Mathf.Clamp(p.x, -1f, 1f);
         p.y = Mathf.Clamp(p.y, -1f, 1f);
 
-        Vector2 halfSize = GetEffectiveRadarHalfSize(blipRect);
+        Vector2 halfSize = GetEffectiveRadarHalfSize();
         return new Vector2(p.x * halfSize.x, p.y * halfSize.y);
     }
 
@@ -306,8 +306,8 @@ public class Rader : MonoBehaviour
 
             Image image = jammerWaveImages[used];
             RectTransform rect = image.rectTransform;
-            Vector2 pos = RadarSquarePosition(jammer.transform.position, rect);
-            Vector2 halfSize = GetEffectiveRadarHalfSize(null);
+            Vector2 pos = RadarSquarePosition(jammer.transform.position);
+            Vector2 halfSize = GetEffectiveRadarHalfSize();
             float radiusPixels = Mathf.Clamp01(jammer.interferenceRadius / Mathf.Max(1f, detectRange)) *
                 Mathf.Min(halfSize.x, halfSize.y);
 
@@ -330,16 +330,8 @@ public class Rader : MonoBehaviour
             jammerWaveImages[i].enabled = false;
     }
 
-    Vector2 GetEffectiveRadarHalfSize(RectTransform blipRect)
+    Vector2 GetEffectiveRadarHalfSize()
     {
-        float halfBlipSize = 0f;
-        if (blipRect != null)
-        {
-            Rect rect = blipRect.rect;
-            Vector3 scale = blipRect.lossyScale;
-            halfBlipSize = Mathf.Max(rect.width * scale.x, rect.height * scale.y) * 0.5f;
-        }
-
         Vector2 rectHalfSize = Vector2.one * radarRadius;
         if (radarRect != null)
         {
@@ -348,7 +340,7 @@ public class Rader : MonoBehaviour
         }
 
         return new Vector2(
-            Mathf.Max(0f, Mathf.Min(radarRadius, rectHalfSize.x) - halfBlipSize),
-            Mathf.Max(0f, Mathf.Min(radarRadius, rectHalfSize.y) - halfBlipSize));
+            Mathf.Max(0f, Mathf.Min(radarRadius, rectHalfSize.x)),
+            Mathf.Max(0f, Mathf.Min(radarRadius, rectHalfSize.y)));
     }
 }
