@@ -8,6 +8,12 @@ Shader "Custom/ECMJammerRadarWave"
         _WaveSpeed ("Wave Speed", Float) = 0.75
         _WaveCount ("Wave Count", Float) = 8
         _ThinWaveCount ("Thin Wave Count", Float) = 28
+        _StencilComp ("Stencil Comparison", Float) = 8
+        _Stencil ("Stencil ID", Float) = 0
+        _StencilOp ("Stencil Operation", Float) = 0
+        _StencilWriteMask ("Stencil Write Mask", Float) = 255
+        _StencilReadMask ("Stencil Read Mask", Float) = 255
+        _ColorMask ("Color Mask", Float) = 15
     }
     SubShader
     {
@@ -17,6 +23,16 @@ Shader "Custom/ECMJammerRadarWave"
             "IgnoreProjector"="True"
             "RenderType"="Transparent"
             "PreviewType"="Plane"
+            "CanUseSpriteAtlas"="True"
+        }
+
+        Stencil
+        {
+            Ref [_Stencil]
+            Comp [_StencilComp]
+            Pass [_StencilOp]
+            ReadMask [_StencilReadMask]
+            WriteMask [_StencilWriteMask]
         }
 
         Cull Off
@@ -24,6 +40,7 @@ Shader "Custom/ECMJammerRadarWave"
         ZWrite Off
         ZTest Always
         Blend SrcAlpha OneMinusSrcAlpha
+        ColorMask [_ColorMask]
 
         Pass
         {
