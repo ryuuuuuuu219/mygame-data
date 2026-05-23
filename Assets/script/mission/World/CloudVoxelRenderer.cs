@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 public class CloudVoxelRenderer : MonoBehaviour
 {
@@ -14,12 +16,23 @@ public class CloudVoxelRenderer : MonoBehaviour
             return;
         }
 
+        Material sharedMaterial = CreateSharedVoxelMaterial(material, alpha);
         ClearChildren();
+        BuildCloudMesh(sharedMaterial);
+    }
+
+    private void BuildCloudMesh(Material sharedMaterial)
+    {
         Vector3 origin = new Vector3(
             -(preset.sizeX - 1) * preset.cellSize * 0.5f,
             0f,
             -(preset.sizeZ - 1) * preset.cellSize * 0.5f
         );
+
+        List<Vector3> vertices = new();
+        List<int> triangles = new();
+        List<Vector3> normals = new();
+
         for (int z = 0; z < preset.sizeZ; z++)
         {
             for (int y = 0; y < preset.sizeY; y++)
@@ -31,42 +44,142 @@ public class CloudVoxelRenderer : MonoBehaviour
                         continue;
                     }
 
-                    CreateVoxel(origin, x, y, z, material, alpha);
+                    AddVisibleVoxelFaces(vertices, triangles, normals, origin, x, y, z, preset.cellSize);
                 }
             }
         }
+
+        Mesh mesh = new()
+        {
+            name = $"{preset.name}_Mesh",
+            indexFormat = vertices.Count > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16
+        };
+        mesh.SetVertices(vertices);
+        mesh.SetTriangles(triangles, 0);
+        mesh.SetNormals(normals);
+        mesh.RecalculateBounds();
+
+        MeshFilter meshFilter = gameObject.GetComponent<MeshFilter>();
+        if (meshFilter == null)
+            meshFilter = gameObject.AddComponent<MeshFilter>();
+        meshFilter.sharedMesh = mesh;
+
+        MeshRenderer meshRenderer = gameObject.GetComponent<MeshRenderer>();
+        if (meshRenderer == null)
+            meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        meshRenderer.sharedMaterial = sharedMaterial;
+
+        MeshCollider meshCollider = gameObject.GetComponent<MeshCollider>();
+        if (addColliders)
+        {
+            if (meshCollider == null)
+                meshCollider = gameObject.AddComponent<MeshCollider>();
+            meshCollider.sharedMesh = mesh;
+        }
+        else if (meshCollider != null)
+        {
+            Destroy(meshCollider);
+        }
     }
 
-    private void CreateVoxel(Vector3 origin, int x, int y, int z, Material baseMaterial, float voxelAlpha)
+    private Material CreateSharedVoxelMaterial(Material baseMaterial, float voxelAlpha)
     {
-        GameObject voxel = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        voxel.name = $"CloudVoxel_{x:00}_{y:00}_{z:00}";
-        voxel.transform.SetParent(transform, false);
-        voxel.transform.localPosition = origin + new Vector3(
-            x * preset.cellSize,
-            y * preset.cellSize,
-            z * preset.cellSize
-        );
-        voxel.transform.localScale = Vector3.one * preset.cellSize;
+        Color color = baseMaterial.HasProperty("_BaseColor")
+            ? baseMaterial.GetColor("_BaseColor")
+            : baseMaterial.color;
+        color.a = voxelAlpha;
+        baseMaterial.color = color;
+        baseMaterial.SetColor("_BaseColor", color);
+        baseMaterial.SetColor("_Color", color);
+        return baseMaterial;
+    }
 
-        if (!addColliders)
+    private void AddVisibleVoxelFaces(
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector3> normals,
+        Vector3 origin,
+        int x,
+        int y,
+        int z,
+        float size)
+    {
+        Vector3 center = origin + new Vector3(x * size, y * size, z * size);
+        Vector3 half = Vector3.one * (size * 0.5f);
+
+        if (!IsFilled(x, y + 1, z)) AddFace(vertices, triangles, normals, center, half, Vector3.up);
+        if (!IsFilled(x, y - 1, z)) AddFace(vertices, triangles, normals, center, half, Vector3.down);
+        if (!IsFilled(x + 1, y, z)) AddFace(vertices, triangles, normals, center, half, Vector3.right);
+        if (!IsFilled(x - 1, y, z)) AddFace(vertices, triangles, normals, center, half, Vector3.left);
+        if (!IsFilled(x, y, z + 1)) AddFace(vertices, triangles, normals, center, half, Vector3.forward);
+        if (!IsFilled(x, y, z - 1)) AddFace(vertices, triangles, normals, center, half, Vector3.back);
+    }
+
+    private bool IsFilled(int x, int y, int z)
+    {
+        if (x < 0 || y < 0 || z < 0 || x >= preset.sizeX || y >= preset.sizeY || z >= preset.sizeZ)
+            return false;
+
+        return preset.IsFilled(x, y, z);
+    }
+
+    private static void AddFace(
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector3> normals,
+        Vector3 center,
+        Vector3 half,
+        Vector3 normal)
+    {
+        int start = vertices.Count;
+        Vector3 right;
+        Vector3 up;
+
+        if (normal == Vector3.up || normal == Vector3.down)
         {
-            Collider collider = voxel.GetComponent<Collider>();
-            if (collider != null)
-            {
-                Destroy(collider);
-            }
+            right = Vector3.right * half.x;
+            up = Vector3.forward * half.z;
+        }
+        else if (normal == Vector3.right || normal == Vector3.left)
+        {
+            right = Vector3.forward * half.z;
+            up = Vector3.up * half.y;
+        }
+        else
+        {
+            right = Vector3.right * half.x;
+            up = Vector3.up * half.y;
         }
 
-        Material voxelMaterial = new Material(baseMaterial);
-        Color color = voxelMaterial.HasProperty("_BaseColor")
-            ? voxelMaterial.GetColor("_BaseColor")
-            : voxelMaterial.color;
-        color.a = voxelAlpha;
-        voxelMaterial.color = color;
-        voxelMaterial.SetColor("_BaseColor", color);
-        voxelMaterial.SetColor("_Color", color);
-        voxel.GetComponent<Renderer>().sharedMaterial = voxelMaterial;
+        Vector3 faceCenter = center + Vector3.Scale(normal, half);
+        vertices.Add(faceCenter - right - up);
+        vertices.Add(faceCenter - right + up);
+        vertices.Add(faceCenter + right + up);
+        vertices.Add(faceCenter + right - up);
+
+        if (normal == Vector3.down || normal == Vector3.left || normal == Vector3.forward)
+        {
+            triangles.Add(start);
+            triangles.Add(start + 2);
+            triangles.Add(start + 1);
+            triangles.Add(start);
+            triangles.Add(start + 3);
+            triangles.Add(start + 2);
+        }
+        else
+        {
+            triangles.Add(start);
+            triangles.Add(start + 1);
+            triangles.Add(start + 2);
+            triangles.Add(start);
+            triangles.Add(start + 2);
+            triangles.Add(start + 3);
+        }
+
+        normals.Add(normal);
+        normals.Add(normal);
+        normals.Add(normal);
+        normals.Add(normal);
     }
 
     private void ClearChildren()

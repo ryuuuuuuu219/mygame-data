@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 public class WorldGenerator : MonoBehaviour
 {
@@ -179,8 +181,8 @@ public class WorldGenerator : MonoBehaviour
         blockSize = terrainSize / (sampleCount - 1f);
 
         blockTerrainRoot = new GameObject("GeneratedBlockTerrain");
+        blockTerrainRoot.AddComponent<WorldBlockTerrainCollider>();
 
-        Material blockMaterial = CreateTerrainMaterial();
         for (int z = 0; z < sampleCount; z++)
         {
             for (int x = 0; x < sampleCount; x++)
@@ -189,38 +191,10 @@ public class WorldGenerator : MonoBehaviour
                 int sourceZ = Mathf.Min(z * step, heightmapResolution - 1);
                 float roundedHeight = RoundHeight(sourceHeights[sourceX, sourceZ]);
                 blockHeights[x, z] = roundedHeight * heightScale;
-
-                CreateBlockColumn(x, z, blockHeights[x, z], blockSize, blockMaterial);
-
-                if (x > 0)
-                {
-                    CreateHeightGapFill(
-                        $"BlockTerrain_XGap_{x:000}_{z:000}",
-                        GetBlockCenter(x, z, blockSize),
-                        GetBlockCenter(x - 1, z, blockSize),
-                        blockHeights[x, z],
-                        blockHeights[x - 1, z],
-                        true,
-                        blockSize,
-                        blockMaterial
-                    );
-                }
-
-                if (z > 0)
-                {
-                    CreateHeightGapFill(
-                        $"BlockTerrain_ZGap_{x:000}_{z:000}",
-                        GetBlockCenter(x, z, blockSize),
-                        GetBlockCenter(x, z - 1, blockSize),
-                        blockHeights[x, z],
-                        blockHeights[x, z - 1],
-                        false,
-                        blockSize,
-                        blockMaterial
-                    );
-                }
             }
         }
+
+        BuildBlockTerrainMesh(sampleCount, CreateTerrainMaterial());
     }
 
     public bool TryGetBlockHeight(Vector3 worldPosition, out float height)
@@ -274,6 +248,178 @@ public class WorldGenerator : MonoBehaviour
         column.transform.position = GetBlockCenter(x, z, blockSize) + Vector3.up * (bottom + columnHeight * 0.5f);
         column.transform.localScale = new Vector3(blockSize, columnHeight, blockSize);
         column.GetComponent<Renderer>().sharedMaterial = material;
+    }
+
+    private void BuildBlockTerrainMesh(int sampleCount, Material material)
+    {
+        List<Vector3> vertices = new(sampleCount * sampleCount * 12);
+        List<int> triangles = new(sampleCount * sampleCount * 18);
+        List<Vector3> normals = new(sampleCount * sampleCount * 12);
+
+        for (int z = 0; z < sampleCount; z++)
+        {
+            for (int x = 0; x < sampleCount; x++)
+            {
+                AddBlockColumnMesh(vertices, triangles, normals, x, z, sampleCount);
+            }
+        }
+
+        Mesh mesh = new()
+        {
+            name = "GeneratedBlockTerrainMesh",
+            indexFormat = vertices.Count > 65535 ? IndexFormat.UInt32 : IndexFormat.UInt16
+        };
+        mesh.SetVertices(vertices);
+        mesh.SetTriangles(triangles, 0);
+        mesh.SetNormals(normals);
+        mesh.RecalculateBounds();
+
+        MeshFilter meshFilter = blockTerrainRoot.AddComponent<MeshFilter>();
+        meshFilter.sharedMesh = mesh;
+
+        MeshRenderer meshRenderer = blockTerrainRoot.AddComponent<MeshRenderer>();
+        meshRenderer.sharedMaterial = material;
+
+        MeshCollider meshCollider = blockTerrainRoot.AddComponent<MeshCollider>();
+        meshCollider.sharedMesh = mesh;
+    }
+
+    private void AddBlockColumnMesh(
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector3> normals,
+        int x,
+        int z,
+        int sampleCount)
+    {
+        float top = Mathf.Max(blockBaseHeight + 0.01f, blockHeights[x, z]);
+        float bottom = blockBaseHeight;
+        Vector3 center = GetBlockCenter(x, z, blockSize);
+        float half = blockSize * 0.5f;
+
+        float minX = center.x - half;
+        float maxX = center.x + half;
+        float minZ = center.z - half;
+        float maxZ = center.z + half;
+
+        AddDoubleSidedQuad(vertices, triangles, normals,
+            new Vector3(minX, top, minZ),
+            new Vector3(minX, top, maxZ),
+            new Vector3(maxX, top, maxZ),
+            new Vector3(maxX, top, minZ),
+            Vector3.up);
+
+        AddSideIfExposed(vertices, triangles, normals, x, z, sampleCount, top, bottom, minX, maxX, minZ, maxZ, Vector3.left);
+        AddSideIfExposed(vertices, triangles, normals, x, z, sampleCount, top, bottom, minX, maxX, minZ, maxZ, Vector3.right);
+        AddSideIfExposed(vertices, triangles, normals, x, z, sampleCount, top, bottom, minX, maxX, minZ, maxZ, Vector3.back);
+        AddSideIfExposed(vertices, triangles, normals, x, z, sampleCount, top, bottom, minX, maxX, minZ, maxZ, Vector3.forward);
+    }
+
+    private void AddSideIfExposed(
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector3> normals,
+        int x,
+        int z,
+        int sampleCount,
+        float top,
+        float bottom,
+        float minX,
+        float maxX,
+        float minZ,
+        float maxZ,
+        Vector3 direction)
+    {
+        int nx = x + Mathf.RoundToInt(direction.x);
+        int nz = z + Mathf.RoundToInt(direction.z);
+        float sideBottom = bottom;
+
+        if (nx >= 0 && nz >= 0 && nx < sampleCount && nz < sampleCount)
+        {
+            sideBottom = Mathf.Max(bottom, blockHeights[nx, nz]);
+            if (sideBottom >= top - 0.01f)
+                return;
+        }
+
+        if (direction == Vector3.left)
+        {
+            AddDoubleSidedQuad(vertices, triangles, normals,
+                new Vector3(minX, sideBottom, maxZ),
+                new Vector3(minX, top, maxZ),
+                new Vector3(minX, top, minZ),
+                new Vector3(minX, sideBottom, minZ),
+                Vector3.left);
+        }
+        else if (direction == Vector3.right)
+        {
+            AddDoubleSidedQuad(vertices, triangles, normals,
+                new Vector3(maxX, sideBottom, minZ),
+                new Vector3(maxX, top, minZ),
+                new Vector3(maxX, top, maxZ),
+                new Vector3(maxX, sideBottom, maxZ),
+                Vector3.right);
+        }
+        else if (direction == Vector3.back)
+        {
+            AddDoubleSidedQuad(vertices, triangles, normals,
+                new Vector3(minX, sideBottom, minZ),
+                new Vector3(minX, top, minZ),
+                new Vector3(maxX, top, minZ),
+                new Vector3(maxX, sideBottom, minZ),
+                Vector3.back);
+        }
+        else
+        {
+            AddDoubleSidedQuad(vertices, triangles, normals,
+                new Vector3(maxX, sideBottom, maxZ),
+                new Vector3(maxX, top, maxZ),
+                new Vector3(minX, top, maxZ),
+                new Vector3(minX, sideBottom, maxZ),
+                Vector3.forward);
+        }
+    }
+
+    private static void AddDoubleSidedQuad(
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector3> normals,
+        Vector3 a,
+        Vector3 b,
+        Vector3 c,
+        Vector3 d,
+        Vector3 normal)
+    {
+        int start = vertices.Count;
+        vertices.Add(a);
+        vertices.Add(b);
+        vertices.Add(c);
+        vertices.Add(d);
+        normals.Add(normal);
+        normals.Add(normal);
+        normals.Add(normal);
+        normals.Add(normal);
+        triangles.Add(start);
+        triangles.Add(start + 1);
+        triangles.Add(start + 2);
+        triangles.Add(start);
+        triangles.Add(start + 2);
+        triangles.Add(start + 3);
+
+        start = vertices.Count;
+        vertices.Add(a);
+        vertices.Add(d);
+        vertices.Add(c);
+        vertices.Add(b);
+        normals.Add(-normal);
+        normals.Add(-normal);
+        normals.Add(-normal);
+        normals.Add(-normal);
+        triangles.Add(start);
+        triangles.Add(start + 1);
+        triangles.Add(start + 2);
+        triangles.Add(start);
+        triangles.Add(start + 2);
+        triangles.Add(start + 3);
     }
 
     private void CreateHeightGapFill(

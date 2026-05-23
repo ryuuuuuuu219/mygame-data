@@ -9,11 +9,7 @@ public static class CloudMaterialFactory
         float angleFadePower = 2f,
         float minAlphaFactor = 0.12f)
     {
-        Shader shader = Shader.Find("Custom/CloudViewAngleTransparent");
-        if (shader == null)
-        {
-            shader = Shader.Find("Universal Render Pipeline/Lit");
-        }
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
 
         if (shader == null)
         {
@@ -32,8 +28,6 @@ public static class CloudMaterialFactory
         material.SetColor("_Color", baseColor);
         material.SetFloat("_Smoothness", 0.12f);
         material.SetFloat("_Metallic", 0f);
-        material.SetFloat("_AngleFadePower", angleFadePower);
-        material.SetFloat("_MinAlphaFactor", minAlphaFactor);
         ConfigureTransparent(material);
         return material;
     }
@@ -48,6 +42,7 @@ public static class CloudMaterialFactory
         material.SetFloat("_Blend", 0f);
         material.SetFloat("_Mode", 2f);
         material.SetFloat("_AlphaClip", 0f);
+        material.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
         material.DisableKeyword("_ALPHATEST_ON");
         material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
