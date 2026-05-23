@@ -31,9 +31,6 @@ public class WorldGenerator : MonoBehaviour
     [Range(0f, 1f)] public float canyonMinimumHeight = 0.08f;
 
     [Header("Block Terrain")]
-    public bool generateBlockTerrain = false;
-    public bool hideGeneratedTerrainRenderer = true;
-    public bool disableGeneratedTerrainCollider = true;
     [Min(1)] public int blockSampleStep = 10;
     [Min(1)] public int blockHeightSteps = 10;
     public float blockBaseHeight = 0f;
@@ -69,11 +66,12 @@ public class WorldGenerator : MonoBehaviour
     public float playerValue = 0.6f;
     public float randomHueRange = 0.1f;
 
-    public Terrain terrain;
+    public float[,] blockHeights;
     public bool isgenerating = false;
 
     private System.Random rng;
     private GameObject blockTerrainRoot;
+    private float blockSize;
 
     private void Start()
     {
@@ -117,41 +115,19 @@ public class WorldGenerator : MonoBehaviour
     {
         foreach (Terrain sceneTerrain in Terrain.activeTerrains)
         {
-            if (sceneTerrain != null && sceneTerrain != terrain)
+            if (sceneTerrain == null)
             {
-                sceneTerrain.gameObject.SetActive(false);
+                continue;
             }
+
+            Destroy(sceneTerrain.gameObject);
         }
     }
 
     private void CreateTerrain()
     {
         float[,] heights = GenerateHeights();
-
-        TerrainData terrainData = new TerrainData
-        {
-            heightmapResolution = heightmapResolution,
-            size = new Vector3(terrainSize, heightScale, terrainSize)
-        };
-
-        terrainData.SetHeights(0, 0, heights);
-
-        GameObject terrainObj = Terrain.CreateTerrainGameObject(terrainData);
-        terrainObj.name = "GeneratedTerrain";
-        terrainObj.transform.position = new Vector3(-terrainSize * 0.5f, 0f, -terrainSize * 0.5f);
-        terrain = terrainObj.GetComponent<Terrain>();
-
-        if (generateBlockTerrain)
-        {
-            CreateBlockTerrain(heights);
-
-            terrain.drawHeightmap = !hideGeneratedTerrainRenderer;
-            TerrainCollider terrainCollider = terrainObj.GetComponent<TerrainCollider>();
-            if (terrainCollider != null)
-            {
-                terrainCollider.enabled = !disableGeneratedTerrainCollider;
-            }
-        }
+        CreateBlockTerrain(heights);
     }
 
     private float[,] GenerateHeights()
@@ -199,8 +175,8 @@ public class WorldGenerator : MonoBehaviour
 
         int step = Mathf.Max(1, blockSampleStep);
         int sampleCount = Mathf.Max(2, Mathf.CeilToInt((heightmapResolution - 1f) / step) + 1);
-        float[,] blockHeights = new float[sampleCount, sampleCount];
-        float blockSize = terrainSize / (sampleCount - 1f);
+        blockHeights = new float[sampleCount, sampleCount];
+        blockSize = terrainSize / (sampleCount - 1f);
 
         blockTerrainRoot = new GameObject("GeneratedBlockTerrain");
 
@@ -245,6 +221,30 @@ public class WorldGenerator : MonoBehaviour
                 }
             }
         }
+    }
+
+    public bool TryGetBlockHeight(Vector3 worldPosition, out float height)
+    {
+        height = 0f;
+        if (blockHeights == null || blockHeights.Length == 0 || blockSize <= 0f)
+        {
+            return false;
+        }
+
+        float half = terrainSize * 0.5f;
+        float localX = worldPosition.x + half;
+        float localZ = worldPosition.z + half;
+        if (localX < 0f || localZ < 0f || localX > terrainSize || localZ > terrainSize)
+        {
+            return false;
+        }
+
+        int maxX = blockHeights.GetLength(0) - 1;
+        int maxZ = blockHeights.GetLength(1) - 1;
+        int x = Mathf.Clamp(Mathf.RoundToInt(localX / blockSize), 0, maxX);
+        int z = Mathf.Clamp(Mathf.RoundToInt(localZ / blockSize), 0, maxZ);
+        height = blockHeights[x, z];
+        return true;
     }
 
     private float RoundHeight(float normalizedHeight)
@@ -477,11 +477,6 @@ public class WorldGenerator : MonoBehaviour
 
     public void RefreshMaterials()
     {
-        if (terrain != null)
-        {
-            terrain.materialTemplate = CreateTerrainMaterial();
-        }
-
         if (water != null)
         {
             water.GetComponent<Renderer>().material = CreateWaterMaterial();

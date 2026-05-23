@@ -162,7 +162,7 @@ public class Missile : MonoBehaviour
 
         // --- êÑêi ---
         speed += acceleration * Time.fixedDeltaTime;
-        Mathf.Clamp(speed, 0f, maxspeed);
+        speed = Mathf.Clamp(speed, 0f, maxspeed);
         velocity = newDir.normalized * speed;
 
         previousPos = transform.position;
@@ -219,14 +219,23 @@ public class Missile : MonoBehaviour
         float dist = Vector3.Distance(previousPos, currentPos);
         if (dist <= 0.0001f) return;
 
-        if (Physics.Raycast(previousPos, dir, out RaycastHit hit, dist, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) &&
-            ProjectileGroundBounds.IsGroundCollider(hit.collider))
-        {
-            ImpactEffectFactory.Spawn(hit.point, effectRadius);
-            rangeover();
-            return;
-        }
+        RaycastHit[] hits = Physics.RaycastAll(
+            previousPos,
+            dir,
+            dist,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore);
 
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        foreach (RaycastHit hit in hits)
+        {
+            if (ProjectileGroundBounds.IsGroundCollider(hit.collider))
+            {
+                ImpactEffectFactory.Spawn(hit.point, effectRadius);
+                rangeover();
+                return;
+            }
+        }
         allies = ObjectManager.Instance.allies;
         foreach (GameObject ally in allies)
         {

@@ -231,15 +231,15 @@ public class WeaponSystem : MonoBehaviour
 
         if (missileTimerA <= 0)
         {
-            LaunchMissile(0);
-            missileTimerA = missileCooldown;
-            launched = true;
+            launched = LaunchMissile(0);
+            if (launched)
+                missileTimerA = missileCooldown;
         }
         else if (missileTimerB <= 0)
         {
-            LaunchMissile(0);
-            missileTimerB = missileCooldown;
-            launched = true;
+            launched = LaunchMissile(0);
+            if (launched)
+                missileTimerB = missileCooldown;
         }
         if (launched)
             currentMissiles--;
@@ -254,37 +254,64 @@ public class WeaponSystem : MonoBehaviour
         }
         int id = 0;
         bool launched = false;
+        CleanupLockedTargets();
         for (int i = 0; i < multiTimers.Count; i++)
         {
             if (multiTimers[i] > 0f) continue;
-            if (id >= debugHUD.Lockedtargets.Count) break;
+            if (debugHUD == null || debugHUD.Lockedtargets == null || id >= debugHUD.Lockedtargets.Count) break;
 
-            LaunchMissile(id++);
-            multiTimers[i] = multiCooldown;
-            launched = true;
+            if (LaunchMissile(id++))
+            {
+                multiTimers[i] = multiCooldown;
+                launched = true;
+            }
         }
         if (launched)
             currentnAAM--;
     }
 
-    void LaunchMissile(int index)
+    bool LaunchMissile(int index)
     {
+        if (rb == null || bulletpool == null || missileHardpoint == null)
+            return false;
 
         Vector3 vel = rb.linearVelocity + transform.forward * missileSpeed;
         GameObject m = bulletpool.missilepull(missileHardpoint.position, vel, missilelifeTime);
+        if (m == null) return false;
 
         var missile = m.GetComponent<Missile_p>();
-        if (missile == null) return;
+        if (missile == null) return false;
 
         missile.missileInit(missileHardpoint.position, vel, missilelifeTime);
         missile.StatusSetting(mslPower, mslacceleration, mslmaxspeed,
                               mslturnRate, mslbreakAngle, mslProportionalConstant);
         missile.allowHeatRetargeting = !mslFixedTarget;
 
-        if (index < debugHUD.Lockedtargets.Count)
-            missile.target = debugHUD.Lockedtargets[index]?.transform;
+        missile.target = GetLockedTargetTransform(index);
 
         GeneratedAudioManager.Play(GeneratedAudioCue.MissileLaunch, missileHardpoint.position, 0.8f);
+        return true;
+    }
+
+    Transform GetLockedTargetTransform(int index)
+    {
+        CleanupLockedTargets();
+        if (debugHUD == null || debugHUD.Lockedtargets == null) return null;
+        if (index < 0 || index >= debugHUD.Lockedtargets.Count) return null;
+
+        GameObject target = debugHUD.Lockedtargets[index];
+        return target != null ? target.transform : null;
+    }
+
+    void CleanupLockedTargets()
+    {
+        if (debugHUD == null || debugHUD.Lockedtargets == null) return;
+
+        for (int i = debugHUD.Lockedtargets.Count - 1; i >= 0; i--)
+        {
+            if (debugHUD.Lockedtargets[i] == null)
+                debugHUD.Lockedtargets.RemoveAt(i);
+        }
     }
 
     // ========================

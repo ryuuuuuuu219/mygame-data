@@ -5,6 +5,7 @@ public class SpawnPlacementManager : MonoBehaviour
 {
     public SpawnPrefabRegistry prefabRegistry;
     public WorldGenerator worldGenerator;
+    public float terrainExposeOffset = 0f;
     System.Random random;
     readonly Dictionary<string, UnknownPhaseTrigger> phaseTriggerParents = new();
 
@@ -241,66 +242,29 @@ public class SpawnPlacementManager : MonoBehaviour
 
     void SnapToTerrain(GameObject enemy, PlacementDefinition placement)
     {
-        if (TrySnapToUnityTerrain(enemy, placement))
-            return;
-
-        Vector3 origin = enemy.transform.position + Vector3.up * 10000f;
-        int layerMask = Physics.DefaultRaycastLayers;
-
-        if (!string.IsNullOrEmpty(placement.terrainLayer))
-        {
-            int layer = LayerMask.NameToLayer(placement.terrainLayer);
-            if (layer >= 0)
-                layerMask = 1 << layer;
-        }
-
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 20000f, layerMask) &&
-            hit.collider is TerrainCollider)
-        {
-            enemy.transform.position = hit.point + Vector3.up * placement.terrainOffset;
-        }
+        TrySnapToBlockTerrain(enemy, placement);
     }
 
-    bool TrySnapToUnityTerrain(GameObject enemy, PlacementDefinition placement)
-    {
-        Terrain terrain = GetTerrainAt(enemy.transform.position);
-        if (terrain == null) return false;
-
-        Vector3 position = enemy.transform.position;
-        position.y = terrain.SampleHeight(position) + terrain.transform.position.y + placement.terrainOffset;
-        enemy.transform.position = position;
-        return true;
-    }
-
-    Terrain GetTerrainAt(Vector3 position)
+    bool TrySnapToBlockTerrain(GameObject enemy, PlacementDefinition placement)
     {
         if (worldGenerator == null)
             worldGenerator = FindFirstObjectByType<WorldGenerator>();
 
-        if (worldGenerator != null && worldGenerator.terrain != null &&
-            IsInsideTerrain(worldGenerator.terrain, position))
+        if (worldGenerator != null &&
+            worldGenerator.TryGetBlockHeight(enemy.transform.position, out float height))
         {
-            return worldGenerator.terrain;
+            Vector3 position = enemy.transform.position;
+            position.y = height + GetTerrainPlacementOffset(placement);
+            enemy.transform.position = position;
+            return true;
         }
 
-        foreach (Terrain terrain in Terrain.activeTerrains)
-        {
-            if (terrain != null && IsInsideTerrain(terrain, position))
-                return terrain;
-        }
-
-        return null;
+        return false;
     }
 
-    bool IsInsideTerrain(Terrain terrain, Vector3 position)
+    float GetTerrainPlacementOffset(PlacementDefinition placement)
     {
-        Vector3 terrainPosition = terrain.transform.position;
-        Vector3 terrainSize = terrain.terrainData.size;
-
-        return position.x >= terrainPosition.x &&
-               position.x <= terrainPosition.x + terrainSize.x &&
-               position.z >= terrainPosition.z &&
-               position.z <= terrainPosition.z + terrainSize.z;
+        return placement.terrainOffset + terrainExposeOffset;
     }
 
     void ApplyInitialMotion(GameObject enemy, PlacementDefinition placement)
