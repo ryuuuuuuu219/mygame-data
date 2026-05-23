@@ -1268,6 +1268,8 @@ MonoBehaviour:
     prefab: {fileID: 287339356655383430, guid: 9c61ccc9d85242acb1e018ab81b752ea, type: 3}
   - prefabTypeName: fighter
     prefab: {fileID: 8923875824590251343, guid: 0ad90a41f8330d14ea6c0d46e26566d6, type: 3}
+  - prefabTypeName: acem05
+    prefab: {fileID: 8923875824590251343, guid: 14369d21db044a9cb2e0d229dd06fe19, type: 3}
 --- !u!1001 &277640307
 PrefabInstance:
   m_ObjectHideFlags: 0

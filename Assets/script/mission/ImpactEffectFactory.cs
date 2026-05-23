@@ -75,7 +75,8 @@ public class ImpactExplosionEffect : MonoBehaviour
 {
     static Material sharedMaterial;
 
-    public float duration = 0.65f;
+    public float duration = 2f;
+    public float lingerDuration = 5f;
     public float alpha = 0.6f;
     public int minShardCount = 3;
     public int maxShardCount = 5;
@@ -84,10 +85,18 @@ public class ImpactExplosionEffect : MonoBehaviour
     readonly Color red = new(1f, 0.05f, 0f, 0.45f);
     readonly Color black = new(0f, 0f, 0f, 0f);
 
+    const float BaseShardStartAlpha = 0.6f;
+    const float BaseShardEndAlpha = 0.3f;
+    const float SpreadShardStartAlpha = 0.8f;
+    const float SpreadShardEndAlpha = 0f;
+    const float SpreadShardScale = 0.4f;
+    const float SpreadDistanceMultiplier = 14f;
+
     Transform baseBox;
     Transform[] shards;
     Vector3[] shardDirections;
     Vector3[] shardStartPositions;
+    Vector3[] shardStartScales;
     float radius;
 
     public void Initialize(float effectRadius, bool isAreaEffect)
@@ -100,16 +109,29 @@ public class ImpactExplosionEffect : MonoBehaviour
         shards = new Transform[shardCount];
         shardDirections = new Vector3[shardCount];
         shardStartPositions = new Vector3[shardCount];
+        shardStartScales = new Vector3[shardCount];
 
         for (int i = 0; i < shardCount; i++)
         {
             shards[i] = CreateBox("ExplosionShard", transform, false);
-            shards[i].localScale = Vector3.one * radius * Random.Range(0.45f, 0.8f);
-            shardDirections[i] = Random.onUnitSphere;
-            shardDirections[i].y = Mathf.Abs(shardDirections[i].y) * 0.35f;
-            shardDirections[i].Normalize();
-            shardStartPositions[i] = shardDirections[i] * radius * Random.Range(0.05f, 0.18f);
+
+            if (i == 0)
+            {
+                shardDirections[i] = Vector3.zero;
+                shardStartPositions[i] = Vector3.zero;
+                shardStartScales[i] = Vector3.one * radius * Random.Range(0.45f, 0.8f);
+            }
+            else
+            {
+                shardDirections[i] = Random.onUnitSphere;
+                shardDirections[i].y = Mathf.Abs(shardDirections[i].y) * 0.35f;
+                shardDirections[i].Normalize();
+                shardStartPositions[i] = shardDirections[i] * radius * Random.Range(0.05f, 0.18f);
+                shardStartScales[i] = Vector3.one * radius * SpreadShardScale;
+            }
+
             shards[i].localPosition = shardStartPositions[i];
+            shards[i].localScale = shardStartScales[i];
             shards[i].rotation = Random.rotation;
         }
 
@@ -168,7 +190,7 @@ public class ImpactExplosionEffect : MonoBehaviour
             Color color = normalized < 0.45f
                 ? Color.Lerp(yellow, red, normalized / 0.45f)
                 : Color.Lerp(red, black, (normalized - 0.45f) / 0.55f);
-            color.a *= alpha / 0.6f;
+            color.a = Mathf.Lerp(BaseShardStartAlpha, BaseShardEndAlpha, normalized);
 
             SetColor(baseBox, color);
             baseBox.localPosition = Vector3.zero;
@@ -176,14 +198,37 @@ public class ImpactExplosionEffect : MonoBehaviour
 
             for (int i = 0; i < shards.Length; i++)
             {
-                SetColor(shards[i], color);
-                shards[i].localPosition = shardStartPositions[i] + shardDirections[i] * radius * 0.28f * normalized;
-                shards[i].localScale *= 1f + Time.deltaTime * 0.5f;
+                Color shardColor = color;
+                shardColor.a = i == 0
+                    ? Mathf.Lerp(BaseShardStartAlpha, BaseShardEndAlpha, normalized)
+                    : Mathf.Lerp(SpreadShardStartAlpha, SpreadShardEndAlpha, normalized);
+
+                SetColor(shards[i], shardColor);
+                shards[i].localPosition = i == 0
+                    ? Vector3.zero
+                    : shardStartPositions[i] + shardDirections[i] * radius * SpreadDistanceMultiplier * normalized;
+                shards[i].localScale = i == 0
+                    ? shardStartScales[i]
+                    : shardStartScales[i] * Mathf.Lerp(1f, 0f, normalized);
             }
 
             t += Time.deltaTime;
             yield return null;
         }
+
+        Color lingerColor = black;
+        lingerColor.a = BaseShardEndAlpha;
+        SetColor(baseBox, lingerColor);
+        baseBox.localPosition = Vector3.zero;
+
+        for (int i = 0; i < shards.Length; i++)
+        {
+            Color shardColor = black;
+            shardColor.a = i == 0 ? BaseShardEndAlpha : SpreadShardEndAlpha;
+            SetColor(shards[i], shardColor);
+        }
+
+        yield return new WaitForSeconds(lingerDuration);
 
         Destroy(gameObject);
     }

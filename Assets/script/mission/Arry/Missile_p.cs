@@ -199,7 +199,7 @@ public class Missile_p : MonoBehaviour
             if (hit.collider == null) continue;
             if (hit.collider.transform.IsChildOf(transform)) continue;
 
-            if (hit.collider is TerrainCollider)
+            if (ProjectileGroundBounds.IsGroundCollider(hit.collider))
             {
                 ImpactEffectFactory.Spawn(hit.point, effectRadius);
                 rangeover();

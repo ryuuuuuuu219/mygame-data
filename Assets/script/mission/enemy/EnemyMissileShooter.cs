@@ -16,6 +16,11 @@ public class EnemyMissileShooter : MonoBehaviour
     public float missileTurnRate = 8f;
     public float missileBreakAngle = 90f;
     public float missileProportionalConstant = 3f;
+    public float missileTurnRateDecay = 1f;
+    public float missileTotalDeltaTheta = 90f;
+    public float missileEffectRadius = 0f;
+
+    [Header("Launch Guidance")]
     public bool requireLineOfSight = true;
     public LayerMask lineOfSightMask = ~0;
     public float lineOfSightOriginOffset = 2f;
@@ -23,6 +28,12 @@ public class EnemyMissileShooter : MonoBehaviour
     public Vector3 launchDirectionOverride;
     public float guidanceStartDelay;
     public bool guidanceStartSwitch;
+    public bool usePurePursuitAssistForLaunchOverride = true;
+    public float initialTurnRate = 95f;
+    public float initialTurnBreakAngle = 15f;
+    public bool isHeatSeeker = false;
+    public float seekerFoV = 30f;
+    public float flareHeatModifier = 1f;
 
     [SerializeField] Gun_e_pool bulletpool;
 
@@ -65,6 +76,12 @@ public class EnemyMissileShooter : MonoBehaviour
             missile.launchDirectionOverride = launchDirectionOverride;
             missile.guidanceStartDelay = guidanceStartDelay;
             missile.guidanceStartSwitch = guidanceStartSwitch;
+            missile.usePurePursuitAssistForLaunchOverride = usePurePursuitAssistForLaunchOverride;
+            missile.initialTurnRate = initialTurnRate;
+            missile.initialTurnBreakAngle = initialTurnBreakAngle;
+            missile.effectRadius = missileEffectRadius;
+            missile.seekerFoV = seekerFoV;
+            missile.flareHeatModifier = flareHeatModifier;
             missile.missileInit(missileHardpoint.position, velocity, missileLifeTime);
             missile.StatusSetting(
                 missilePower,
@@ -72,9 +89,11 @@ public class EnemyMissileShooter : MonoBehaviour
                 missileMaxSpeed,
                 missileTurnRate,
                 missileBreakAngle,
-                missileProportionalConstant
+                missileProportionalConstant,
+                missileTurnRateDecay,
+                missileTotalDeltaTheta
             );
-            missile.isheatseeker = false;
+            missile.isheatseeker = isHeatSeeker;
             missile.target = target;
             launchedAny = true;
         }

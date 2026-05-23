@@ -111,10 +111,11 @@ public class Missile : MonoBehaviour
         if (!skipGuidance && target != null)
         {
             Vector3 dirToTarget = (target.position - transform.position).normalized;
-            float angleDiff = Vector3.Angle(velocity, dirToTarget);
+            Vector3 guidanceDir = newDir.sqrMagnitude > 0.001f ? newDir.normalized : velocity.normalized;
+            float angleDiff = Vector3.Angle(guidanceDir, dirToTarget);
 
             // ‹K’èŠp“xˆÈã‚Å—U“±‰ðœ
-            if (angleDiff > breakAngle)
+            if (!useInitialPurePursuit && angleDiff > breakAngle)
             {
                 target = null;
                 return;
@@ -219,7 +220,7 @@ public class Missile : MonoBehaviour
         if (dist <= 0.0001f) return;
 
         if (Physics.Raycast(previousPos, dir, out RaycastHit hit, dist, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) &&
-            hit.collider is TerrainCollider)
+            ProjectileGroundBounds.IsGroundCollider(hit.collider))
         {
             ImpactEffectFactory.Spawn(hit.point, effectRadius);
             rangeover();

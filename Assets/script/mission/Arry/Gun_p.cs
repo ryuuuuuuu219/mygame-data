@@ -59,7 +59,7 @@ public class Gun_p : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other is TerrainCollider)
+        if (ProjectileGroundBounds.IsGroundCollider(other))
         {
             ImpactEffectFactory.Spawn(transform.position, effectRadius);
             gameObject.SetActive(false);
@@ -99,7 +99,7 @@ public class Gun_p : MonoBehaviour
             if (hit.collider == null) continue;
             if (hit.collider.transform.IsChildOf(transform)) continue;
 
-            if (hit.collider is TerrainCollider)
+            if (ProjectileGroundBounds.IsGroundCollider(hit.collider))
             {
                 ImpactEffectFactory.Spawn(hit.point, effectRadius);
                 return true;

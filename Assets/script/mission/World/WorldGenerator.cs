@@ -30,6 +30,15 @@ public class WorldGenerator : MonoBehaviour
     [Range(0f, 1f)] public float canyonThreshold = 0.45f;
     [Range(0f, 1f)] public float canyonMinimumHeight = 0.08f;
 
+    [Header("Block Terrain")]
+    public bool generateBlockTerrain = false;
+    public bool hideGeneratedTerrainRenderer = true;
+    public bool disableGeneratedTerrainCollider = true;
+    [Min(1)] public int blockSampleStep = 10;
+    [Min(1)] public int blockHeightSteps = 10;
+    public float blockBaseHeight = 0f;
+    public float blockSideThickness = 1f;
+
     [Header("Water")]
     public GameObject water;
     public float waterHeight = 8f;
@@ -64,6 +73,7 @@ public class WorldGenerator : MonoBehaviour
     public bool isgenerating = false;
 
     private System.Random rng;
+    private GameObject blockTerrainRoot;
 
     private void Start()
     {
@@ -116,18 +126,32 @@ public class WorldGenerator : MonoBehaviour
 
     private void CreateTerrain()
     {
+        float[,] heights = GenerateHeights();
+
         TerrainData terrainData = new TerrainData
         {
             heightmapResolution = heightmapResolution,
             size = new Vector3(terrainSize, heightScale, terrainSize)
         };
 
-        terrainData.SetHeights(0, 0, GenerateHeights());
+        terrainData.SetHeights(0, 0, heights);
 
         GameObject terrainObj = Terrain.CreateTerrainGameObject(terrainData);
         terrainObj.name = "GeneratedTerrain";
         terrainObj.transform.position = new Vector3(-terrainSize * 0.5f, 0f, -terrainSize * 0.5f);
         terrain = terrainObj.GetComponent<Terrain>();
+
+        if (generateBlockTerrain)
+        {
+            CreateBlockTerrain(heights);
+
+            terrain.drawHeightmap = !hideGeneratedTerrainRenderer;
+            TerrainCollider terrainCollider = terrainObj.GetComponent<TerrainCollider>();
+            if (terrainCollider != null)
+            {
+                terrainCollider.enabled = !disableGeneratedTerrainCollider;
+            }
+        }
     }
 
     private float[,] GenerateHeights()
@@ -164,6 +188,126 @@ public class WorldGenerator : MonoBehaviour
             default:
                 return TerrainGenerationMode.Mode1;
         }
+    }
+
+    private void CreateBlockTerrain(float[,] sourceHeights)
+    {
+        if (blockTerrainRoot != null)
+        {
+            Destroy(blockTerrainRoot);
+        }
+
+        int step = Mathf.Max(1, blockSampleStep);
+        int sampleCount = Mathf.Max(2, Mathf.CeilToInt((heightmapResolution - 1f) / step) + 1);
+        float[,] blockHeights = new float[sampleCount, sampleCount];
+        float blockSize = terrainSize / (sampleCount - 1f);
+
+        blockTerrainRoot = new GameObject("GeneratedBlockTerrain");
+
+        Material blockMaterial = CreateTerrainMaterial();
+        for (int z = 0; z < sampleCount; z++)
+        {
+            for (int x = 0; x < sampleCount; x++)
+            {
+                int sourceX = Mathf.Min(x * step, heightmapResolution - 1);
+                int sourceZ = Mathf.Min(z * step, heightmapResolution - 1);
+                float roundedHeight = RoundHeight(sourceHeights[sourceX, sourceZ]);
+                blockHeights[x, z] = roundedHeight * heightScale;
+
+                CreateBlockColumn(x, z, blockHeights[x, z], blockSize, blockMaterial);
+
+                if (x > 0)
+                {
+                    CreateHeightGapFill(
+                        $"BlockTerrain_XGap_{x:000}_{z:000}",
+                        GetBlockCenter(x, z, blockSize),
+                        GetBlockCenter(x - 1, z, blockSize),
+                        blockHeights[x, z],
+                        blockHeights[x - 1, z],
+                        true,
+                        blockSize,
+                        blockMaterial
+                    );
+                }
+
+                if (z > 0)
+                {
+                    CreateHeightGapFill(
+                        $"BlockTerrain_ZGap_{x:000}_{z:000}",
+                        GetBlockCenter(x, z, blockSize),
+                        GetBlockCenter(x, z - 1, blockSize),
+                        blockHeights[x, z],
+                        blockHeights[x, z - 1],
+                        false,
+                        blockSize,
+                        blockMaterial
+                    );
+                }
+            }
+        }
+    }
+
+    private float RoundHeight(float normalizedHeight)
+    {
+        int steps = Mathf.Max(1, blockHeightSteps);
+        return Mathf.Clamp01(Mathf.Round(normalizedHeight * steps) / steps);
+    }
+
+    private Vector3 GetBlockCenter(int x, int z, float blockSize)
+    {
+        float half = terrainSize * 0.5f;
+        return new Vector3(
+            -half + x * blockSize,
+            0f,
+            -half + z * blockSize
+        );
+    }
+
+    private void CreateBlockColumn(int x, int z, float height, float blockSize, Material material)
+    {
+        float bottom = blockBaseHeight;
+        float columnHeight = Mathf.Max(0.01f, height - bottom);
+        GameObject column = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        column.name = $"BlockTerrain_Column_{x:000}_{z:000}";
+        column.AddComponent<WorldBlockTerrainCollider>();
+        column.transform.SetParent(blockTerrainRoot.transform, false);
+        column.transform.position = GetBlockCenter(x, z, blockSize) + Vector3.up * (bottom + columnHeight * 0.5f);
+        column.transform.localScale = new Vector3(blockSize, columnHeight, blockSize);
+        column.GetComponent<Renderer>().sharedMaterial = material;
+    }
+
+    private void CreateHeightGapFill(
+        string objectName,
+        Vector3 currentCenter,
+        Vector3 neighborCenter,
+        float currentHeight,
+        float neighborHeight,
+        bool xAxisGap,
+        float blockSize,
+        Material material)
+    {
+        float heightDifference = Mathf.Abs(currentHeight - neighborHeight);
+        if (heightDifference <= 0.01f)
+        {
+            return;
+        }
+
+        float lowerHeight = Mathf.Min(currentHeight, neighborHeight);
+        float thickness = Mathf.Clamp(blockSideThickness, 0.01f, blockSize);
+        Vector3 position = (currentCenter + neighborCenter) * 0.5f;
+        position.y = lowerHeight + heightDifference * 0.5f;
+
+        Vector3 scale = xAxisGap
+            ? new Vector3(thickness, heightDifference, blockSize)
+            : new Vector3(blockSize, heightDifference, thickness);
+
+        GameObject filler = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        filler.name = objectName;
+        filler.AddComponent<WorldBlockTerrainCollider>();
+        filler.transform.SetParent(blockTerrainRoot.transform, false);
+        filler.transform.position = position;
+        filler.transform.localScale = scale;
+        filler.GetComponent<Renderer>().sharedMaterial = material;
     }
 
     private void CreateWater()

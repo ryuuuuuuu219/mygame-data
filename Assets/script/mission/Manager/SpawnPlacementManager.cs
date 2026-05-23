@@ -119,8 +119,8 @@ public class SpawnPlacementManager : MonoBehaviour
             rb.useGravity = false;
 
             var status = storage.AddComponent<AugumentStatus>();
-            status.hp = 100000f;
-            status.maxhp = 100000f;
+            status.hp = 1000f;
+            status.maxhp = 1000f;
             return storage;
         }
 

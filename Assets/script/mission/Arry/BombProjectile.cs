@@ -193,7 +193,7 @@ public class BombProjectile : MonoBehaviour
             distance,
             Physics.DefaultRaycastLayers,
             QueryTriggerInteraction.Ignore) &&
-            hit.collider is TerrainCollider)
+            ProjectileGroundBounds.IsGroundCollider(hit.collider))
         {
             hitPoint = hit.point;
             return true;
@@ -317,7 +317,7 @@ public class BombProjectile : MonoBehaviour
             groundPreviewRayDistance,
             Physics.DefaultRaycastLayers,
             QueryTriggerInteraction.Ignore) &&
-            hit.collider is TerrainCollider)
+            ProjectileGroundBounds.IsGroundCollider(hit.collider))
         {
             point = hit.point;
             normal = hit.normal;

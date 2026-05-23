@@ -87,7 +87,7 @@ public class Gun_e : MonoBehaviour
             distance,
             Physics.DefaultRaycastLayers,
             QueryTriggerInteraction.Ignore) &&
-            hit.collider is TerrainCollider)
+            ProjectileGroundBounds.IsGroundCollider(hit.collider))
         {
             ImpactEffectFactory.Spawn(hit.point, effectRadius);
             return true;

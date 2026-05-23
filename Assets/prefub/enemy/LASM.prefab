@@ -94,6 +94,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4748629168523481185
 BoxCollider:
@@ -164,6 +165,7 @@ MonoBehaviour:
   ECM: 0
   waveID: -1
   currentHeat: 1
+  destructionEffectRadius: 12
   hp: 100
   maxhp: 100
   lifeTime: 0
@@ -384,8 +386,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fc8f97bd8cf43f5ae1bc79f6f6bd711, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetSelector
-  detectRange: Infinity
-  lockRange: Infinity
+  detectRange: 5000
+  lockRange: 5000
   retargetInterval: 0.25
   alternateClosestTarget: 1
   IsAirsuppression: 1
@@ -404,11 +406,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 287339356655383430}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7287034fe0933d641a011f5e1a320a87, type: 3}
+  m_Script: {fileID: 11500000, guid: 063ec16ef7a34f00a8d5ac5e9f1c641e, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyMissileShooter_longrange
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyMissileShooter
   missileHardpoint: {fileID: 3958602714798318470}
-  vlsFirstStagePrefab: {fileID: 8541818180842832201, guid: 81243469fee040fa88dbdab43594f6a4, type: 3}
+  salvoCount: 1
+  salvoSpreadAngle: 0
+  salvoVerticalSpreadAngle: 0
   missileSpeed: 260
   missileCooldown: 3
   missileLifeTime: 24
@@ -416,7 +420,7 @@ MonoBehaviour:
   missileAcceleration: 35
   missileMaxSpeed: 360
   missileTurnRate: 45
-  missileBreakAngle: 12
+  missileBreakAngle: 90
   missileProportionalConstant: 3
   requireLineOfSight: 1
   lineOfSightMask:
@@ -424,10 +428,9 @@ MonoBehaviour:
     m_Bits: 4294967295
   lineOfSightOriginOffset: 2
   minimumLaunchUpDot: 0.15
-  vlsRiseDistance: 160
-  vlsRiseSpeed: 120
-  vlsSecondStageBreakAngle: 150
-  vlsSecondStageTurnRateMultiplier: 1.5
+  launchDirectionOverride: {x: 0, y: 1, z: 0}
+  guidanceStartDelay: 5
+  guidanceStartSwitch: 0
   bulletpool: {fileID: 0}
 --- !u!114 &22001004
 MonoBehaviour:
@@ -444,8 +447,7 @@ MonoBehaviour:
   useGun: 0
   useMissile: 1
   gunRange: 900
-  missileRange: Infinity
+  missileRange: 5000
   targetSelector: {fileID: 22001002}
   gunShooter: {fileID: 0}
-  missileShooter: {fileID: 0}
-  longrangeMissileShooter: {fileID: 22001003}
+  missileShooter: {fileID: 22001003}
