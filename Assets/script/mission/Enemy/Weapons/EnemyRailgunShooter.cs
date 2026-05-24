@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,12 +8,13 @@ public class EnemyRailgunShooter : MonoBehaviour
     public float range = 3200f;
     public float fireCooldown = 2.5f;
     public float randomDeflectionAngle = 5f;
+    public float projectileSpeed = 300f;
     public float beamWidth = 10f;
     public float beamColliderLifetime = 0.08f;
     public float beamDamage = 120f;
 
     [Header("Shockwave")]
-    public float shockwaveInterval = 180f;
+    public float shockwaveInterval = 200f;
     public float shockwaveWidth = 120f;
     public float shockwaveDepth = 8f;
     public float shockwaveLifetime = 3.5f;
@@ -56,18 +58,50 @@ public class EnemyRailgunShooter : MonoBehaviour
         float distance = Vector3.Distance(origin, impactPoint);
         if (distance <= 0.001f) return;
 
-        Quaternion rotation = Quaternion.LookRotation(direction, Vector3.up);
-        RailgunDamageVolume.Spawn(
-            "RailgunBeamCollider",
-            origin + direction * (distance * 0.5f),
-            rotation,
-            new Vector3(beamWidth, beamWidth, distance),
-            beamDamage,
-            beamColliderLifetime
-        );
-
-        SpawnShockwaves(origin, direction, distance, rotation);
+        StartCoroutine(FlyProjectile(origin, direction, distance));
         GeneratedAudioManager.Play(GeneratedAudioCue.EnemyGunFire, origin, 0.85f);
+    }
+
+    IEnumerator FlyProjectile(Vector3 origin, Vector3 direction, float distance)
+    {
+        Quaternion rotation = Quaternion.LookRotation(direction, Vector3.up);
+        float speed = Mathf.Max(0.001f, projectileSpeed);
+        float traveled = 0f;
+        float nextShockwaveDistance = Mathf.Max(1f, shockwaveInterval);
+
+        while (traveled < distance)
+        {
+            float previous = traveled;
+            traveled = Mathf.Min(distance, traveled + speed * Time.deltaTime);
+            float segmentDistance = traveled - previous;
+
+            if (segmentDistance > 0.001f)
+            {
+                RailgunDamageVolume.Spawn(
+                    "RailgunBeamCollider",
+                    origin + direction * (previous + segmentDistance * 0.5f),
+                    rotation,
+                    new Vector3(beamWidth, beamWidth, segmentDistance),
+                    beamDamage,
+                    beamColliderLifetime
+                );
+            }
+
+            while (nextShockwaveDistance <= traveled && nextShockwaveDistance < distance)
+            {
+                RailgunShockwave.Spawn(
+                    origin + direction * nextShockwaveDistance,
+                    rotation,
+                    shockwaveWidth,
+                    shockwaveDepth,
+                    shockwaveDamage,
+                    shockwaveLifetime
+                );
+                nextShockwaveDistance += Mathf.Max(1f, shockwaveInterval);
+            }
+
+            yield return null;
+        }
     }
 
     Vector3 RandomizeDirection(Vector3 direction, float angle)
@@ -111,22 +145,6 @@ public class EnemyRailgunShooter : MonoBehaviour
         }
 
         return origin + direction * range;
-    }
-
-    void SpawnShockwaves(Vector3 origin, Vector3 direction, float distance, Quaternion rotation)
-    {
-        float interval = Mathf.Max(1f, shockwaveInterval);
-        for (float d = interval; d < distance; d += interval)
-        {
-            RailgunShockwave.Spawn(
-                origin + direction * d,
-                rotation,
-                shockwaveWidth,
-                shockwaveDepth,
-                shockwaveDamage,
-                shockwaveLifetime
-            );
-        }
     }
 
 }
@@ -274,10 +292,11 @@ public class RailgunShockwave : MonoBehaviour
         UpdatePieces(0f);
     }
 
+    public float t;
     void Update()
     {
         age += Time.deltaTime;
-        float t = Mathf.Clamp01(age / lifetime);
+        t = Mathf.Clamp01(age / lifetime);
         UpdatePieces(t);
 
         if (age >= lifetime)
@@ -286,13 +305,12 @@ public class RailgunShockwave : MonoBehaviour
 
     void UpdatePieces(float t)
     {
-        float centerOffsetInner = Mathf.Lerp(width * 0.25f, 0f, t);
-        float centerOffsetOuter = Mathf.Lerp(width * 0.25f, width * 0.5f, t);
-        float pieceWidth = Mathf.Lerp(width * 0.5f, width, t);
+        float pieceWidth = Mathf.Lerp(width, width * 2f, t);
         float pieceHeight = Mathf.Lerp(width, 0f, t);
         float thickness = Mathf.Max(0.01f, pieceHeight);
+        float offset = Mathf.Max(0f, (pieceWidth - thickness) * 0.5f);
 
-        Vector2 basePosition = new Vector2(centerOffsetInner, centerOffsetOuter);
+        Vector2 basePosition = new Vector2(0f, offset);
 
         for (int i = 0; i < volumes.Length; i++)
         {
@@ -307,8 +325,10 @@ public class RailgunShockwave : MonoBehaviour
             };
 
             piece.localPosition = new Vector3(position.x, position.y, 0f);
-            piece.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(position.y, position.x) * Mathf.Rad2Deg);
-            piece.localScale = new Vector3(pieceWidth, thickness, depth);
+            piece.localRotation = Quaternion.identity;
+            piece.localScale = i % 2 == 0
+                ? new Vector3(pieceWidth, thickness, depth)
+                : new Vector3(thickness, pieceWidth, depth);
 
             var collider = piece.GetComponent<BoxCollider>();
             if (collider != null)

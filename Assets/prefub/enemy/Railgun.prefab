@@ -134,10 +134,11 @@ MonoBehaviour:
   range: 3200
   fireCooldown: 2.5
   randomDeflectionAngle: 5
+  projectileSpeed: 300
   beamWidth: 10
   beamColliderLifetime: 0.08
   beamDamage: 120
-  shockwaveInterval: 180
+  shockwaveInterval: 200
   shockwaveWidth: 120
   shockwaveDepth: 8
   shockwaveLifetime: 3.5
