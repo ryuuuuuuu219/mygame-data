@@ -1664,6 +1664,114 @@
           ]
         }
       ]
+    },
+    {
+      "sceneName": "M05",
+      "randomSeed": 260524,
+      "spawns": [
+        {
+          "waveId": 0,
+          "requireClearedWaves": [],
+          "enemies": [
+            {
+              "enemyId": -1,
+              "prefabType": "Railgun",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": 1400,
+                  "y": 1000,
+                  "z": 0
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": false,
+                "areaId": "m05_railgun_01",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "Railgun",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": 0,
+                  "y": 1000,
+                  "z": 0
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": false,
+                "areaId": "m05_railgun_02",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "Railgun",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": -1400,
+                  "y": 1000,
+                  "z": 0
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": false,
+                "areaId": "m05_railgun_03",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "",
+                "radius": 0
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

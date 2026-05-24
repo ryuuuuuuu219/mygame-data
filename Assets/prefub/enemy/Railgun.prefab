@@ -1,0 +1,423 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5423617727162369230
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3936532228513879601}
+  - component: {fileID: 6611832605636825613}
+  - component: {fileID: -4584952662605342587}
+  - component: {fileID: 7540505126229661848}
+  - component: {fileID: 4578752544919840048}
+  - component: {fileID: 502966272169620303}
+  - component: {fileID: -1816800084008575660}
+  - component: {fileID: -762251971154066450}
+  m_Layer: 0
+  m_Name: Railgun
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3936532228513879601
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5423617727162369230}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 2000, z: 1500}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &6611832605636825613
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5423617727162369230}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &-4584952662605342587
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5423617727162369230}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &7540505126229661848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5423617727162369230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0fc8f97bd8cf43f5ae1bc79f6f6bd711, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  detectRange: 3200
+  lockRange: 3200
+  retargetInterval: 0.25
+  alternateClosestTarget: 1
+  IsAirsuppression: 0
+  thresholdalt: 1000
+  thresholdaltperdist: 0.25
+  lockon: 0
+  target: {fileID: 0}
+  lastDirToTarget: {x: 0, y: 0, z: 0}
+  targetVelocity: {x: 0, y: 0, z: 0}
+--- !u!114 &4578752544919840048
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5423617727162369230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29c9de71321a4602aac0a2b740f14728, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  muzzle: {fileID: 3936532228513879601}
+  range: 3200
+  fireCooldown: 2.5
+  randomDeflectionAngle: 5
+  beamWidth: 10
+  beamColliderLifetime: 0.08
+  beamDamage: 120
+  shockwaveInterval: 180
+  shockwaveWidth: 120
+  shockwaveDepth: 8
+  shockwaveLifetime: 3.5
+  shockwaveDamage: 35
+  targetSelector: {fileID: 7540505126229661848}
+--- !u!65 &502966272169620303
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5423617727162369230}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &-1816800084008575660
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5423617727162369230}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &-762251971154066450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5423617727162369230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 062268485fcb2644696721d969d9ceb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AugumentStatus
+  Velocity: {x: 0, y: 0, z: 0}
+  issortie: 0
+  isVisible: 1
+  isPlayer: 0
+  missionObjective: 0
+  isEnemy: 1
+  ECM: 0
+  waveID: -1
+  currentHeat: 1
+  destructionEffectRadius: 12
+  hp: 0
+  maxhp: 100
+  lifeTime: 0
+  preferInspectorStatus: 1
+  CurrentStatus:
+    statusdic:
+    - pageName: Aircraft
+      stats:
+      - key: HP
+        range:
+          min: 100
+          max: 5000
+          step: 10
+        value: 0
+      - key: "\u6A5F\u52D5\u6027(\u30D4\u30C3\u30C1)"
+        range:
+          min: 4
+          max: 20
+          step: 0.1
+        value: 0
+      - key: "\u6A5F\u52D5\u6027(\u30ED\u30FC\u30EB)"
+        range:
+          min: 4
+          max: 20
+          step: 0.1
+        value: 0
+      - key: "\u6A5F\u52D5\u6027(\u30E8\u30FC)"
+        range:
+          min: 4
+          max: 20
+          step: 0.1
+        value: 0
+      - key: "\u52A0\u901F\u5EA6"
+        range:
+          min: 100
+          max: 200
+          step: 5
+        value: 0
+      - key: "\u6700\u9AD8\u901F\u5EA6"
+        range:
+          min: 300
+          max: 800
+          step: 5
+        value: 0
+    - pageName: Gun
+      stats:
+      - key: "\u9283\u5F3E\uFF1A\u767A\u5C04\u30EC\u30FC\u30C8"
+        range:
+          min: 1
+          max: 60
+          step: 0.1
+        value: 0
+      - key: "\u9283\u5F3E\uFF1A\u5C04\u7A0B"
+        range:
+          min: 450
+          max: 1000
+          step: 10
+        value: 0
+      - key: "\u9283\u5F3E\uFF1A\u5A01\u529B"
+        range:
+          min: 3
+          max: 150
+          step: 1
+        value: 0
+      - key: "\u9283\u5F3E\uFF1A\u5F53\u305F\u308A\u5224\u5B9A\u30B5\u30A4\u30BA"
+        range:
+          min: 3
+          max: 8
+          step: 0.05
+        value: 0
+      - key: "\u9283\u5F3E\uFF1A\u5F3E\u6570"
+        range:
+          min: 120
+          max: 2000
+          step: 5
+        value: 0
+      - key: "\u9283\u5F3E\uFF1A\u521D\u901F"
+        range:
+          min: 100
+          max: 1200
+          step: 5
+        value: 0
+    - pageName: StandardMissile
+      stats:
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u521D\u901F"
+        range:
+          min: 100
+          max: 600
+          step: 5
+        value: 0
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u5A01\u529B"
+        range:
+          min: 10
+          max: 200
+          step: 5
+        value: 0
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u6700\u9AD8\u901F"
+        range:
+          min: 100
+          max: 800
+          step: 5
+        value: 0
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u52A0\u901F\u5EA6"
+        range:
+          min: 0
+          max: 100
+          step: 1
+        value: 0
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u8A98\u5C0E\u529B"
+        range:
+          min: 45
+          max: 360
+          step: 1
+        value: 0
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u8A98\u5C0E\u8C61\u9650"
+        range:
+          min: 45
+          max: 180
+          step: 1
+        value: 0
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u98DB\u7FD4\u6642\u9593"
+        range:
+          min: 6
+          max: 30
+          step: 0.5
+        value: 0
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u5C04\u7A0B\uFF08\u30ED\u30C3\u30AF\u53EF\u80FD\u8DDD\u96E2\uFF09"
+        range:
+          min: 700
+          max: 2000
+          step: 10
+        value: 0
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u6BD4\u4F8B\u822A\u6CD5\u5B9A\u6570"
+        range:
+          min: 1
+          max: 10
+          step: 0.1
+        value: 0
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u5F3E\u6570"
+        range:
+          min: 20
+          max: 180
+          step: 0.25
+        value: 0
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u88C5\u586B\u6642\u9593"
+        range:
+          min: 5
+          max: 0.5
+          step: -0.1
+        value: 0
+      - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u8A98\u5C0E\u76EE\u6A19\u306E\u56FA\u5B9A"
+        range:
+          min: 0.01
+          max: 1
+          step: 0.01
+        value: 0
+    - pageName: nAAM
+      stats:
+      - key: "\u9577\u5C04\u7A0B\u30DE\u30EB\u30C1\u30ED\u30C3\u30AF\u30DF\u30B5\u30A4\u30EB\uFF1A\u5C04\u7A0B\uFF08\u30ED\u30C3\u30AF\u53EF\u80FD\u8DDD\u96E2\uFF09"
+        range:
+          min: 1500
+          max: 5000
+          step: 5
+        value: 0
+      - key: "\u9577\u5C04\u7A0B\u30DE\u30EB\u30C1\u30ED\u30C3\u30AF\u30DF\u30B5\u30A4\u30EB\uFF1A\u98DB\u7FD4\u6642\u9593"
+        range:
+          min: 5
+          max: 30
+          step: 0.5
+        value: 0
+      - key: "\u9577\u5C04\u7A0B\u30DE\u30EB\u30C1\u30ED\u30C3\u30AF\u30DF\u30B5\u30A4\u30EB\uFF1A\u30DE\u30EB\u30C1\u30ED\u30C3\u30AF\u6570"
+        range:
+          min: 1
+          max: 10
+          step: 0.2
+        value: 0
+      - key: "\u9577\u5C04\u7A0B\u30DE\u30EB\u30C1\u30ED\u30C3\u30AF\u30DF\u30B5\u30A4\u30EB\uFF1A\u5F3E\u6570"
+        range:
+          min: 8
+          max: 180
+          step: 0.25
+        value: 0
+    - pageName: UGB
+      stats:
+      - key: "UGB\uFF1A\u52A0\u5BB3\u7BC4\u56F2"
+        range:
+          min: 10
+          max: 500
+          step: 1
+        value: 0
+      - key: "UGB\uFF1A\u5A01\u529B"
+        range:
+          min: 100
+          max: 3000
+          step: 10
+        value: 0
+      - key: "UGB\uFF1A\u70B8\u88C2\u7BC4\u56F2"
+        range:
+          min: 10
+          max: 500
+          step: 1
+        value: 0
+      - key: "UGB\uFF1A\u5F3E\u6570"
+        range:
+          min: 4
+          max: 50
+          step: 0.25
+        value: 0

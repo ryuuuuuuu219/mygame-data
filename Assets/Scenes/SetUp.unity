@@ -1239,6 +1239,7 @@ MonoBehaviour:
   - M02
   - M03
   - M04
+  - M05
 --- !u!4 &1855472784
 Transform:
   m_ObjectHideFlags: 0
