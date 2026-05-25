@@ -1271,6 +1271,8 @@ MonoBehaviour:
     prefab: {fileID: 287339356655383430, guid: 9c61ccc9d85242acb1e018ab81b752ea, type: 3}
   - prefabTypeName: Railgun
     prefab: {fileID: 5423617727162369230, guid: b11b158f1db224f41a4fdd4e571f0769, type: 3}
+  - prefabTypeName: HR_AAGUN
+    prefab: {fileID: 881100000000000001, guid: d3879547dd7243dc9f6f78a4d6f417a9, type: 3}
 --- !u!1001 &277640307
 PrefabInstance:
   m_ObjectHideFlags: 0
