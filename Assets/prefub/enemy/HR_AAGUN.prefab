@@ -410,11 +410,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyGunShooter
   gunMuzzle: {fileID: 881100000000000002}
-  barrelCount: 3
+  barrelCount: 5
   barrelArcAngle: 0
   bulletSpeed: 300
   fireRate: 0.05
-  spreadAngle: 0.62
+  spreadAngle: 0
   bulletSize: 1
   bulletLifetime: 9.22
   useLeadBias: 1
