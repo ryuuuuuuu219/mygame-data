@@ -4,7 +4,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class EnemyGunLeadBiasAddon : MonoBehaviour
 {
-    public float biasDegreeSpeed = 30f;
+    public float biasDegreeSpeed = 1f;
     public float biasDegree = 5f;
     public float rerollAngleThreshold = 45f;
     public float centerSnapThreshold = 30f;
@@ -31,10 +31,16 @@ public class EnemyGunLeadBiasAddon : MonoBehaviour
             biasStates.RemoveRange(count, biasStates.Count - count);
     }
 
-    public Vector2 UpdateBiasAngle(int barrelIndex)
+    public void UpdateBiasAngles(int count)
     {
-        EnsureBarrelCount(barrelIndex + 1);
+        EnsureBarrelCount(count);
 
+        for (int i = 0; i < biasStates.Count; i++)
+            UpdateBiasAngle(i);
+    }
+
+    void UpdateBiasAngle(int barrelIndex)
+    {
         BiasState state = biasStates[barrelIndex];
         float step = biasDegreeSpeed * Time.deltaTime;
         bool advancedThisFrame = state.lastUpdateFrame != Time.frameCount && step > 0f;
@@ -47,7 +53,6 @@ public class EnemyGunLeadBiasAddon : MonoBehaviour
         }
 
         biasStates[barrelIndex] = state;
-        return state.angle;
     }
 
     void RefreshTargetIfReached(ref BiasState state)
@@ -158,8 +163,8 @@ public class EnemyGunLeadBiasAddon : MonoBehaviour
 
         line.positionCount = 2;
         line.useWorldSpace = true;
-        line.startWidth = 5f;
-        line.endWidth = 5f;
+        line.startWidth = 0.5f;
+        line.endWidth = 0.5f;
         line.startColor = color;
         line.endColor = color;
         line.material = new Material(Shader.Find("Sprites/Default"));

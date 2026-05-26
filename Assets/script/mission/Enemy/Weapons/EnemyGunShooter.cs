@@ -37,8 +37,10 @@ public class EnemyGunShooter : MonoBehaviour
         if (useLeadBias)
             GetLeadBiasAddon(true);
 
+        int count = Mathf.Max(1, barrelCount);
+        leadBiasAddon?.UpdateBiasAngles(count);
         UpdateDebugAimLines(fireDirection);
-        bool fireDirectionHasBias = leadBiasAddon != null && Mathf.Max(1, barrelCount) <= 1;
+        bool fireDirectionHasBias = leadBiasAddon != null && count <= 1;
         if (fireDirectionHasBias)
             fireDirection = ApplyBiasAngle(fireDirection, leadBiasAddon.GetBiasAngle(0));
 
@@ -106,8 +108,7 @@ public class EnemyGunShooter : MonoBehaviour
             Vector3 barrelDirection = GetBarrelDirection(direction, i, count);
             if (leadBiasAddon != null)
             {
-                Vector2 biasAngle = leadBiasAddon.UpdateBiasAngle(i);
-                Vector3 biasDirection = ApplyBiasAngle(barrelDirection, biasAngle);
+                Vector3 biasDirection = ApplyBiasAngle(barrelDirection, leadBiasAddon.GetBiasAngle(i));
                 Vector3 targetDirection = ApplyBiasAngle(barrelDirection, leadBiasAddon.GetBiasTargetAngle(i));
                 leadBiasAddon.UpdateDebugLines(gunMuzzle, debugAimLineLength, i, showDebugAimLine, biasDirection, targetDirection);
             }
@@ -129,8 +130,8 @@ public class EnemyGunShooter : MonoBehaviour
 
         line.positionCount = 2;
         line.useWorldSpace = true;
-        line.startWidth = 5f;
-        line.endWidth = 5f;
+        line.startWidth = 0.5f;
+        line.endWidth = 0.5f;
         line.startColor = color;
         line.endColor = color;
         line.material = new Material(Shader.Find("Sprites/Default"));

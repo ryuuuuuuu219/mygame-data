@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 881100000000000008}
   - component: {fileID: 881100000000000009}
   - component: {fileID: 881100000000000010}
+  - component: {fileID: -8163044080643710166}
   m_Layer: 0
   m_Name: HR_AAGUN
   m_TagString: enemy
@@ -418,13 +419,10 @@ MonoBehaviour:
   bulletSize: 1
   bulletLifetime: 9.22
   useLeadBias: 1
-  biasDirections: []
-  biasMoveDirections: []
-  biasDegreeSpeed: 1
-  biasDegree: 8
   showDebugAimLine: 1
   debugAimLineLength: 3000
   bulletpool: {fileID: 0}
+  leadBiasAddon: {fileID: 0}
 --- !u!114 &881100000000000010
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -444,3 +442,19 @@ MonoBehaviour:
   targetSelector: {fileID: 881100000000000008}
   gunShooter: {fileID: 881100000000000009}
   missileShooter: {fileID: 0}
+--- !u!114 &-8163044080643710166
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881100000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f1b0c8058f14c64a9fd4d7bd0f7d504, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyGunLeadBiasAddon
+  biasDegreeSpeed: 1
+  biasDegree: 5
+  rerollAngleThreshold: 45
+  centerSnapThreshold: 30
