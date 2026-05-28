@@ -9328,6 +9328,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Assets.script.mission.Arry.Player.MenuManager
   canvas: {fileID: 86112872}
   menuUI: {fileID: 1424187568}
+  text: {fileID: 847080467}
   ismenu: 0
 --- !u!4 &1097357054
 Transform:

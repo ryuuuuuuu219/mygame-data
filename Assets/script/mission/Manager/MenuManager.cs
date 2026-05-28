@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 namespace Assets.script.mission.Arry.Player
 {
@@ -7,6 +8,7 @@ namespace Assets.script.mission.Arry.Player
     {
         public Canvas canvas;
         public GameObject menuUI;
+        public TextMeshProUGUI text;
         public bool ismenu;
 
         // Use this for initialization
@@ -14,6 +16,11 @@ namespace Assets.script.mission.Arry.Player
         {
             ismenu = false;
             menuUI.SetActive(ismenu);
+
+            text.text = "PAUSE
+            \n\n\n\n\n\n\n\n 一時停止中……
+            \n×：メニューを閉じる
+            \n〇：リザルトへ";
         }
 
         // Update is called once per frame
