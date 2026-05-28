@@ -280,48 +280,6 @@ public class SpawnTableManager : MonoBehaviour
         missionStartTime = Time.time;
         isInit = true;
 
-        SpawnM05HraagunSupports();
-
-    }
-
-    void SpawnM05HraagunSupports()
-    {
-        if (currentStage == null || currentStage.sceneName != "M05") return;
-        if (spawnPlacementManager == null || spawnPlacementManager.prefabRegistry == null) return;
-        if (ObjectManager.Instance == null) return;
-
-        GameObject prefab = spawnPlacementManager.prefabRegistry.GetPrefab("HR_AAGUN");
-        if (prefab == null) return;
-
-        foreach (var wave in waveDefinitions)
-        {
-            if (wave?.enemies == null) continue;
-
-            int index = 0;
-            foreach (var enemyDefinition in wave.enemies)
-            {
-                if (enemyDefinition?.prefabType != "Railgun") continue;
-                if (enemyDefinition.placement?.position == null) continue;
-
-                Vector3 position = enemyDefinition.placement.position.ToVector3() + Vector3.up * 100f;
-                GameObject hraagun = Instantiate(prefab, position, Quaternion.identity);
-                hraagun.name = $"M05_HR_AAGUN_{index + 1:00}";
-
-                if (hraagun.TryGetComponent(out AugumentStatus aug))
-                {
-                    aug.missionObjective = false;
-                    aug.isEnemy = true;
-                    aug.isPlayer = false;
-                    aug.lifeTime = 0f;
-                    aug.issortie = true;
-                    aug.waveID = wave.waveId;
-                }
-
-                hraagun.SetActive(true);
-                ObjectManager.Instance.RegisterEnemy(hraagun, wave.waveId);
-                index++;
-            }
-        }
     }
 
     void DisableSceneEnemies()

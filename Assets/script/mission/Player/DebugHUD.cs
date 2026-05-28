@@ -921,7 +921,8 @@ public class DebugHUD : MonoBehaviour
     }
     void UpdateHUD()
     {
-        if (rb == null || hudText == null) return;
+        //if (rb == null || hudText == null) 
+        return;
 
         float speed = rb.linearVelocity.magnitude;
         float altitude = plane.transform.position.y;

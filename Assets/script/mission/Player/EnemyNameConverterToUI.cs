@@ -13,10 +13,12 @@ public class EnemyNameConverterToUI : MonoBehaviour
     {
         new NameConversion { beforeName = "Ace", afterName = "ACE" },
         new NameConversion { beforeName = "ACE_M03", afterName = "ACE" },
-        new NameConversion { beforeName = "AceM03Special", afterName = "ACE SPECIAL" },
-        new NameConversion { beforeName = "AA_GUN", afterName = "AA GUN" },
+        new NameConversion { beforeName = "AceM03Special", afterName = "ACE-2" },
+        new NameConversion { beforeName = "AA_GUN", afterName = "AA" },
+        new NameConversion { beforeName = "HR_AAGUN", afterName = "AA-2" },
         new NameConversion { beforeName = "SAM", afterName = "SAM" },
         new NameConversion { beforeName = "LASM", afterName = "LASM" },
+        new NameConversion { beforeName = "Railgun", afterName = "Railgun" },
         new NameConversion { beforeName = "JAMMER", afterName = "JAMMER" }
     };
 

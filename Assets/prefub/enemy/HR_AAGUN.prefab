@@ -411,11 +411,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyGunShooter
   gunMuzzle: {fileID: 881100000000000002}
-  barrelCount: 5
+  barrelCount: 3
   barrelArcAngle: 0
   bulletSpeed: 300
-  fireRate: 0.05
-  spreadAngle: 0
+  fireRate: 0.008
+  spreadAngle: 0.01
   bulletSize: 1
   bulletLifetime: 9.22
   useLeadBias: 1
@@ -454,7 +454,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f1b0c8058f14c64a9fd4d7bd0f7d504, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyGunLeadBiasAddon
-  biasDegreeSpeed: 1
-  biasDegree: 5
+  biasDegreeSpeed: 30
+  biasDegree: 12
   rerollAngleThreshold: 45
   centerSnapThreshold: 30

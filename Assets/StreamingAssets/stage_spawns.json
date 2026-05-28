@@ -1667,7 +1667,7 @@
     },
     {
       "sceneName": "M05",
-      "randomSeed": 260524,
+      "randomSeed": 260529,
       "spawns": [
         {
           "waveId": 0,
@@ -1682,13 +1682,13 @@
                 "mode": "fixed",
                 "count": 1,
                 "position": {
-                  "x": 1400,
+                  "x": -1500,
                   "y": 1000,
-                  "z": 0
+                  "z": 950
                 },
                 "rotate": {
                   "x": 0,
-                  "y": 0,
+                  "y": 145,
                   "z": 0
                 },
                 "vector": {
@@ -1697,11 +1697,43 @@
                   "z": 0
                 },
                 "isstoped": true,
-                "snapToTerrain": false,
-                "areaId": "m05_railgun_01",
+                "snapToTerrain": true,
+                "areaId": "m05_railgun_01_north_west",
                 "minAltitude": 0,
                 "maxAltitude": 0,
-                "terrainLayer": "",
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": -1410,
+                  "y": 1000,
+                  "z": 1015
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 145,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_01_north_west",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
                 "radius": 0
               }
             },
@@ -1714,13 +1746,13 @@
                 "mode": "fixed",
                 "count": 1,
                 "position": {
-                  "x": 0,
+                  "x": 1450,
                   "y": 1000,
-                  "z": 0
+                  "z": 1100
                 },
                 "rotate": {
                   "x": 0,
-                  "y": 0,
+                  "y": 215,
                   "z": 0
                 },
                 "vector": {
@@ -1729,11 +1761,43 @@
                   "z": 0
                 },
                 "isstoped": true,
-                "snapToTerrain": false,
-                "areaId": "m05_railgun_02",
+                "snapToTerrain": true,
+                "areaId": "m05_railgun_02_north_east",
                 "minAltitude": 0,
                 "maxAltitude": 0,
-                "terrainLayer": "",
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": 1540,
+                  "y": 1000,
+                  "z": 1165
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 215,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_02_north_east",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
                 "radius": 0
               }
             },
@@ -1746,9 +1810,233 @@
                 "mode": "fixed",
                 "count": 1,
                 "position": {
-                  "x": -1400,
+                  "x": -1250,
                   "y": 1000,
+                  "z": -1200
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 35,
                   "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_railgun_03_south_west",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": -1160,
+                  "y": 1000,
+                  "z": -1135
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 35,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_03_south_west",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "Railgun",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": 1650,
+                  "y": 1000,
+                  "z": -850
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 315,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_railgun_04_south_east",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": 1740,
+                  "y": 1000,
+                  "z": -785
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 315,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_04_south_east",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": -2100,
+                  "y": 1000,
+                  "z": 250
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 90,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_05_far_west",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": 2200,
+                  "y": 1000,
+                  "z": -150
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 270,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_06_far_east",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": -250,
+                  "y": 1000,
+                  "z": 1550
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 180,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_07_north_center",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": 350,
+                  "y": 1000,
+                  "z": -1600
                 },
                 "rotate": {
                   "x": 0,
@@ -1761,11 +2049,139 @@
                   "z": 0
                 },
                 "isstoped": true,
-                "snapToTerrain": false,
-                "areaId": "m05_railgun_03",
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_08_south_center",
                 "minAltitude": 0,
                 "maxAltitude": 0,
-                "terrainLayer": "",
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": -1850,
+                  "y": 1000,
+                  "z": -650
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 55,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_09_west_valley",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": 1900,
+                  "y": 1000,
+                  "z": 700
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 235,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_10_east_ridge",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": -650,
+                  "y": 1000,
+                  "z": 350
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 120,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_11_inner_west",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
+                "radius": 0
+              }
+            },
+            {
+              "enemyId": -1,
+              "prefabType": "HR_AAGUN",
+              "missionTarget": true,
+              "lifetime": 0,
+              "placement": {
+                "mode": "fixed",
+                "count": 1,
+                "position": {
+                  "x": 850,
+                  "y": 1000,
+                  "z": -350
+                },
+                "rotate": {
+                  "x": 0,
+                  "y": 300,
+                  "z": 0
+                },
+                "vector": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                },
+                "isstoped": true,
+                "snapToTerrain": true,
+                "areaId": "m05_hraagun_12_inner_east",
+                "minAltitude": 0,
+                "maxAltitude": 0,
+                "terrainLayer": "Terrain",
                 "radius": 0
               }
             }
