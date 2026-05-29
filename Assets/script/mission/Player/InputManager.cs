@@ -11,6 +11,24 @@ public class InputManager : MonoBehaviour
 
     public InputActionAsset inputActions; // ← この中に「Player」マップが入っている
     private InputActionMap playerMap;
+    private InputAction rollAction;
+    private InputAction pitchAction;
+    private InputAction viewAction;
+    private InputAction l1Action;
+    private InputAction r1Action;
+    private InputAction l2Action;
+    private InputAction r2Action;
+    private InputAction l3Action;
+    private InputAction r3Action;
+    private InputAction cancelAction;
+    private InputAction submitAction;
+    private InputAction squareAction;
+    private InputAction triangleAction;
+    private InputAction menuAction;
+    private InputAction upAction;
+    private InputAction downAction;
+    private InputAction leftAction;
+    private InputAction rightAction;
 
     [Header("Stick Axes")]
     public float horizontalL; // 左スティックX
@@ -62,6 +80,24 @@ public class InputManager : MonoBehaviour
     private void OnEnable()
     {
         playerMap = inputActions.FindActionMap("Player");
+        rollAction = playerMap.FindAction("Roll");
+        pitchAction = playerMap.FindAction("Pitch");
+        viewAction = playerMap.FindAction("View");
+        l1Action = playerMap.FindAction("L1");
+        r1Action = playerMap.FindAction("R1");
+        l2Action = playerMap.FindAction("L2");
+        r2Action = playerMap.FindAction("R2");
+        l3Action = playerMap.FindAction("L3");
+        r3Action = playerMap.FindAction("R3");
+        cancelAction = playerMap.FindAction("Cancel");
+        submitAction = playerMap.FindAction("Submit");
+        squareAction = playerMap.FindAction("Square");
+        triangleAction = playerMap.FindAction("Triangle");
+        menuAction = playerMap.FindAction("menu");
+        upAction = playerMap.FindAction("Up");
+        downAction = playerMap.FindAction("Down");
+        leftAction = playerMap.FindAction("Left");
+        rightAction = playerMap.FindAction("Right");
 
         playerMap.Enable();
     }
@@ -69,45 +105,45 @@ public class InputManager : MonoBehaviour
     void Update()
     {
         // ---- スティック ----
-        horizontalL = playerMap.FindAction("Roll").ReadValue<float>();
-        verticalL = playerMap.FindAction("Pitch").ReadValue<float>();
+        horizontalL = rollAction.ReadValue<float>();
+        verticalL = pitchAction.ReadValue<float>();
 
         // 修正: ReadValue<Vector2>() の使用方法を修正
-        Vector2 viewInput = playerMap.FindAction("View").ReadValue<Vector2>();
+        Vector2 viewInput = viewAction.ReadValue<Vector2>();
         horizontalR = viewInput.x;
         verticalR = viewInput.y;
 
-        l1 = playerMap.FindAction("L1").IsPressed();
-        r1 = playerMap.FindAction("R1").IsPressed();
+        l1 = l1Action.IsPressed();
+        r1 = r1Action.IsPressed();
         accel = (r1 ? 1f : 0f) + (l1 ? -1f : 0f);
 
         // ---- ボタン ----
-        altl2 = playerMap.FindAction("L2").IsPressed();
-        altr2 = playerMap.FindAction("R2").IsPressed();
+        altl2 = l2Action.IsPressed();
+        altr2 = r2Action.IsPressed();
 
-        stickL = playerMap.FindAction("L3").IsPressed();
-        stickR = playerMap.FindAction("R3").IsPressed();
+        stickL = l3Action.IsPressed();
+        stickR = r3Action.IsPressed();
 
-        cancel = playerMap.FindAction("Cancel").WasPressedThisFrame();
-        submit = playerMap.FindAction("Submit").WasPressedThisFrame();
+        cancel = cancelAction.WasPressedThisFrame();
+        submit = submitAction.WasPressedThisFrame();
 
-        fireGun = playerMap.FindAction("Cancel").IsPressed();
-        fireMissile = playerMap.FindAction("Submit").WasPressedThisFrame();
+        fireGun = cancelAction.IsPressed();
+        fireMissile = submitAction.WasPressedThisFrame();
 
-        changeWeapon = playerMap.FindAction("Square").WasPressedThisFrame();
-        targetChange = playerMap.FindAction("Triangle").WasPressedThisFrame();
-        menu = playerMap.FindAction("menu").WasPressedThisFrame();
+        changeWeapon = squareAction.WasPressedThisFrame();
+        targetChange = triangleAction.WasPressedThisFrame();
+        menu = menuAction.WasPressedThisFrame();
 
 
-        up = playerMap.FindAction("Up").IsPressed();
-        down = playerMap.FindAction("Down").IsPressed();
-        left = playerMap.FindAction("Left").IsPressed();
-        right = playerMap.FindAction("Right").IsPressed();
+        up = upAction.IsPressed();
+        down = downAction.IsPressed();
+        left = leftAction.IsPressed();
+        right = rightAction.IsPressed();
 
-        north = playerMap.FindAction("Triangle").IsPressed();
-        south = playerMap.FindAction("Cancel").IsPressed();
-        west = playerMap.FindAction("Square").IsPressed();
-        east = playerMap.FindAction("Submit").IsPressed();
+        north = triangleAction.IsPressed();
+        south = cancelAction.IsPressed();
+        west = squareAction.IsPressed();
+        east = submitAction.IsPressed();
 
     }
 }

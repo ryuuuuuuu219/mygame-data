@@ -32,6 +32,13 @@ public class Rader : MonoBehaviour
     public bool createRadarMask = true;
 
     readonly List<Image> jammerWaveImages = new();
+    readonly List<RectTransform> arrysUIRects = new();
+    readonly List<Image> arrysUIImages = new();
+    readonly List<RectTransform> enemysUIRects = new();
+    readonly List<Image> enemysUIImages = new();
+    readonly List<RectTransform> targetsUIRects = new();
+    readonly List<Image> targetsUIImages = new();
+    readonly List<GameObject> emptyObjects = new();
 
     // Use this for initialization
     void Start()
@@ -46,6 +53,10 @@ public class Rader : MonoBehaviour
         arrysUI ??= new List<GameObject>();
         enemysUI ??= new List<GameObject>();
         targetsUI ??= new List<GameObject>();
+        targets ??= new List<GameObject>();
+        SyncExistingBlipCache(arrysUI, arrysUIRects, arrysUIImages);
+        SyncExistingBlipCache(enemysUI, enemysUIRects, enemysUIImages);
+        SyncExistingBlipCache(targetsUI, targetsUIRects, targetsUIImages);
 
         // 初期プール作成
         CreatePool(10, 10,10);  // 初期数は適当に設定、足りないときは動的追加
@@ -81,8 +92,9 @@ public class Rader : MonoBehaviour
         {
             if (objects[i] == null) continue;
 
-            RectTransform rt = uiList[i].GetComponent<RectTransform>();
-            Image img = uiList[i].GetComponent<Image>();
+            RectTransform rt = GetCachedRect(uiList, i);
+            Image img = GetCachedImage(uiList, i);
+            if (rt == null || img == null) continue;
             Vector2 pos = RadarSquarePosition(objects[i].transform.position);
 
             rt.anchoredPosition = GetPlayerBlipPosition() + pos;
@@ -94,7 +106,9 @@ public class Rader : MonoBehaviour
     {
         for (int i = usedCount; i < uiList.Count; i++)
         {
-            uiList[i].GetComponent<Image>().enabled = false;
+            Image image = GetCachedImage(uiList, i);
+            if (image != null)
+                image.enabled = false;
         }
     }
     void UpdateEnemyBlipGroup(
@@ -105,8 +119,9 @@ public class Rader : MonoBehaviour
         {
             if (objects[i] == null) continue;
 
-            RectTransform rt = uiList[i].GetComponent<RectTransform>();
-            Image img = uiList[i].GetComponent<Image>();
+            RectTransform rt = GetCachedRect(uiList, i);
+            Image img = GetCachedImage(uiList, i);
+            if (rt == null || img == null) continue;
             Vector2 pos = RadarSquarePosition(objects[i].transform.position);
 
             rt.anchoredPosition = GetPlayerBlipPosition() + pos;
@@ -162,45 +177,40 @@ public class Rader : MonoBehaviour
         for (int i = 0; i < arryCount; i++)
         {
             GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
-            u.GetComponent<Image>().enabled = false;
-            arrysUI.Add(u);
+            RegisterBlip(arrysUI, arrysUIRects, arrysUIImages, u);
         }
         for (int i = 0; i < enemyCount; i++)
         {
             GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
-            u.GetComponent<Image>().enabled = false;
-            enemysUI.Add(u);
+            RegisterBlip(enemysUI, enemysUIRects, enemysUIImages, u);
         }
         for (int i = 0; i < targetCount; i++)
         {
             GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
-            u.GetComponent<Image>().enabled = false;
-            targetsUI.Add(u);
+            RegisterBlip(targetsUI, targetsUIRects, targetsUIImages, u);
         }
     }
     void RefreshDetections()
     {
         enemys = ObjectManager.Instance.Enemies as List<GameObject>;
-        if (enemys == null) enemys = new List<GameObject>();
+        if (enemys == null) enemys = emptyObjects;
 
         // 足りない場合はプール拡張
         while (enemysUI.Count < enemys.Count)
         {
             GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
-            u.GetComponent<Image>().enabled = false;
-            enemysUI.Add(u);
+            RegisterBlip(enemysUI, enemysUIRects, enemysUIImages, u);
         }
         arrys = ObjectManager.Instance.allies;
-        if (arrys == null) arrys = new List<GameObject>();
+        if (arrys == null) arrys = emptyObjects;
         // 足りない場合はプール拡張
         while (arrysUI.Count < arrys.Count)
         {
             GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
-            u.GetComponent<Image>().enabled = false;
-            arrysUI.Add(u);
+            RegisterBlip(arrysUI, arrysUIRects, arrysUIImages, u);
         }
 
-        targets = new List<GameObject>();
+        targets.Clear();
         for (int i = 0; i < enemys.Count; i++)
         {
             GameObject enemy = enemys[i];
@@ -213,10 +223,54 @@ public class Rader : MonoBehaviour
         while (targetsUI.Count < targets.Count)
         {
             GameObject u = Instantiate(blipPrefab, GetRadarContentRoot());
-            u.GetComponent<Image>().enabled = false;
-            targetsUI.Add(u);
+            RegisterBlip(targetsUI, targetsUIRects, targetsUIImages, u);
         }
 
+    }
+
+    void RegisterBlip(
+        List<GameObject> objects,
+        List<RectTransform> rects,
+        List<Image> images,
+        GameObject blip)
+    {
+        Image image = blip.GetComponent<Image>();
+        if (image != null)
+            image.enabled = false;
+
+        objects.Add(blip);
+        rects.Add(blip.GetComponent<RectTransform>());
+        images.Add(image);
+    }
+
+    void SyncExistingBlipCache(
+        List<GameObject> objects,
+        List<RectTransform> rects,
+        List<Image> images)
+    {
+        rects.Clear();
+        images.Clear();
+
+        for (int i = 0; i < objects.Count; i++)
+        {
+            GameObject blip = objects[i];
+            rects.Add(blip != null ? blip.GetComponent<RectTransform>() : null);
+            images.Add(blip != null ? blip.GetComponent<Image>() : null);
+        }
+    }
+
+    RectTransform GetCachedRect(List<GameObject> uiList, int index)
+    {
+        if (ReferenceEquals(uiList, arrysUI)) return arrysUIRects[index];
+        if (ReferenceEquals(uiList, enemysUI)) return enemysUIRects[index];
+        return targetsUIRects[index];
+    }
+
+    Image GetCachedImage(List<GameObject> uiList, int index)
+    {
+        if (ReferenceEquals(uiList, arrysUI)) return arrysUIImages[index];
+        if (ReferenceEquals(uiList, enemysUI)) return enemysUIImages[index];
+        return targetsUIImages[index];
     }
 
     Transform GetRadarContentRoot()

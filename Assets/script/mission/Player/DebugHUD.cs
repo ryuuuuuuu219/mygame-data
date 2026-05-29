@@ -9,6 +9,16 @@ using System.Text;
 public sealed class TargetHudContainer
 {
     public GameObject obj;
+    public RectTransform rect;
+    public Vector3 targetLocalPosition;
+    public Vector3 currentLocalPosition;
+    public Vector3[] targetLinePositions;
+    public Vector3[] currentLinePositions;
+    public Vector3[] targetCrossAPositions;
+    public Vector3[] currentCrossAPositions;
+    public Vector3[] targetCrossBPositions;
+    public Vector3[] currentCrossBPositions;
+    public bool hasSmoothPose;
     public LineRenderer lr;
     public LineRenderer crossLrA;
     public LineRenderer crossLrB;
@@ -27,9 +37,15 @@ public static class TargetHudContainerPool
 
     public static TargetHudContainer Get(Transform parent, Vector3[] vertexs)
     {
-        TargetHudContainer container = pool.Count > 0
-            ? pool.Pop()
-            : Create(vertexs);
+        TargetHudContainer container = null;
+        while (pool.Count > 0 && container == null)
+        {
+            TargetHudContainer pooled = pool.Pop();
+            if (IsUsable(pooled))
+                container = pooled;
+        }
+
+        container ??= Create(vertexs);
 
         container.obj.transform.SetParent(parent, false);
         container.boundTarget = null;
@@ -39,7 +55,7 @@ public static class TargetHudContainerPool
 
     public static void Release(TargetHudContainer container)
     {
-        if (container == null) return;
+        if (!IsUsable(container)) return;
 
         Reset(container);
         container.boundTarget = null;
@@ -49,6 +65,8 @@ public static class TargetHudContainerPool
 
     public static void Reset(TargetHudContainer container)
     {
+        if (!IsUsable(container)) return;
+
         if (container.distanceText != null)
             container.distanceText.text = "";
         if (container.tgtText != null)
@@ -57,9 +75,25 @@ public static class TargetHudContainerPool
         SetLineEnabled(container.lr, false);
         SetLineEnabled(container.crossLrA, false);
         SetLineEnabled(container.crossLrB, false);
+        container.hasSmoothPose = false;
 
         if (container.obj != null && container.obj.activeSelf)
             container.obj.SetActive(false);
+    }
+
+    public static void Forget(TargetHudContainer container)
+    {
+        if (container == null) return;
+        container.obj = null;
+        container.rect = null;
+        container.lr = null;
+        container.crossLrA = null;
+        container.crossLrB = null;
+        container.distanceText = null;
+        container.tgtText = null;
+        container.distanceTextTransform = null;
+        container.tgtTextTransform = null;
+        container.boundTarget = null;
     }
 
     static TargetHudContainer Create(Vector3[] vertexs)
@@ -107,6 +141,13 @@ public static class TargetHudContainerPool
         return new TargetHudContainer
         {
             obj = c,
+            rect = c.GetComponent<RectTransform>(),
+            targetLinePositions = new Vector3[4],
+            currentLinePositions = new Vector3[4],
+            targetCrossAPositions = new Vector3[2],
+            currentCrossAPositions = new Vector3[2],
+            targetCrossBPositions = new Vector3[2],
+            currentCrossBPositions = new Vector3[2],
             lr = renderer,
             crossLrA = crossRenderer,
             crossLrB = crossRendererB,
@@ -161,6 +202,16 @@ public static class TargetHudContainerPool
         if (renderer.gameObject.activeSelf != enabled)
             renderer.gameObject.SetActive(enabled);
     }
+
+    static bool IsUsable(TargetHudContainer container)
+    {
+        return container != null &&
+            container.obj != null &&
+            container.rect != null &&
+            container.lr != null &&
+            container.crossLrA != null &&
+            container.crossLrB != null;
+    }
 }
 
 public class DebugHUD : MonoBehaviour
@@ -170,6 +221,8 @@ public class DebugHUD : MonoBehaviour
     [Header("Canvas References")]
     [SerializeField] Canvas cameraCanvas;   // MainCamera配下（Screen Space - Camera）
     [SerializeField] Canvas overlayCanvas;  // HUD固定用（Screen Space - Overlay）
+    RectTransform cameraCanvasRect;
+    Camera cameraCanvasUiCamera;
 
     [Header("Player & HUD")]
     public GameObject plane;         // プレイヤー機のスクリプト参照
@@ -202,6 +255,11 @@ public class DebugHUD : MonoBehaviour
 
     List<(GameObject target, float fov)> detectPairs;
     readonly StringBuilder hudBuilder = new StringBuilder(128);
+    const float ContainerRefreshInterval = 0.05f;
+    const float HudTextRefreshInterval = 0.1f;
+    const float ContainerSmoothSpeed = 18f;
+    float nextContainerRefreshTime;
+    float nextHudTextRefreshTime;
 
     bool isBlinking;
     float blinkInterval = 0.4f;
@@ -251,6 +309,14 @@ public class DebugHUD : MonoBehaviour
             cameraCanvas.worldCamera = mainCam;
         }
 
+        if (cameraCanvas != null)
+        {
+            cameraCanvasRect = cameraCanvas.GetComponent<RectTransform>();
+            cameraCanvasUiCamera = cameraCanvas.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null
+                : cameraCanvas.worldCamera;
+        }
+
         conteiners = new ();
         detecttargets = new ();
         markingtargets.Clear();
@@ -277,6 +343,18 @@ public class DebugHUD : MonoBehaviour
         status.altGetVar("長射程マルチロックミサイル：射程（ロック可能距離）", out LlockRange);
         status.altGetVar("長射程マルチロックミサイル：マルチロック数", out float lockCount);
         multiLockCount = Mathf.Max(1, Mathf.RoundToInt(lockCount));
+    }
+
+    void OnDestroy()
+    {
+        if (conteiners == null) return;
+
+        for (int i = 0; i < conteiners.Count; i++)
+        {
+            TargetHudContainerPool.Forget(conteiners[i]);
+        }
+
+        conteiners.Clear();
     }
 
     void LateUpdate()
@@ -543,10 +621,19 @@ public class DebugHUD : MonoBehaviour
             blinkTimer = 0f;
             isBlinking = !isBlinking;
         }
-        UpdateContainers();
+        if (Time.time >= nextContainerRefreshTime)
+        {
+            nextContainerRefreshTime = Time.time + ContainerRefreshInterval;
+            UpdateContainers();
+        }
+        SmoothContainers();
 
         // -------- HUD表示 --------
-        UpdateHUD();
+        if (Time.time >= nextHudTextRefreshTime)
+        {
+            nextHudTextRefreshTime = Time.time + HudTextRefreshInterval;
+            UpdateHUD();
+        }
 
         // -------- ターゲットロケーター --------
         UpdateTargetLocator();
@@ -705,7 +792,7 @@ public class DebugHUD : MonoBehaviour
 
         if(markingtargets.Count == 0)
         {
-            ClearAllContainers();
+            HideAllContainers();
             return;
         }
 
@@ -853,6 +940,46 @@ public class DebugHUD : MonoBehaviour
         }
     }
 
+    void HideAllContainers()
+    {
+        for (int i = 0; i < conteiners.Count; i++)
+        {
+            ClearContainer(i);
+        }
+    }
+
+    void SmoothContainers()
+    {
+        if (conteiners == null) return;
+
+        float t = 1f - Mathf.Exp(-ContainerSmoothSpeed * Time.deltaTime);
+        for (int i = 0; i < conteiners.Count; i++)
+        {
+            TargetHudContainer c = conteiners[i];
+            if (c == null || c.obj == null || !c.obj.activeSelf || !c.hasSmoothPose)
+                continue;
+
+            c.currentLocalPosition = Vector3.Lerp(c.currentLocalPosition, c.targetLocalPosition, t);
+            c.rect.localPosition = c.currentLocalPosition;
+
+            SmoothLine(c.lr, c.currentLinePositions, c.targetLinePositions, t);
+            SmoothLine(c.crossLrA, c.currentCrossAPositions, c.targetCrossAPositions, t);
+            SmoothLine(c.crossLrB, c.currentCrossBPositions, c.targetCrossBPositions, t);
+        }
+    }
+
+    void SmoothLine(LineRenderer renderer, Vector3[] current, Vector3[] target, float t)
+    {
+        if (renderer == null || current == null || target == null) return;
+
+        int count = Mathf.Min(renderer.positionCount, Mathf.Min(current.Length, target.Length));
+        for (int i = 0; i < count; i++)
+        {
+            current[i] = Vector3.Lerp(current[i], target[i], t);
+            renderer.SetPosition(i, current[i]);
+        }
+    }
+
     void HideContainer(int idx, bool releaseBinding)
     {
         TargetHudContainerPool.Reset(conteiners[idx]);
@@ -866,11 +993,12 @@ public class DebugHUD : MonoBehaviour
 
     void UpdateContainer(int idx, GameObject target, Color color, string text, bool useCrossContainer)
     {
+        TargetHudContainer entry = conteiners[idx];
         var container = conteiners[idx].obj;
-        var renderer = conteiners[idx].lr;
-        var crossRendererA = conteiners[idx].crossLrA;
-        var crossRendererB = conteiners[idx].crossLrB;
-        var containerRect = container.GetComponent<RectTransform>();
+        var renderer = entry.lr;
+        var crossRendererA = entry.crossLrA;
+        var crossRendererB = entry.crossLrB;
+        var containerRect = entry.rect;
         if (renderer == null || crossRendererA == null || crossRendererB == null || containerRect == null) 
         { 
             Debug.LogError("DebugHUD: Missing components in container.");
@@ -891,16 +1019,10 @@ public class DebugHUD : MonoBehaviour
         }
 
         // ===== UI（RectTransform）=====
-        RectTransform canvasRect = cameraCanvas.GetComponent<RectTransform>();
-
-        Camera uiCamera = cameraCanvas.renderMode == RenderMode.ScreenSpaceOverlay
-            ? null
-            : cameraCanvas.worldCamera;
-
         if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            canvasRect,
+            cameraCanvasRect,
             screenPos,
-            uiCamera,
+            cameraCanvasUiCamera,
             out Vector2 localPos
         ))
         {
@@ -908,7 +1030,7 @@ public class DebugHUD : MonoBehaviour
             return;
         }
 
-        containerRect.localPosition = localPos;
+        entry.targetLocalPosition = localPos;
 
         // ===== LineRenderer（ワールド）=====
         Vector3 dir = (target.transform.position - mainCam.transform.position).normalized;
@@ -923,17 +1045,30 @@ public class DebugHUD : MonoBehaviour
                     baseScreen.x + vertexs[i].x * 20f,
                     baseScreen.y + vertexs[i].y * 20f,
                     baseScreen.z));
-            renderer.SetPosition(i, worldPos);
+            entry.targetLinePositions[i] = worldPos;
         }
 
         Vector3 crossA = mainCam.ScreenToWorldPoint(new Vector3(baseScreen.x - 20f, baseScreen.y - 20f, baseScreen.z));
         Vector3 crossB = mainCam.ScreenToWorldPoint(new Vector3(baseScreen.x + 20f, baseScreen.y + 20f, baseScreen.z));
         Vector3 crossC = mainCam.ScreenToWorldPoint(new Vector3(baseScreen.x - 20f, baseScreen.y + 20f, baseScreen.z));
         Vector3 crossD = mainCam.ScreenToWorldPoint(new Vector3(baseScreen.x + 20f, baseScreen.y - 20f, baseScreen.z));
-        crossRendererA.SetPosition(0, crossA);
-        crossRendererA.SetPosition(1, crossB);
-        crossRendererB.SetPosition(0, crossC);
-        crossRendererB.SetPosition(1, crossD);
+        entry.targetCrossAPositions[0] = crossA;
+        entry.targetCrossAPositions[1] = crossB;
+        entry.targetCrossBPositions[0] = crossC;
+        entry.targetCrossBPositions[1] = crossD;
+
+        if (!entry.hasSmoothPose)
+        {
+            entry.hasSmoothPose = true;
+            entry.currentLocalPosition = entry.targetLocalPosition;
+            containerRect.localPosition = entry.currentLocalPosition;
+            CopyPositions(entry.targetLinePositions, entry.currentLinePositions);
+            CopyPositions(entry.targetCrossAPositions, entry.currentCrossAPositions);
+            CopyPositions(entry.targetCrossBPositions, entry.currentCrossBPositions);
+            renderer.SetPositions(entry.currentLinePositions);
+            crossRendererA.SetPositions(entry.currentCrossAPositions);
+            crossRendererB.SetPositions(entry.currentCrossBPositions);
+        }
 
         TargetHudContainerPool.SetLineEnabled(renderer, !useCrossContainer);
         TargetHudContainerPool.SetLineEnabled(crossRendererA, useCrossContainer);
@@ -947,6 +1082,15 @@ public class DebugHUD : MonoBehaviour
 
         // ===== Text =====
         SetTexts(conteiners[idx], target, text);
+    }
+
+    void CopyPositions(Vector3[] source, Vector3[] destination)
+    {
+        int count = Mathf.Min(source.Length, destination.Length);
+        for (int i = 0; i < count; i++)
+        {
+            destination[i] = source[i];
+        }
     }
 
     string ConvertEnemyName(GameObject obj)
