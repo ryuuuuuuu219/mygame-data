@@ -12,6 +12,11 @@ public class EnemyGunShooter : MonoBehaviour
     public float bulletLifetime = 3f;
     public bool useLeadBias = false;
 
+    [Header("Line of Sight")]
+    public bool requireLineOfSight = true;
+    public LayerMask lineOfSightMask = ~0;
+    public float lineOfSightOriginOffset = 2f;
+
     [SerializeField] Gun_e_pool bulletpool;
     [SerializeField] EnemyGunLeadBiasAddon leadBiasAddon;
 
@@ -25,6 +30,7 @@ public class EnemyGunShooter : MonoBehaviour
     public void TryFire(Vector3 direction, Vector3 platformVelocity, Transform target, Vector3 targetVelocity)
     {
         if (direction.sqrMagnitude <= 0.001f && target == null) return;
+        if (requireLineOfSight && target != null && IsGroundBetweenTarget(target)) return;
 
         Vector3 fireDirection = target != null
             ? CalculateLeadDirection(target.position, platformVelocity, targetVelocity)
@@ -168,5 +174,38 @@ public class EnemyGunShooter : MonoBehaviour
         Quaternion pitch = Quaternion.AngleAxis(randomCircle.y, right);
 
         return (yaw * pitch * direction).normalized;
+    }
+
+    bool IsGroundBetweenTarget(Transform target)
+    {
+        if (target == null) return true;
+        if (gunMuzzle == null) gunMuzzle = transform;
+
+        Vector3 origin = gunMuzzle.position + Vector3.up * lineOfSightOriginOffset;
+        Vector3 toTarget = target.position - origin;
+        float distance = toTarget.magnitude;
+        if (distance <= 0.001f) return true;
+
+        RaycastHit[] hits = Physics.RaycastAll(
+            origin,
+            toTarget / distance,
+            distance,
+            lineOfSightMask,
+            QueryTriggerInteraction.Ignore
+        );
+
+        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+        foreach (var hit in hits)
+        {
+            if (hit.collider == null) continue;
+            if (hit.transform.IsChildOf(transform)) continue;
+            if (hit.transform == target || hit.transform.IsChildOf(target))
+                return false;
+
+            if (ObjectGroundBounds.IsGroundCollider(hit.collider))
+                return true;
+        }
+
+        return false;
     }
 }
