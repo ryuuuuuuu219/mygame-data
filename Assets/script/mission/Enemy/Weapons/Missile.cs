@@ -36,6 +36,10 @@ public class Missile : MonoBehaviour
     private float currentTurnRate;
     private float usedDeltaTheta;
     private bool useInitialPurePursuit;
+    private const int GroundProbeIntervalFrames = 5;
+    private int groundProbeFrame;
+    private bool hasPlannedGroundHit;
+    private Vector3 plannedGroundHitPoint;
 
     public bool isheatseeker = true;
 
@@ -61,6 +65,8 @@ public class Missile : MonoBehaviour
         currentTurnRate = turnRate;
         usedDeltaTheta = 0f;
         useInitialPurePursuit = ShouldUsePurePursuitAssist();
+        groundProbeFrame = 0;
+        hasPlannedGroundHit = false;
         gameObject.SetActive(true);
     }
 
@@ -118,6 +124,7 @@ public class Missile : MonoBehaviour
             if (!useInitialPurePursuit && angleDiff > breakAngle)
             {
                 target = null;
+                ProbeGroundImpact(true);
                 return;
             }
 
@@ -177,13 +184,76 @@ public class Missile : MonoBehaviour
         RaycastHitCheck();
         if (!gameObject.activeSelf) return;
 
-        if (ObjectGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        if (ResolvePlannedGroundImpact())
         {
             rangeover();
             return;
         }
 
         detectflare(isheatseeker);
+    }
+
+    private bool ResolvePlannedGroundImpact()
+    {
+        ProbeGroundImpact(false);
+
+        if (!hasPlannedGroundHit)
+            return false;
+
+        Vector3 move = currentPos - previousPos;
+        if (move.sqrMagnitude <= 0.000001f)
+            return false;
+
+        Vector3 fromPrevious = plannedGroundHitPoint - previousPos;
+        Vector3 fromCurrent = plannedGroundHitPoint - currentPos;
+        if (Vector3.Dot(fromPrevious, fromCurrent) > 0f)
+            return false;
+
+        ImpactEffectFactory.Spawn(plannedGroundHitPoint, effectRadius);
+        transform.position = plannedGroundHitPoint;
+        hasPlannedGroundHit = false;
+        return true;
+    }
+
+    private void ProbeGroundImpact(bool force)
+    {
+        Vector3 probeVelocity = velocity.sqrMagnitude > 0.001f
+            ? velocity
+            : newDir.normalized * Mathf.Max(speed, 0f);
+
+        if (probeVelocity.y > 0f)
+        {
+            hasPlannedGroundHit = false;
+            groundProbeFrame = 0;
+            return;
+        }
+
+        if (!force)
+        {
+            groundProbeFrame--;
+            if (groundProbeFrame > 0)
+                return;
+        }
+
+        groundProbeFrame = GroundProbeIntervalFrames;
+        hasPlannedGroundHit = false;
+
+        if (probeVelocity.sqrMagnitude <= 0.000001f)
+            return;
+
+        float probeDistance = Mathf.Max(1000f, probeVelocity.magnitude * Mathf.Max(lifeTime, Time.fixedDeltaTime));
+        if (Physics.Raycast(
+            transform.position,
+            probeVelocity.normalized,
+            out RaycastHit hit,
+            probeDistance,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore) &&
+            ObjectGroundBounds.IsGroundCollider(hit.collider))
+        {
+            plannedGroundHitPoint = hit.point;
+            hasPlannedGroundHit = true;
+        }
     }
 
     private bool ShouldUsePurePursuitAssist()

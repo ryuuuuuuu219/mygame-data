@@ -10,11 +10,16 @@ public class Gun_e : MonoBehaviour
     private Vector3 currentPos;
     public Vector3 velocity;
     public float effectRadius = 0f;
+    private bool groundImpactProbed;
+    private bool hasPlannedGroundHit;
+    private Vector3 plannedGroundHitPoint;
 
     private void OnEnable()
     {
         previousPos = transform.position;
         currentPos = transform.position;
+        groundImpactProbed = false;
+        hasPlannedGroundHit = false;
     }
 
     private void FixedUpdate()
@@ -35,7 +40,7 @@ public class Gun_e : MonoBehaviour
             return;
         }
 
-        if (ObjectGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        if (ResolvePlannedGroundImpact())
         {
             gameObject.SetActive(false);
             return;
@@ -95,5 +100,51 @@ public class Gun_e : MonoBehaviour
 
         return false;
     }
-}
 
+    private bool ResolvePlannedGroundImpact()
+    {
+        ProbeGroundImpactOnce();
+
+        if (!hasPlannedGroundHit)
+            return false;
+
+        Vector3 fromPrevious = plannedGroundHitPoint - previousPos;
+        Vector3 fromCurrent = plannedGroundHitPoint - currentPos;
+        if (Vector3.Dot(fromPrevious, fromCurrent) > 0f)
+            return false;
+
+        ImpactEffectFactory.Spawn(plannedGroundHitPoint, effectRadius);
+        transform.position = plannedGroundHitPoint;
+        hasPlannedGroundHit = false;
+        return true;
+    }
+
+    private void ProbeGroundImpactOnce()
+    {
+        if (groundImpactProbed)
+            return;
+
+        if (velocity.sqrMagnitude <= 0.000001f)
+            return;
+
+        groundImpactProbed = true;
+        hasPlannedGroundHit = false;
+
+        if (velocity.y > 0f)
+            return;
+
+        float probeDistance = velocity.magnitude * Mathf.Max(lifeTime, Time.fixedDeltaTime);
+        if (Physics.Raycast(
+            transform.position,
+            velocity.normalized,
+            out RaycastHit hit,
+            probeDistance,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore) &&
+            ObjectGroundBounds.IsGroundCollider(hit.collider))
+        {
+            plannedGroundHitPoint = hit.point;
+            hasPlannedGroundHit = true;
+        }
+    }
+}

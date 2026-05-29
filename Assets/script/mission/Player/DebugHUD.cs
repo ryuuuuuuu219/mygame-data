@@ -6,6 +6,163 @@ using static WeaponSystem;
 using System;
 using System.Text;
 
+public sealed class TargetHudContainer
+{
+    public GameObject obj;
+    public LineRenderer lr;
+    public LineRenderer crossLrA;
+    public LineRenderer crossLrB;
+    public TextMeshProUGUI distanceText;
+    public TextMeshProUGUI tgtText;
+    public Transform distanceTextTransform;
+    public Transform tgtTextTransform;
+    public GameObject boundTarget;
+}
+
+public static class TargetHudContainerPool
+{
+    static readonly Stack<TargetHudContainer> pool = new();
+    static Material lineMaterial;
+    static Transform poolRoot;
+
+    public static TargetHudContainer Get(Transform parent, Vector3[] vertexs)
+    {
+        TargetHudContainer container = pool.Count > 0
+            ? pool.Pop()
+            : Create(vertexs);
+
+        container.obj.transform.SetParent(parent, false);
+        container.boundTarget = null;
+        Reset(container);
+        return container;
+    }
+
+    public static void Release(TargetHudContainer container)
+    {
+        if (container == null) return;
+
+        Reset(container);
+        container.boundTarget = null;
+        container.obj.transform.SetParent(GetPoolRoot(), false);
+        pool.Push(container);
+    }
+
+    public static void Reset(TargetHudContainer container)
+    {
+        if (container.distanceText != null)
+            container.distanceText.text = "";
+        if (container.tgtText != null)
+            container.tgtText.text = "";
+
+        SetLineEnabled(container.lr, false);
+        SetLineEnabled(container.crossLrA, false);
+        SetLineEnabled(container.crossLrB, false);
+
+        if (container.obj != null && container.obj.activeSelf)
+            container.obj.SetActive(false);
+    }
+
+    static TargetHudContainer Create(Vector3[] vertexs)
+    {
+        GameObject c = new GameObject("TargetInfo", typeof(RectTransform));
+        c.tag = "HUDUI";
+        c.layer = LayerMask.NameToLayer("UI");
+
+        GameObject distanceTextObj = new GameObject("DistanceText");
+        distanceTextObj.transform.SetParent(c.transform);
+        distanceTextObj.layer = LayerMask.NameToLayer("UI");
+        var rectT = distanceTextObj.AddComponent<RectTransform>();
+        rectT.anchorMin = new Vector2(1f, 0.5f);
+        rectT.anchorMax = new Vector2(1f, 0.5f);
+        rectT.anchoredPosition = new Vector3(178f, 0f, 0);
+        rectT.sizeDelta = new Vector2(400f, 150f);
+        rectT.localPosition = new Vector3(rectT.localPosition.x, rectT.localPosition.y, 0);
+        rectT.localScale = Vector3.one;
+
+        var textobj = distanceTextObj.AddComponent<TextMeshProUGUI>();
+        textobj.fontSize = 16;
+        textobj.alignment = TextAlignmentOptions.Left;
+        textobj.color = Color.green;
+
+        GameObject tgtText = new GameObject("tgtText");
+        tgtText.transform.SetParent(c.transform);
+        tgtText.layer = LayerMask.NameToLayer("UI");
+        var tgtRectT = tgtText.AddComponent<RectTransform>();
+        tgtRectT.anchorMin = new Vector2(0, 0.5f);
+        tgtRectT.anchorMax = new Vector2(0, 0.5f);
+        tgtRectT.anchoredPosition = new Vector3(57f, 20f, 0);
+        tgtRectT.sizeDelta = new Vector2(130f, 50f);
+        tgtRectT.localPosition = new Vector3(tgtRectT.localPosition.x, tgtRectT.localPosition.y, 0);
+        tgtRectT.localScale = Vector3.one;
+
+        var tgttextobj = tgtText.AddComponent<TextMeshProUGUI>();
+        tgttextobj.fontSize = 16;
+        tgttextobj.alignment = TextAlignmentOptions.Left;
+        tgttextobj.color = Color.red;
+
+        LineRenderer renderer = CreateLine("TargetContainerline", true, Color.green, vertexs);
+        LineRenderer crossRenderer = CreateLine("TargetContainerCrossline", false, Color.yellow, null);
+        LineRenderer crossRendererB = CreateLine("TargetContainerCrosslineB", false, Color.yellow, null);
+
+        return new TargetHudContainer
+        {
+            obj = c,
+            lr = renderer,
+            crossLrA = crossRenderer,
+            crossLrB = crossRendererB,
+            distanceText = textobj,
+            tgtText = tgttextobj,
+            distanceTextTransform = distanceTextObj.transform,
+            tgtTextTransform = tgtText.transform,
+        };
+    }
+
+    static LineRenderer CreateLine(string name, bool loop, Color color, Vector3[] positions)
+    {
+        GameObject lineObj = new GameObject(name);
+        lineObj.transform.SetParent(null);
+        LineRenderer renderer = lineObj.AddComponent<LineRenderer>();
+        renderer.material = GetLineMaterial();
+        renderer.startWidth = 0.3f;
+        renderer.endWidth = 0.3f;
+        renderer.enabled = false;
+        renderer.loop = loop;
+        renderer.positionCount = positions != null ? positions.Length : 2;
+        if (positions != null)
+            renderer.SetPositions(positions);
+        renderer.startColor = color;
+        renderer.endColor = color;
+        return renderer;
+    }
+
+    static Material GetLineMaterial()
+    {
+        if (lineMaterial == null)
+            lineMaterial = new Material(Shader.Find("Sprites/Default"));
+        return lineMaterial;
+    }
+
+    static Transform GetPoolRoot()
+    {
+        if (poolRoot != null)
+            return poolRoot;
+
+        GameObject root = new GameObject("TargetHudContainerPool");
+        root.SetActive(false);
+        UnityEngine.Object.DontDestroyOnLoad(root);
+        poolRoot = root.transform;
+        return poolRoot;
+    }
+
+    public static void SetLineEnabled(LineRenderer renderer, bool enabled)
+    {
+        if (renderer == null) return;
+        renderer.enabled = enabled;
+        if (renderer.gameObject.activeSelf != enabled)
+            renderer.gameObject.SetActive(enabled);
+    }
+}
+
 public class DebugHUD : MonoBehaviour
 {
     [SerializeField] Camera hudCam;
@@ -55,7 +212,7 @@ public class DebugHUD : MonoBehaviour
     AugumentStatus status;
     EnemyNameConverterToUI enemyNameConverter;
 
-    List<(GameObject obj, LineRenderer lr, LineRenderer crossLrA, LineRenderer crossLrB, GameObject boundTarget)> conteiners;
+    List<TargetHudContainer> conteiners;
     public bool deceived;
     bool hadLockedTargets;
     float nextLockOnAudioTime;
@@ -530,89 +687,16 @@ public class DebugHUD : MonoBehaviour
     {
         int needed = targets.Count + arrys.Count;
 
+        if (needed == 0)
+        {
+            ClearAllContainers();
+            return;
+        }
+
         // 足りない分は生成
         while (conteiners.Count < needed)
         {
-
-            #region 情報
-            GameObject c = new GameObject("TargetInfo", typeof(RectTransform));
-            c.transform.SetParent(cameraCanvas.transform, false);
-            c.tag = "HUDUI";
-            c.layer = LayerMask.NameToLayer("UI");
-
-            GameObject distanceTextObj = new GameObject("DistanceText");
-            distanceTextObj.transform.SetParent(c.transform);
-            distanceTextObj.layer = LayerMask.NameToLayer("UI");
-            var rectT = distanceTextObj.AddComponent<RectTransform>();
-            rectT.anchorMin = new Vector2(1f, 0.5f);
-            rectT.anchorMax = new Vector2(1f, 0.5f);
-            rectT.anchoredPosition = new Vector3(178f, 0f, 0);
-            rectT.sizeDelta = new Vector2(400f, 150f);
-            rectT.localPosition = new Vector3(rectT.localPosition.x, rectT.localPosition.y, 0);
-            rectT.localScale = Vector3.one;
-
-            var textobj = distanceTextObj.AddComponent<TextMeshProUGUI>();
-            textobj.fontSize = 16;
-            textobj.alignment = TextAlignmentOptions.Left;
-            textobj.color = Color.green;
-
-            #endregion
-            #region TGT表示
-            GameObject tgtText = new GameObject("tgtText");
-            tgtText.transform.SetParent(c.transform);
-            tgtText.layer = LayerMask.NameToLayer("UI");
-            var tgtRectT = tgtText.AddComponent<RectTransform>();
-            tgtRectT.anchorMin = new Vector2(0, 0.5f);
-            tgtRectT.anchorMax = new Vector2(0, 0.5f);
-            tgtRectT.anchoredPosition = new Vector3(57f, 20f, 0);
-            tgtRectT.sizeDelta = new Vector2(130f, 50f);
-            tgtRectT.localPosition = new Vector3(tgtRectT.localPosition.x, tgtRectT.localPosition.y, 0);
-            tgtRectT.localScale = Vector3.one;
-
-            var tgttextobj = tgtText.AddComponent<TextMeshProUGUI>();
-            tgttextobj.fontSize = 16;
-            tgttextobj.alignment = TextAlignmentOptions.Left;
-            tgttextobj.color = Color.red;
-            #endregion
-
-            GameObject l = new GameObject("TargetContainerline");
-            l.transform.SetParent(null);
-            LineRenderer renderer = l.AddComponent<LineRenderer>();
-            renderer.material = new Material(Shader.Find("Sprites/Default"));
-            renderer.startWidth = 0.3f;
-            renderer.endWidth = 0.3f;
-            renderer.enabled = false;
-            renderer.loop = true;
-            renderer.positionCount = vertexs.Length;
-            renderer.SetPositions(vertexs);
-            renderer.startColor = Color.green;
-            renderer.endColor = Color.green;
-
-            GameObject cross = new GameObject("TargetContainerCrossline");
-            cross.transform.SetParent(null);
-            LineRenderer crossRenderer = cross.AddComponent<LineRenderer>();
-            crossRenderer.material = renderer.material;
-            crossRenderer.startWidth = 0.3f;
-            crossRenderer.endWidth = 0.3f;
-            crossRenderer.enabled = false;
-            crossRenderer.loop = false;
-            crossRenderer.positionCount = 2;
-            crossRenderer.startColor = Color.yellow;
-            crossRenderer.endColor = Color.yellow;
-
-            GameObject crossB = new GameObject("TargetContainerCrosslineB");
-            crossB.transform.SetParent(null);
-            LineRenderer crossRendererB = crossB.AddComponent<LineRenderer>();
-            crossRendererB.material = renderer.material;
-            crossRendererB.startWidth = 0.3f;
-            crossRendererB.endWidth = 0.3f;
-            crossRendererB.enabled = false;
-            crossRendererB.loop = false;
-            crossRendererB.positionCount = 2;
-            crossRendererB.startColor = Color.yellow;
-            crossRendererB.endColor = Color.yellow;
-
-            conteiners.Add((c, renderer, crossRenderer, crossRendererB, null));
+            conteiners.Add(TargetHudContainerPool.Get(cameraCanvas.transform, vertexs));
         }
 
         // 必要な分だけアクティブ化して位置更新
@@ -621,7 +705,7 @@ public class DebugHUD : MonoBehaviour
 
         if(markingtargets.Count == 0)
         {
-            ClearContainer(0);
+            ClearAllContainers();
             return;
         }
 
@@ -650,7 +734,6 @@ public class DebugHUD : MonoBehaviour
             {
                 ClearContainer(idx);
                 entry.boundTarget = obj;
-                conteiners[idx] = entry;
             }
 
 
@@ -700,16 +783,16 @@ public class DebugHUD : MonoBehaviour
                 {
                     if (!isBlinking)
                     {
-                        conteiners[idx].lr.enabled = false;
-                        conteiners[idx].crossLrA.enabled = useCrossContainer;
-                        conteiners[idx].crossLrB.enabled = useCrossContainer;
+                        TargetHudContainerPool.SetLineEnabled(conteiners[idx].lr, false);
+                        TargetHudContainerPool.SetLineEnabled(conteiners[idx].crossLrA, useCrossContainer);
+                        TargetHudContainerPool.SetLineEnabled(conteiners[idx].crossLrB, useCrossContainer);
                     }
                 }
                 else
                 {
-                    conteiners[idx].lr.enabled = true;
-                    conteiners[idx].crossLrA.enabled = false;
-                    conteiners[idx].crossLrB.enabled = false;
+                    TargetHudContainerPool.SetLineEnabled(conteiners[idx].lr, true);
+                    TargetHudContainerPool.SetLineEnabled(conteiners[idx].crossLrA, false);
+                    TargetHudContainerPool.SetLineEnabled(conteiners[idx].crossLrB, false);
                 }
 
             }
@@ -738,26 +821,46 @@ public class DebugHUD : MonoBehaviour
         }
 
         // 余った分は非表示
-        for (int i = idx; i < conteiners.Count; i++)
+        for (int i = conteiners.Count - 1; i >= idx; i--)
         {
-            ClearContainer(i);
+            ReleaseContainerToPool(i);
         }
     }
     void ClearContainer(int idx)
     {
-        var container = conteiners[idx].obj;
+        HideContainer(idx, false);
+    }
 
-        var d = container.transform.Find("DistanceText");
-        if (d && d.TryGetComponent(out TextMeshProUGUI tm))
-            tm.text = "";
+    void ReleaseContainer(int idx)
+    {
+        HideContainer(idx, true);
+    }
 
-        var t = container.transform.Find("tgtText");
-        if (t && t.TryGetComponent(out TextMeshProUGUI tm2))
-            tm2.text = "";
+    void ReleaseContainerToPool(int idx)
+    {
+        if (idx < 0 || idx >= conteiners.Count)
+            return;
 
-        conteiners[idx].lr.enabled = false;
-        conteiners[idx].crossLrA.enabled = false;
-        conteiners[idx].crossLrB.enabled = false;
+        TargetHudContainerPool.Release(conteiners[idx]);
+        conteiners.RemoveAt(idx);
+    }
+
+    void ClearAllContainers()
+    {
+        for (int i = conteiners.Count - 1; i >= 0; i--)
+        {
+            ReleaseContainerToPool(i);
+        }
+    }
+
+    void HideContainer(int idx, bool releaseBinding)
+    {
+        TargetHudContainerPool.Reset(conteiners[idx]);
+
+        if (releaseBinding)
+        {
+            conteiners[idx].boundTarget = null;
+        }
     }
 
 
@@ -774,16 +877,16 @@ public class DebugHUD : MonoBehaviour
             return; 
         }
 
+        if (!container.activeSelf)
+            container.SetActive(true);
+
         Vector3 viewportPos = mainCam.WorldToViewportPoint(target.transform.position);
         Vector3 screenPos = mainCam.ViewportToScreenPoint(viewportPos);
         float dist = Vector3.Distance(plane.transform.position, target.transform.position);
 
         if (dist > detectRange || !IsValidViewportPoint(viewportPos))
         {
-            renderer.enabled = false;
-            crossRendererA.enabled = false;
-            crossRendererB.enabled = false;
-            ClearTexts(container);
+            ClearContainer(idx);
             return;
         }
 
@@ -801,10 +904,7 @@ public class DebugHUD : MonoBehaviour
             out Vector2 localPos
         ))
         {
-            renderer.enabled = false;
-            crossRendererA.enabled = false;
-            crossRendererB.enabled = false;
-            ClearTexts(container);
+            ClearContainer(idx);
             return;
         }
 
@@ -835,9 +935,9 @@ public class DebugHUD : MonoBehaviour
         crossRendererB.SetPosition(0, crossC);
         crossRendererB.SetPosition(1, crossD);
 
-        renderer.enabled = !useCrossContainer;
-        crossRendererA.enabled = useCrossContainer;
-        crossRendererB.enabled = useCrossContainer;
+        TargetHudContainerPool.SetLineEnabled(renderer, !useCrossContainer);
+        TargetHudContainerPool.SetLineEnabled(crossRendererA, useCrossContainer);
+        TargetHudContainerPool.SetLineEnabled(crossRendererB, useCrossContainer);
         renderer.startColor = color;
         renderer.endColor = color;
         crossRendererA.startColor = color;
@@ -846,7 +946,7 @@ public class DebugHUD : MonoBehaviour
         crossRendererB.endColor = color;
 
         // ===== Text =====
-        SetTexts(container, target, text);
+        SetTexts(conteiners[idx], target, text);
     }
 
     string ConvertEnemyName(GameObject obj)
@@ -895,35 +995,24 @@ public class DebugHUD : MonoBehaviour
                viewportPos.y <= 1f;
     }
 
-    void ClearTexts(GameObject container)
+    void SetTexts(TargetHudContainer container, GameObject target, string text)
     {
-        if (container.transform.Find("DistanceText")?.TryGetComponent(out TextMeshProUGUI tm) == true)
-            tm.text = "";
-        if (container.transform.Find("tgtText")?.TryGetComponent(out TextMeshProUGUI tm2) == true)
-            tm2.text = "";
-    }
-
-    void SetTexts(GameObject container, GameObject target, string text)
-    {
-        var obj1 = container.transform.Find("DistanceText");
-        if (obj1?.TryGetComponent(out TextMeshProUGUI tm) == true)
+        if (container.distanceText != null)
         { 
-            tm.text = text;
-            obj1.localRotation = Quaternion.identity;
+            container.distanceText.text = text;
+            container.distanceTextTransform.localRotation = Quaternion.identity;
         }
 
-        var obj2 = container.transform.Find("tgtText");
-        if (obj2?.TryGetComponent(out TextMeshProUGUI tm2) == true)
+        if (container.tgtText != null)
         { 
-            tm2.text = target.GetComponent<AugumentStatus>().missionObjective ? "TGT" : "";
-            obj2.localRotation = Quaternion.identity;
+            container.tgtText.text = target.GetComponent<AugumentStatus>().missionObjective ? "TGT" : "";
+            container.tgtTextTransform.localRotation = Quaternion.identity;
         }
     }
     void UpdateHUD()
     {
-        //if (rb == null || hudText == null) 
-        return;
-
+        if (false) 
+        {
         float speed = rb.linearVelocity.magnitude;
         float altitude = plane.transform.position.y;
         float pitch = plane.transform.eulerAngles.x;
@@ -945,6 +1034,12 @@ public class DebugHUD : MonoBehaviour
         if (deceived)
             hudBuilder.Append("\nDECEIVED");
         hudText.text = hudBuilder.ToString();
+        }
+        else
+        {
+            // デバッグ用  オブジェクト数監視処理
+            hudText.text = $"Enemies: {targets.Count}\nAllies: {arrys.Count}\nMarking: {markingtargets.Count}\nLocked: {Lockedtargets.Count}";
+        }
     }
     #endregion
 }

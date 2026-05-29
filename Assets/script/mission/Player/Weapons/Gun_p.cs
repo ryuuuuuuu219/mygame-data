@@ -10,6 +10,9 @@ public class Gun_p : MonoBehaviour
     public Vector3 velocity;            // 弾の移動速度
     private Vector3 previousPos;
     private Vector3 currentPos;
+    private bool groundImpactProbed;
+    private bool hasPlannedGroundHit;
+    private Vector3 plannedGroundHitPoint;
 
     public float power = 10f;
     public float size = 1f;
@@ -21,6 +24,8 @@ public class Gun_p : MonoBehaviour
     {
         previousPos = transform.position;
         currentPos = transform.position;
+        groundImpactProbed = false;
+        hasPlannedGroundHit = false;
     }
 
     public void Init(float Power, float Size)
@@ -50,7 +55,7 @@ public class Gun_p : MonoBehaviour
             return;
         }
 
-        if (ObjectGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        if (ResolvePlannedGroundImpact())
         {
             gameObject.SetActive(false);
             return;
@@ -116,6 +121,53 @@ public class Gun_p : MonoBehaviour
         }
 
         return false;
+    }
+
+    private bool ResolvePlannedGroundImpact()
+    {
+        ProbeGroundImpactOnce();
+
+        if (!hasPlannedGroundHit)
+            return false;
+
+        Vector3 fromPrevious = plannedGroundHitPoint - previousPos;
+        Vector3 fromCurrent = plannedGroundHitPoint - currentPos;
+        if (Vector3.Dot(fromPrevious, fromCurrent) > 0f)
+            return false;
+
+        ImpactEffectFactory.Spawn(plannedGroundHitPoint, effectRadius);
+        transform.position = plannedGroundHitPoint;
+        hasPlannedGroundHit = false;
+        return true;
+    }
+
+    private void ProbeGroundImpactOnce()
+    {
+        if (groundImpactProbed)
+            return;
+
+        if (velocity.sqrMagnitude <= 0.000001f)
+            return;
+
+        groundImpactProbed = true;
+        hasPlannedGroundHit = false;
+
+        if (velocity.y > 0f)
+            return;
+
+        float probeDistance = velocity.magnitude * Mathf.Max(lifeTime, Time.fixedDeltaTime);
+        if (Physics.Raycast(
+            transform.position,
+            velocity.normalized,
+            out RaycastHit hit,
+            probeDistance,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore) &&
+            ObjectGroundBounds.IsGroundCollider(hit.collider))
+        {
+            plannedGroundHitPoint = hit.point;
+            hasPlannedGroundHit = true;
+        }
     }
 
     private float GetProjectileRadius()
