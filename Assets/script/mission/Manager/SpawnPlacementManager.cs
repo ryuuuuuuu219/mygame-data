@@ -203,25 +203,10 @@ public class SpawnPlacementManager : MonoBehaviour
 
         Vector3 center = placement.position.ToVector3();
         float radius = Mathf.Max(0f, placement.radius);
-        bool hasAltitudeRange = placement.minAltitude < placement.maxAltitude;
 
-        for (int i = 0; i < 64; i++)
-        {
-            Vector2 offset = RandomInsideCircle(radius);
-            enemy.transform.position = new Vector3(center.x + offset.x, center.y, center.z + offset.y);
+        Vector2 offset = RandomInsideCircle(radius);
+        enemy.transform.position = new Vector3(center.x + offset.x, center.y, center.z + offset.y);
 
-            if (placement.snapToTerrain)
-                SnapToTerrain(enemy, placement);
-
-            if (!hasAltitudeRange ||
-                (enemy.transform.position.y >= placement.minAltitude &&
-                 enemy.transform.position.y <= placement.maxAltitude))
-            {
-                return;
-            }
-        }
-
-        enemy.transform.position = center;
         if (placement.snapToTerrain)
             SnapToTerrain(enemy, placement);
     }
@@ -264,7 +249,7 @@ public class SpawnPlacementManager : MonoBehaviour
 
     float GetTerrainPlacementOffset(PlacementDefinition placement)
     {
-        return placement.terrainOffset + terrainExposeOffset;
+        return placement.altitudeOffset + terrainExposeOffset;
     }
 
     void ApplyInitialMotion(GameObject enemy, PlacementDefinition placement)

@@ -17,9 +17,8 @@ namespace Assets.script.mission.Arry.Player
             ismenu = false;
             menuUI.SetActive(ismenu);
 
-            text.text = "PAUSE" +
-            "\n\n\n\n\n\n\n\n 一時停止中……"+
-            "\n×：メニューを閉じる"+
+            text.text = " 一時停止中……"+
+            "\n\n\n\n\n×：メニューを閉じる"+
             "\n〇：リザルトへ";
         }
 

@@ -96,7 +96,7 @@ public class BombProjectile : MonoBehaviour
             return;
         }
 
-        if (ProjectileGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        if (ObjectGroundBounds.IsBelowWorldOrTerrain(transform.position))
         {
             ExplodeAtCurrentGroundOrPosition();
             return;
@@ -193,7 +193,7 @@ public class BombProjectile : MonoBehaviour
             distance,
             Physics.DefaultRaycastLayers,
             QueryTriggerInteraction.Ignore) &&
-            ProjectileGroundBounds.IsGroundCollider(hit.collider))
+            ObjectGroundBounds.IsGroundCollider(hit.collider))
         {
             hitPoint = hit.point;
             return true;
@@ -317,7 +317,7 @@ public class BombProjectile : MonoBehaviour
             groundPreviewRayDistance,
             Physics.DefaultRaycastLayers,
             QueryTriggerInteraction.Ignore) &&
-            ProjectileGroundBounds.IsGroundCollider(hit.collider))
+            ObjectGroundBounds.IsGroundCollider(hit.collider))
         {
             point = hit.point;
             normal = hit.normal;
@@ -341,3 +341,4 @@ public class BombProjectile : MonoBehaviour
             Destroy(groundRadiusLineTransform.gameObject);
     }
 }
+

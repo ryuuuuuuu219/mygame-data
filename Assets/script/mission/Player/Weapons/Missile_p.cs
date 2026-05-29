@@ -167,7 +167,7 @@ public class Missile_p : MonoBehaviour
         RaycastHitCheck();
         if (!gameObject.activeSelf) return;
 
-        if (ProjectileGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        if (ObjectGroundBounds.IsBelowWorldOrTerrain(transform.position))
         {
             rangeover();
             return;
@@ -199,7 +199,7 @@ public class Missile_p : MonoBehaviour
             if (hit.collider == null) continue;
             if (hit.collider.transform.IsChildOf(transform)) continue;
 
-            if (ProjectileGroundBounds.IsGroundCollider(hit.collider))
+            if (ObjectGroundBounds.IsGroundCollider(hit.collider))
             {
                 ImpactEffectFactory.Spawn(hit.point, effectRadius);
                 rangeover();
@@ -305,3 +305,4 @@ public struct DetectedObject
         strength = s;
     }
 }
+

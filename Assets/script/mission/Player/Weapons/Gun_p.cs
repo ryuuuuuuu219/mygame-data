@@ -50,7 +50,7 @@ public class Gun_p : MonoBehaviour
             return;
         }
 
-        if (ProjectileGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        if (ObjectGroundBounds.IsBelowWorldOrTerrain(transform.position))
         {
             gameObject.SetActive(false);
             return;
@@ -59,7 +59,7 @@ public class Gun_p : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (ProjectileGroundBounds.IsGroundCollider(other))
+        if (ObjectGroundBounds.IsGroundCollider(other))
         {
             ImpactEffectFactory.Spawn(transform.position, effectRadius);
             gameObject.SetActive(false);
@@ -99,7 +99,7 @@ public class Gun_p : MonoBehaviour
             if (hit.collider == null) continue;
             if (hit.collider.transform.IsChildOf(transform)) continue;
 
-            if (ProjectileGroundBounds.IsGroundCollider(hit.collider))
+            if (ObjectGroundBounds.IsGroundCollider(hit.collider))
             {
                 ImpactEffectFactory.Spawn(hit.point, effectRadius);
                 return true;
@@ -129,3 +129,4 @@ public class Gun_p : MonoBehaviour
     }
 
 }
+

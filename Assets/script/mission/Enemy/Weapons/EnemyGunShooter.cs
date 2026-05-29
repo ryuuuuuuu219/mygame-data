@@ -11,14 +11,11 @@ public class EnemyGunShooter : MonoBehaviour
     public float bulletSize = 1f;
     public float bulletLifetime = 3f;
     public bool useLeadBias = false;
-    public bool showDebugAimLine = false;
-    public float debugAimLineLength = 3000f;
 
     [SerializeField] Gun_e_pool bulletpool;
     [SerializeField] EnemyGunLeadBiasAddon leadBiasAddon;
 
     float nextFireTime;
-    LineRenderer debugLeadLine;
 
     public void TryFire(Vector3 direction, Vector3 platformVelocity)
     {
@@ -33,13 +30,11 @@ public class EnemyGunShooter : MonoBehaviour
             ? CalculateLeadDirection(target.position, platformVelocity, targetVelocity)
             : direction.normalized;
 
-        UpdateDebugLeadLine(fireDirection);
         if (useLeadBias)
             GetLeadBiasAddon(true);
 
         int count = Mathf.Max(1, barrelCount);
         leadBiasAddon?.UpdateBiasAngles(count);
-        UpdateDebugAimLines(fireDirection);
         bool fireDirectionHasBias = leadBiasAddon != null && count <= 1;
         if (fireDirectionHasBias)
             fireDirection = ApplyBiasAngle(fireDirection, leadBiasAddon.GetBiasAngle(0));
@@ -84,58 +79,6 @@ public class EnemyGunShooter : MonoBehaviour
 
         Vector3 aimPoint = targetPosition + relativeVelocity * t;
         return (aimPoint - gunMuzzle.position).normalized;
-    }
-
-    void UpdateDebugLeadLine(Vector3 direction)
-    {
-        if (!showDebugAimLine) return;
-
-        if (gunMuzzle == null) gunMuzzle = transform;
-        EnsureDebugLeadLine();
-
-        Vector3 start = gunMuzzle.position;
-        debugLeadLine.SetPosition(0, start);
-        debugLeadLine.SetPosition(1, start + direction.normalized * debugAimLineLength);
-    }
-
-    void UpdateDebugAimLines(Vector3 direction)
-    {
-        int count = Mathf.Max(1, barrelCount);
-        leadBiasAddon?.EnsureBarrelCount(count);
-
-        for (int i = 0; i < count; i++)
-        {
-            Vector3 barrelDirection = GetBarrelDirection(direction, i, count);
-            if (leadBiasAddon != null)
-            {
-                Vector3 biasDirection = ApplyBiasAngle(barrelDirection, leadBiasAddon.GetBiasAngle(i));
-                Vector3 targetDirection = ApplyBiasAngle(barrelDirection, leadBiasAddon.GetBiasTargetAngle(i));
-                leadBiasAddon.UpdateDebugLines(gunMuzzle, debugAimLineLength, i, showDebugAimLine, biasDirection, targetDirection);
-            }
-        }
-    }
-
-    void EnsureDebugLeadLine()
-    {
-        if (debugLeadLine != null) return;
-
-        debugLeadLine = CreateDebugLine("DebugLeadLine", Color.white);
-    }
-
-    LineRenderer CreateDebugLine(string lineName, Color color)
-    {
-        GameObject lineObject = new GameObject(lineName);
-        lineObject.transform.SetParent(transform, false);
-        LineRenderer line = lineObject.AddComponent<LineRenderer>();
-
-        line.positionCount = 2;
-        line.useWorldSpace = true;
-        line.startWidth = 0.5f;
-        line.endWidth = 0.5f;
-        line.startColor = color;
-        line.endColor = color;
-        line.material = new Material(Shader.Find("Sprites/Default"));
-        return line;
     }
 
     EnemyGunLeadBiasAddon GetLeadBiasAddon(bool createIfMissing)

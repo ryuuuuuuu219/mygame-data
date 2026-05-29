@@ -8,6 +8,20 @@ public class PlayerAircraft : AircraftController
     public float decelthrottle = 0f; // 減速スロットル倍率
     public float normalthrottle = 1f; // 通常スロットル倍率
 
+    protected override void Start()
+    {
+        base.Start();
+
+        var playerEntity = GameObject.Find("Player");
+        if (playerEntity == null)
+            playerEntity = gameObject;
+
+        var dropChecker = playerEntity.GetComponent<PlayerDropChecker>();
+        if (dropChecker == null)
+            dropChecker = playerEntity.AddComponent<PlayerDropChecker>();
+
+        dropChecker.s = status;
+    }
     protected override bool GetLimiter()
     {
         var Input = InputManager.Instance;

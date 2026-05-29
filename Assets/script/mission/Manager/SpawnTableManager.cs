@@ -516,11 +516,9 @@ public class PlacementDefinition
     public SerializableVector3 rotate;
     public bool snapToTerrain;
     public string areaId;
-    public float minAltitude;
-    public float maxAltitude;
     public string terrainLayer;
     public float radius;
-    public float terrainOffset;
+    public float altitudeOffset = 5f;
 }
 
 [System.Serializable]

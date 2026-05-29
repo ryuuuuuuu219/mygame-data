@@ -1,21 +1,21 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
 public class Missile : MonoBehaviour
 {
-    [Header("Šî–{ƒpƒ‰ƒ[ƒ^")]
+    [Header("ï¿½ï¿½{ï¿½pï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½^")]
     public Transform target;
     public float power = 50f;
     public float acceleration = 20f;
     public float maxspeed;
     public float lifeTime = 10f;
-    public float turnRate = 90f; // Å‘åù‰ñ‘¬“x (deg/sec)
-    public float breakAngle = 90f; // —U“±‰ğœŠp“x (deg)
-    public float ProportionalConstant = 3f; // ”ä—áq–@’è”
-    public float turnRateDecay = 1f; // —U“±—ÍŒ¸Š—¦ (deg/sec/sec)
-    public float totalDeltaTheta = 90f; // —İÏ—U“±ù‰ñŠp“xãŒÀ (deg)
+    public float turnRate = 90f; // ï¿½Å‘ï¿½ï¿½ï¿½ñ‘¬“x (deg/sec)
+    public float breakAngle = 90f; // ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pï¿½x (deg)
+    public float ProportionalConstant = 3f; // ï¿½ï¿½ï¿½qï¿½@ï¿½è”
+    public float turnRateDecay = 1f; // ï¿½Uï¿½ï¿½ï¿½ÍŒï¿½ï¿½ï¿½ï¿½ï¿½ (deg/sec/sec)
+    public float totalDeltaTheta = 90f; // ï¿½İÏ—Uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½pï¿½xï¿½ï¿½ï¿½ (deg)
     public Vector3 launchDirectionOverride;
     public float guidanceStartDelay;
     public bool guidanceStartSwitch;
@@ -24,7 +24,7 @@ public class Missile : MonoBehaviour
     public float initialTurnBreakAngle = 15f;
     public float effectRadius = 0f;
 
-    [Header("“à•”ó‘Ô")]
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     private Vector3 previousPos;
     private Vector3 currentPos;
     private Vector3 newDir;
@@ -39,7 +39,7 @@ public class Missile : MonoBehaviour
 
     public bool isheatseeker = true;
 
-    // ‰Šú‰»
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     public void missileInit(Vector3 startPos, Vector3 startVelocity, float lifetime = 10f)
     {
         ObjectManager.Instance?.RegisterMissile_e(gameObject);
@@ -88,7 +88,7 @@ public class Missile : MonoBehaviour
 
     void FixedUpdate()
     {
-        // --- õ–½ ---
+        // --- ï¿½ï¿½ï¿½ï¿½ ---
         lifeTime -= Time.fixedDeltaTime;
         if (lifeTime <= 0f)
         {
@@ -107,14 +107,14 @@ public class Missile : MonoBehaviour
             skipGuidance = guidanceStartDelay > 0f;
         }
 
-        // --- —U“±ˆ— ---
+        // --- ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ---
         if (!skipGuidance && target != null)
         {
             Vector3 dirToTarget = (target.position - transform.position).normalized;
             Vector3 guidanceDir = newDir.sqrMagnitude > 0.001f ? newDir.normalized : velocity.normalized;
             float angleDiff = Vector3.Angle(guidanceDir, dirToTarget);
 
-            // ‹K’èŠp“xˆÈã‚Å—U“±‰ğœ
+            // ï¿½Kï¿½ï¿½pï¿½xï¿½Èï¿½Å—Uï¿½ï¿½ï¿½ï¿½ï¿½
             if (!useInitialPurePursuit && angleDiff > breakAngle)
             {
                 target = null;
@@ -132,7 +132,7 @@ public class Missile : MonoBehaviour
             }
             else
             {
-                // ”ä—áq–@‹ß—
+                // ï¿½ï¿½ï¿½qï¿½@ï¿½ßï¿½
                 if (lastDirToTarget != Vector3.zero)
                 {
                     Vector3 LOSrate = Vector3.Cross(lastDirToTarget, dirToTarget);
@@ -144,11 +144,11 @@ public class Missile : MonoBehaviour
                     float remainingTheta = Mathf.Max(0f, totalDeltaTheta - usedDeltaTheta);
                     currentTurnRate = Mathf.Max(0f, currentTurnRate - turnRateDecay * Time.fixedDeltaTime);
 
-                    // ù‰ñ‘¬“xãŒÀ‚Æ—İÏù‰ñŠp“xãŒÀ
+                    // ï¿½ï¿½ï¿½ñ‘¬“xï¿½ï¿½ï¿½ï¿½Æ—İÏï¿½ï¿½ï¿½pï¿½xï¿½ï¿½ï¿½
                     rotMag = Mathf.Min(rotMag, currentTurnRate);
                     float frameDeltaTheta = Mathf.Min(rotMag * Time.fixedDeltaTime, remainingTheta);
 
-                    // is•ûŒüXV
+                    // ï¿½iï¿½sï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½V
                     if (frameDeltaTheta > 0f && rotAxis.sqrMagnitude > 0.000001f)
                     {
                         newDir = Quaternion.AngleAxis(frameDeltaTheta, rotAxis) * velocity.normalized;
@@ -160,7 +160,7 @@ public class Missile : MonoBehaviour
             lastDirToTarget = dirToTarget;
         }
 
-        // --- „i ---
+        // --- ï¿½ï¿½ï¿½i ---
         speed += acceleration * Time.fixedDeltaTime;
         speed = Mathf.Clamp(speed, 0f, maxspeed);
         velocity = newDir.normalized * speed;
@@ -169,15 +169,15 @@ public class Missile : MonoBehaviour
         transform.position += velocity * Time.fixedDeltaTime;
         currentPos = transform.position;
 
-        // --- ‰ñ“]XV ---
+        // --- ï¿½ï¿½]ï¿½Xï¿½V ---
         if (velocity.sqrMagnitude > 0.001f)
             transform.rotation = Quaternion.LookRotation(velocity.normalized);
 
-        // --- Õ“Ë”»’è ---
+        // --- ï¿½Õ“Ë”ï¿½ï¿½ï¿½ ---
         RaycastHitCheck();
         if (!gameObject.activeSelf) return;
 
-        if (ProjectileGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        if (ObjectGroundBounds.IsBelowWorldOrTerrain(transform.position))
         {
             rangeover();
             return;
@@ -212,7 +212,7 @@ public class Missile : MonoBehaviour
         newDir = assistedDir.normalized;
     }
 
-    // –½’†”»’è
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     void RaycastHitCheck()
     {
         Vector3 dir = (currentPos - previousPos).normalized;
@@ -229,7 +229,7 @@ public class Missile : MonoBehaviour
         System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
         foreach (RaycastHit hit in hits)
         {
-            if (ProjectileGroundBounds.IsGroundCollider(hit.collider))
+            if (ObjectGroundBounds.IsGroundCollider(hit.collider))
             {
                 ImpactEffectFactory.Spawn(hit.point, effectRadius);
                 rangeover();
@@ -253,7 +253,7 @@ public class Missile : MonoBehaviour
                 var status = ally.GetComponent<AugumentStatus>();
                 if (status != null)
                 {
-                    status.damage(power); // ƒ_ƒ[ƒW—Ê‚Í“K‹X’²®
+                    status.damage(power); // ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½Ê‚Í“Kï¿½Xï¿½ï¿½ï¿½ï¿½
                     ImpactEffectFactory.Spawn(closestPoint, effectRadius);
                     rangeover();
                 }
@@ -262,7 +262,7 @@ public class Missile : MonoBehaviour
         }
     }
 
-    // Á–Åˆ—
+    // ï¿½ï¿½ï¿½Åï¿½ï¿½ï¿½
     void rangeover()
     {
         target = null;
@@ -275,9 +275,9 @@ public class Missile : MonoBehaviour
         ObjectManager.Instance?.UnregisterMissile_e(gameObject);
     }
 
-    [Header("ƒV[ƒJ[İ’è")]
-    public float seekerFoV = 30f;          // ƒV[ƒJ[‚Ì‹–ìŠp
-    public float flareHeatModifier = 1f;   // ƒtƒŒƒA”M•â³”{—¦
+    [Header("ï¿½Vï¿½[ï¿½Jï¿½[ï¿½İ’ï¿½")]
+    public float seekerFoV = 30f;          // ï¿½Vï¿½[ï¿½Jï¿½[ï¿½Ìï¿½ï¿½ï¿½p
+    public float flareHeatModifier = 1f;   // ï¿½tï¿½ï¿½ï¿½Aï¿½Mï¿½â³ï¿½{ï¿½ï¿½
     public Vector3 seekerDir = Vector3.forward;
     public List<DetectedObject> detectedObjects;
     void detectflare(bool enable = false)
@@ -292,14 +292,14 @@ public class Missile : MonoBehaviour
         {
             if (flare == null) continue;
 
-            // --- (1) •ûŒü‚ÆŠp“x‚Ì–‘O”»’è ---
+            // --- (1) ï¿½ï¿½ï¿½ï¿½ï¿½ÆŠpï¿½xï¿½Ìï¿½ï¿½Oï¿½ï¿½ï¿½ï¿½ ---
             Vector3 dirToFlare = (flare.transform.position - transform.position).normalized;
             float angleToFlare = Vector3.Angle(seekerDir, dirToFlare);
-            if (angleToFlare > seekerFoV) continue; // ‹–ìŠOƒXƒLƒbƒv
+            if (angleToFlare > seekerFoV) continue; // ï¿½ï¿½ï¿½ï¿½Oï¿½Xï¿½Lï¿½bï¿½v
 
             float distance = Vector3.Distance(transform.position, flare.transform.position);
 
-            // --- (2) flare_eiƒˆ‚ÈƒtƒŒƒAj‚ğæ‚Éƒ`ƒFƒbƒN ---
+            // --- (2) flare_eï¿½iï¿½ï¿½ï¿½ï¿½ï¿½Èƒtï¿½ï¿½ï¿½Aï¿½jï¿½ï¿½ï¿½Éƒ`ï¿½Fï¿½bï¿½N ---
             flare f = flare.GetComponent<flare>();
             if (f != null && f.currentHeat > 0f)
             {
@@ -307,7 +307,7 @@ public class Missile : MonoBehaviour
                 detectedObjects.Add(new DetectedObject(flare, heatEffectiveness));
             }
 
-            // --- (3) ƒXƒNƒŠƒvƒg‘S’Tõithrottle’Tõj ---
+            // --- (3) ï¿½Xï¿½Nï¿½ï¿½ï¿½vï¿½gï¿½Sï¿½Tï¿½ï¿½ï¿½ithrottleï¿½Tï¿½ï¿½ï¿½j ---
             foreach (var component in flare.GetComponents<MonoBehaviour>())
             {
                 if (component == null) continue;
@@ -327,7 +327,7 @@ public class Missile : MonoBehaviour
             }
         }
 
-        // --- (4) Å‚à‹­‚¢”MŒ¹‚ğƒƒbƒN ---
+        // --- (4) ï¿½Å‚ï¿½ï¿½ï¿½ï¿½ï¿½Mï¿½ï¿½ï¿½ï¿½ï¿½ï¿½bï¿½N ---
         if (detectedObjects.Count > 0)
         {
             detectedObjects.Sort((a, b) => b.strength.CompareTo(a.strength));
@@ -336,3 +336,4 @@ public class Missile : MonoBehaviour
     }
 
 }
+

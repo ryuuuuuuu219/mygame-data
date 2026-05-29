@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -140,7 +140,7 @@ public class EnemyRailgunShooter : MonoBehaviour
             if (hit.collider == null) continue;
             if (hit.transform.IsChildOf(transform)) continue;
 
-            if (ProjectileGroundBounds.IsGroundCollider(hit.collider))
+            if (ObjectGroundBounds.IsGroundCollider(hit.collider))
                 return hit.point;
         }
 
@@ -336,3 +336,4 @@ public class RailgunShockwave : MonoBehaviour
         }
     }
 }
+

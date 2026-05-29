@@ -29,8 +29,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_01",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -56,8 +54,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_02",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -83,8 +79,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_03",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -110,8 +104,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_04",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -137,8 +129,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_05",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -164,8 +154,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_06",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -191,8 +179,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_07",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -218,8 +204,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_08",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -245,8 +229,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_09",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -272,8 +254,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_10",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -299,8 +279,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_11",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -326,8 +304,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_12",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -353,8 +329,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_01",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -380,8 +354,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_02",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -407,8 +379,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_03",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -434,8 +404,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_04",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -461,8 +429,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_05",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -488,8 +454,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_06",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -515,8 +479,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_07",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -542,8 +504,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_08",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -569,8 +529,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_09",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -596,8 +554,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "center_lasm_01",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -635,8 +591,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_01",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -662,8 +616,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_02",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -689,8 +641,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_03",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -716,8 +666,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_04",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -743,8 +691,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_05",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -770,8 +716,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_06",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -797,8 +741,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_07",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -824,8 +766,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_08",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -851,8 +791,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_09",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -878,8 +816,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_10",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -905,8 +841,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_11",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -932,8 +866,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "ridge_aa_12",
-                "minAltitude": 120,
-                "maxAltitude": 2200,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -959,8 +891,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_01",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -986,8 +916,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_02",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -1013,8 +941,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_03",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -1040,8 +966,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_04",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -1067,8 +991,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_05",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -1094,8 +1016,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_06",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -1121,8 +1041,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_07",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -1148,8 +1066,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_08",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -1175,8 +1091,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "valley_sam_09",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -1202,8 +1116,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "center_lasm_01",
-                "minAltitude": -500,
-                "maxAltitude": 450,
                 "terrainLayer": "Terrain",
                 "radius": 200
               }
@@ -1251,10 +1163,8 @@
                 },
                 "isstoped": true,
                 "snapToTerrain": true,
-                "terrainOffset": 3,
+                "altitudeOffset": 3,
                 "areaId": "m02_center_storage",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               },
@@ -1305,10 +1215,8 @@
                 },
                 "isstoped": true,
                 "snapToTerrain": true,
-                "terrainOffset": 3,
+                "altitudeOffset": 3,
                 "areaId": "m02_center_storage_trigger_empty",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1346,10 +1254,8 @@
                 },
                 "isstoped": true,
                 "snapToTerrain": true,
-                "terrainOffset": 3,
+                "altitudeOffset": 3,
                 "areaId": "m02_left_storage",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               },
@@ -1392,10 +1298,8 @@
                 },
                 "isstoped": true,
                 "snapToTerrain": true,
-                "terrainOffset": 3,
+                "altitudeOffset": 3,
                 "areaId": "m02_right_storage",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               },
@@ -1451,8 +1355,6 @@
                 "isstoped": false,
                 "snapToTerrain": false,
                 "areaId": "m03_fighter_01",
-                "minAltitude": 800,
-                "maxAltitude": 3000,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1483,8 +1385,6 @@
                 "isstoped": false,
                 "snapToTerrain": false,
                 "areaId": "m03_fighter_02",
-                "minAltitude": 800,
-                "maxAltitude": 3000,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1515,8 +1415,6 @@
                 "isstoped": false,
                 "snapToTerrain": false,
                 "areaId": "m03_fighter_03",
-                "minAltitude": 800,
-                "maxAltitude": 3000,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1547,8 +1445,6 @@
                 "isstoped": false,
                 "snapToTerrain": false,
                 "areaId": "m03_fighter_04",
-                "minAltitude": 800,
-                "maxAltitude": 3000,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1579,8 +1475,6 @@
                 "isstoped": false,
                 "snapToTerrain": false,
                 "areaId": "m03_fighter_special_05",
-                "minAltitude": 800,
-                "maxAltitude": 3000,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1623,8 +1517,6 @@
                 "isstoped": true,
                 "snapToTerrain": false,
                 "areaId": "m04_air_battleship",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "",
                 "radius": 0
               }
@@ -1655,8 +1547,6 @@
                 "isstoped": true,
                 "snapToTerrain": false,
                 "areaId": "m04_air_battleship_jammer",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "",
                 "radius": 0
               }
@@ -1699,8 +1589,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_railgun_01_north_west",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1731,8 +1619,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_01_north_west",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1763,8 +1649,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_railgun_02_north_east",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1795,8 +1679,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_02_north_east",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1827,8 +1709,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_railgun_03_south_west",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1859,8 +1739,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_03_south_west",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1891,8 +1769,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_railgun_04_south_east",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1923,8 +1799,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_04_south_east",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1955,8 +1829,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_05_far_west",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -1987,8 +1859,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_06_far_east",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -2019,8 +1889,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_07_north_center",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -2051,8 +1919,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_08_south_center",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -2083,8 +1949,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_09_west_valley",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -2115,8 +1979,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_10_east_ridge",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -2147,8 +2009,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_11_inner_west",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -2179,8 +2039,6 @@
                 "isstoped": true,
                 "snapToTerrain": true,
                 "areaId": "m05_hraagun_12_inner_east",
-                "minAltitude": 0,
-                "maxAltitude": 0,
                 "terrainLayer": "Terrain",
                 "radius": 0
               }
@@ -2191,3 +2049,4 @@
     }
   ]
 }
+

@@ -35,7 +35,7 @@ public class Gun_e : MonoBehaviour
             return;
         }
 
-        if (ProjectileGroundBounds.IsBelowWorldOrTerrain(transform.position))
+        if (ObjectGroundBounds.IsBelowWorldOrTerrain(transform.position))
         {
             gameObject.SetActive(false);
             return;
@@ -87,7 +87,7 @@ public class Gun_e : MonoBehaviour
             distance,
             Physics.DefaultRaycastLayers,
             QueryTriggerInteraction.Ignore) &&
-            ProjectileGroundBounds.IsGroundCollider(hit.collider))
+            ObjectGroundBounds.IsGroundCollider(hit.collider))
         {
             ImpactEffectFactory.Spawn(hit.point, effectRadius);
             return true;
@@ -96,3 +96,4 @@ public class Gun_e : MonoBehaviour
         return false;
     }
 }
+
