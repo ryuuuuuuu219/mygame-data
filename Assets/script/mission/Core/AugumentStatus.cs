@@ -228,8 +228,8 @@ public class AugumentStatus : MonoBehaviour
         {
             var OM = ObjectManager.Instance;
             OM.destroyedUIflag = true;
-            OM.score += maxhp * 200f;
-            Debug.Log($"{name} destroyed. Score awarded: {maxhp * 200f}");
+            OM.score += maxhp;
+            Debug.Log($"{name} destroyed. Score awarded: {maxhp}");
             ImpactEffectFactory.Spawn(transform.position, destructionEffectRadius);
             GeneratedAudioManager.Play(GeneratedAudioCue.Destroyed, transform.position, 0.85f);
 

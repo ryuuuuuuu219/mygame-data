@@ -414,10 +414,10 @@ MonoBehaviour:
   barrelCount: 3
   barrelArcAngle: 0
   bulletSpeed: 300
-  fireRate: 0.008
-  spreadAngle: 0.01
+  fireRate: 0.02
+  spreadAngle: 0.3
   bulletSize: 1
-  bulletLifetime: 9.22
+  bulletLifetime: 5
   useLeadBias: 1
   requireLineOfSight: 1
   lineOfSightMask:

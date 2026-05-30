@@ -106,7 +106,7 @@ public static class WeaponStorage
     public static WeaponDropData GenerateDrop(float finalScore, int stageIndex, string stageName)
     {
         EnsureStorage();
-        int point = Mathf.Max(1, Mathf.FloorToInt(finalScore / 3000f));
+        int point = Mathf.Max(100, Mathf.FloorToInt(100f + finalScore / 100f));
         var type = DropTypes[UnityEngine.Random.Range(0, DropTypes.Length)];
         var data = CreateWeapon(type, point, stageIndex, stageName, finalScore);
         Save(data);

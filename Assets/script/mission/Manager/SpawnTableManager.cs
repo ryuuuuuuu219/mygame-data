@@ -341,7 +341,7 @@ public class SpawnTableManager : MonoBehaviour
         float currentScore = ObjectManager.Instance.score;
         PlayerPrefs.SetFloat("LastScore", currentScore);
         PlayerPrefs.SetString("LastScene", currentStage.sceneName);
-        PlayerPrefs.SetFloat("TimeBonus", MissionElapsedTime * Weight_time);
+        PlayerPrefs.SetFloat("TimeBonus", MissionElapsedTime);
 
         Player.GetComponent<AugumentStatus>().TryGetHP(out float hp, out float max);
         PlayerPrefs.SetFloat("HpRate", max > 0f ? Mathf.Clamp01(hp / max) : 0f);

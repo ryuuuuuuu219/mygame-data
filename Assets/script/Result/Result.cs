@@ -11,7 +11,7 @@ namespace Assets.script.Result
         float hiscore;
         float timeBonus;
         float missionClearBonus;
-        float hpRate;
+        float prePenaltyScore;
         float finalScore;
         WeaponDropData droppedWeapon;
 
@@ -26,9 +26,10 @@ namespace Assets.script.Result
             score = PlayerPrefs.GetFloat("LastScore", 0);
             timeBonus = PlayerPrefs.GetFloat("TimeBonus", 0);
             int stageIndex = PlayerPrefs.GetInt("selectedstage", 0) + 1;
-            missionClearBonus = stageIndex * 1000f;
-            hpRate = Mathf.Clamp01(PlayerPrefs.GetFloat("HpRate", 0));
-            finalScore = (missionClearBonus + score - timeBonus) * hpRate;
+            missionClearBonus = 2000f + 500f * stageIndex;
+            prePenaltyScore = missionClearBonus + score;
+            timeBonus = Mathf.Clamp(timeBonus - 180f, 0f, prePenaltyScore);
+            finalScore = prePenaltyScore - timeBonus;
             if (finalScore > hiscore)
             {
                 PlayerPrefs.SetFloat(scene_name + "_hiscore", finalScore);
@@ -44,8 +45,8 @@ namespace Assets.script.Result
             hudText.text = "Stage Clear!\n" +
                 "Mission Clear Bonus: " + missionClearBonus.ToString("F0") + "\n" +
                 "Score: " + score.ToString("F0") + "\n" +
-                "Time Bonus: -" + timeBonus.ToString("F0") + "\n" +
-                "HP Rate: " + hpRate.ToString("P0") + "\n" +
+                "Pre-Penalty Score: " + prePenaltyScore.ToString("F0") + "\n" +
+                "Time Penalty: -" + timeBonus.ToString("F0") + "\n" +
                 "-------------------\n" +
                 "Final Score: " + finalScore.ToString("F0") + "\n" +
                 "Hiscore: " + hiscore.ToString("F0") + "\n" +

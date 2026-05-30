@@ -153,11 +153,15 @@ public class DebugHUD2 : MonoBehaviour
 
         float score = ObjectManager.Instance != null ? ObjectManager.Instance.score : 0f;
         float elapsedTime = spawnTableManager != null ? spawnTableManager.MissionElapsedTime : Time.timeSinceLevelLoad;
-        float timePenalty = spawnTableManager != null ? elapsedTime * spawnTableManager.Weight_time : elapsedTime;
+        int stageIndex = PlayerPrefs.GetInt("selectedstage", 0) + 1;
+        float missionClearBonus = 2000f + 500f * stageIndex;
+        float prePenaltyScore = missionClearBonus + score;
+        float timePenalty = Mathf.Clamp(elapsedTime - 180f, 0f, prePenaltyScore);
 
         scoreTimeText.text =
             "Score: " + score.ToString("F0") +
             "\nTime: " + elapsedTime.ToString("F1") + "s" +
+            "\nPre-Penalty Score: " + prePenaltyScore.ToString("F0") +
             "\nTime Penalty: -" + timePenalty.ToString("F0");
     }
 
