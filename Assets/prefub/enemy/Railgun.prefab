@@ -214,8 +214,8 @@ MonoBehaviour:
   waveID: -1
   currentHeat: 1
   destructionEffectRadius: 12
-  hp: 0
-  maxhp: 100
+  hp: 1000
+  maxhp: 1000
   lifeTime: 0
   preferInspectorStatus: 1
   CurrentStatus:
@@ -227,7 +227,7 @@ MonoBehaviour:
           min: 100
           max: 5000
           step: 10
-        value: 0
+        value: 1000
       - key: "\u6A5F\u52D5\u6027(\u30D4\u30C3\u30C1)"
         range:
           min: 4

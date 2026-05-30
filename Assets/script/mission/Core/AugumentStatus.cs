@@ -316,10 +316,10 @@ public class StatusTable
             pageName = "Gun",
             stats = new StatEntry[]
             {
-                new StatEntry{ key = "銃弾：発射レート", range = new modify{ min=1f, max=60f, step=0.1f } },
+                new StatEntry{ key = "銃弾：発射レート", range = new modify{ min=4f, max=60f, step=0.1f } },
                 new StatEntry{ key = "銃弾：射程", range = new modify{ min=450f, max=1000f, step=10f } },
-                new StatEntry{ key = "銃弾：威力", range = new modify{ min=3f, max=150f, step=1f } },
-                new StatEntry{ key = "銃弾：当たり判定サイズ", range = new modify{ min=3f, max=8f, step=0.05f } },
+                new StatEntry{ key = "銃弾：威力", range = new modify{ min=3f, max=40f, step=0.05f } },
+                new StatEntry{ key = "銃弾：当たり判定サイズ", range = new modify{ min=1f, max=8f, step=0.05f } },
                 new StatEntry{ key = "銃弾：弾数", range = new modify{ min=120f, max=2000f, step=5f } },
                 new StatEntry{ key = "銃弾：初速", range = new modify{ min=100f, max=1200f, step=5f } }
             }

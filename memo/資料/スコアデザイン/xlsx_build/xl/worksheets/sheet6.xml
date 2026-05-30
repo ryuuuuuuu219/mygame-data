@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>
+  <cols><col min="1" max="1" width="120" customWidth="1"/></cols>
+  <sheetData><row r="1" ht="24" customHeight="1"><c r="A1" t="inlineStr" s="1"><is><t>メモ</t></is></c></row><row r="2"><c r="A2" t="inlineStr"><is><t>タイムペナルティ前スコア = クリアボーナス + 撃破スコア。</t></is></c></row><row r="3"><c r="A3" t="inlineStr"><is><t>HP 100 の通常敵は 1体 100 点。クリアボーナスとの差が読みやすくなる。</t></is></c></row><row r="4"><c r="A4" t="inlineStr"><is><t>M01/MVP は非ターゲットの AA_GUN と SAM 合計で 5,400 点。LASM強化後はターゲット分 600 点。</t></is></c></row><row r="5"><c r="A5" t="inlineStr"><is><t>M02 は UAV_STORAGE の fighter 生成をどこまでスコア対象にするかで殲滅スコアが変わる。全出撃なら +4,500 点。</t></is></c></row><row r="6"><c r="A6" t="inlineStr"><is><t>M04 は AIR_BATTLESHIP の自動追加砲台を含めると非ターゲット分が 3,700 点になる。</t></is></c></row><row r="7"><c r="A7" t="inlineStr"><is><t>タイムペナルティ = clamp(経過時間 - 180, 0, タイムペナルティ前スコア)。</t></is></c></row><row r="8"><c r="A8" t="inlineStr"><is><t>性能割当Pt = 100 + 最終スコア / 100。ドロップ種別は GUN/MSL/UGB/AAM からランダム。ポイント配分も対象ステータスへランダム。</t></is></c></row></sheetData>
+</worksheet>
