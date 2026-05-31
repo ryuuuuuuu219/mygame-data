@@ -21,6 +21,7 @@ public class StageSpawnJsonEditorWindow : EditorWindow
 
     static readonly string[] PlacementModes = { "fixed", "terrainRandom" };
     static readonly Regex EnemyNameRegex = new(@"beforeName\s*=\s*""([^""]+)""", RegexOptions.Compiled);
+    static readonly Regex BriefingTextRegex = new(@"\{\s*""([^""]+)""\s*,\s*""((?:\\.|[^""])*)""\s*\}", RegexOptions.Compiled);
     static string[] prefabTypeCandidates;
 
     StageData SelectedStage => IsValidIndex(root?.stages, selectedStageIndex) ? root.stages[selectedStageIndex] : null;
@@ -193,6 +194,7 @@ public class StageSpawnJsonEditorWindow : EditorWindow
             MarkDirty();
 
         DrawSceneIntegration(stage);
+        DrawBriefingText(stage);
 
         WaveDefinition wave = SelectedWave;
         if (wave == null)
@@ -243,6 +245,16 @@ public class StageSpawnJsonEditorWindow : EditorWindow
 
         if (!hasSceneAsset)
             EditorGUILayout.HelpBox("先に Assets/Scenes に同名の .unity シーンを作成してください。JSONのsceneNameは実シーン名と一致している必要があります。", MessageType.Warning);
+    }
+
+    void DrawBriefingText(StageData stage)
+    {
+        EditorGUILayout.Space(8);
+        EditorGUILayout.LabelField("Briefing Text", EditorStyles.boldLabel);
+        using (new EditorGUI.DisabledScope(true))
+        {
+            EditorGUILayout.TextArea(GetBriefingText(stage.sceneName), GUILayout.MinHeight(52));
+        }
     }
 
     void DrawWaveDetails(WaveDefinition wave)
@@ -756,6 +768,26 @@ public class StageSpawnJsonEditorWindow : EditorWindow
     {
         if (!values.Contains(value))
             values.Add(value);
+    }
+
+    static string GetBriefingText(string sceneName)
+    {
+        const string fallback = "作戦空域内のすべての敵目標を撃破せよ。";
+        if (string.IsNullOrWhiteSpace(sceneName))
+            return fallback;
+
+        string sourcePath = "Assets/script/Set/selectmenuUI.cs";
+        if (!File.Exists(sourcePath))
+            return fallback;
+
+        string source = File.ReadAllText(sourcePath);
+        foreach (Match match in BriefingTextRegex.Matches(source))
+        {
+            if (match.Groups[1].Value == sceneName)
+                return Regex.Unescape(match.Groups[2].Value);
+        }
+
+        return fallback;
     }
 
     static bool HasSceneAsset(string sceneName)

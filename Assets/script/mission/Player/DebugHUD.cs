@@ -621,9 +621,9 @@ public class DebugHUD : MonoBehaviour
             blinkTimer = 0f;
             isBlinking = !isBlinking;
         }
-        if (Time.time >= nextContainerRefreshTime)
+        //if (Time.time >= nextContainerRefreshTime)
         {
-            nextContainerRefreshTime = Time.time + ContainerRefreshInterval;
+            //nextContainerRefreshTime = Time.time + ContainerRefreshInterval;
             UpdateContainers();
         }
         SmoothContainers();

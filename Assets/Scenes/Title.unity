@@ -903,6 +903,7 @@ MonoBehaviour:
   - M03
   - M04
   - M05
+  - M06
   selectedstage: 0
 --- !u!1 &2100000100
 GameObject:

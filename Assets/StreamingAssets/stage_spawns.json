@@ -3725,6 +3725,22 @@
                     ]
                 }
             ]
+        },
+        {
+            "sceneName": "M06",
+            "randomSeed": 260531,
+            "spawns": [
+                {
+                    "WaveId": -1,
+                    "triggerTargetWaveId": -1,
+                    "waveId": 0,
+                    "requireClearedWaves": [],
+                    "enemyIds": [],
+                    "isMissionTarget": [],
+                    "lifetimes": [],
+                    "enemies": []
+                }
+            ]
         }
     ]
 }
