@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -18,6 +20,8 @@ public class StageSpawnJsonEditorWindow : EditorWindow
     bool isDirty;
 
     static readonly string[] PlacementModes = { "fixed", "terrainRandom" };
+    static readonly Regex EnemyNameRegex = new(@"beforeName\s*=\s*""([^""]+)""", RegexOptions.Compiled);
+    static string[] prefabTypeCandidates;
 
     StageData SelectedStage => IsValidIndex(root?.stages, selectedStageIndex) ? root.stages[selectedStageIndex] : null;
     WaveDefinition SelectedWave => IsValidIndex(SelectedStage?.spawns, selectedWaveIndex) ? SelectedStage.spawns[selectedWaveIndex] : null;
@@ -188,6 +192,8 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         if (EditorGUI.EndChangeCheck())
             MarkDirty();
 
+        DrawSceneIntegration(stage);
+
         WaveDefinition wave = SelectedWave;
         if (wave == null)
         {
@@ -210,6 +216,33 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         }
 
         EditorGUILayout.EndScrollView();
+    }
+
+    void DrawSceneIntegration(StageData stage)
+    {
+        EditorGUILayout.Space(8);
+        EditorGUILayout.LabelField("Scene Integration", EditorStyles.boldLabel);
+
+        string sceneName = stage.sceneName;
+        bool hasSceneAsset = HasSceneAsset(sceneName);
+        bool inBuildSettings = IsSceneInBuildSettings(sceneName);
+        bool inMenu = IsStageListedInScene<selectmenuUI>("Assets/Scenes/Menu.unity", sceneName, ui => ui.stage_name);
+        bool inBriefing = IsStageListedInScene<selectmenuUI>("Assets/Scenes/Briefing.unity", sceneName, ui => ui.stage_name);
+        bool inSetup = IsStageListedInScene<SetupUI>("Assets/Scenes/SetUp.unity", sceneName, ui => ui.scene_name);
+
+        EditorGUILayout.LabelField("Scene Asset", hasSceneAsset ? "OK" : "Missing Assets/Scenes/<SceneName>.unity");
+        EditorGUILayout.LabelField("Build Settings", inBuildSettings ? "OK" : "未登録");
+        EditorGUILayout.LabelField("Menu stage_name", inMenu ? "OK" : "未登録");
+        EditorGUILayout.LabelField("Briefing stage_name", inBriefing ? "OK" : "未登録");
+        EditorGUILayout.LabelField("SetUp scene_name", inSetup ? "OK" : "未登録");
+
+        EditorGUI.BeginDisabledGroup(string.IsNullOrWhiteSpace(sceneName) || !hasSceneAsset);
+        if (GUILayout.Button("選択Stageをシーン選択へ同期"))
+            SyncSelectedStageSceneReferences(sceneName);
+        EditorGUI.EndDisabledGroup();
+
+        if (!hasSceneAsset)
+            EditorGUILayout.HelpBox("先に Assets/Scenes に同名の .unity シーンを作成してください。JSONのsceneNameは実シーン名と一致している必要があります。", MessageType.Warning);
     }
 
     void DrawWaveDetails(WaveDefinition wave)
@@ -261,7 +294,7 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         EditorGUILayout.LabelField("Enemy", EditorStyles.boldLabel);
         EditorGUI.BeginChangeCheck();
         enemy.enemyId = EditorGUILayout.IntField("Enemy Id", enemy.enemyId);
-        enemy.prefabType = EditorGUILayout.TextField("Prefab Type", enemy.prefabType);
+        enemy.prefabType = DrawPrefabTypePopup(enemy.prefabType);
         enemy.missionTarget = EditorGUILayout.Toggle("Mission Target", enemy.missionTarget);
         enemy.hideFromHud = EditorGUILayout.Toggle("Hide From HUD", enemy.hideFromHud);
         enemy.lifetime = EditorGUILayout.FloatField("Lifetime", enemy.lifetime);
@@ -282,6 +315,43 @@ public class StageSpawnJsonEditorWindow : EditorWindow
             MarkDirty();
             RepaintScene();
         }
+    }
+
+    string DrawPrefabTypePopup(string currentValue)
+    {
+        string[] candidates = GetPrefabTypeCandidates();
+        var labels = new List<string>(candidates);
+        int selectedIndex = labels.IndexOf(currentValue);
+        bool isCustom = selectedIndex < 0;
+
+        if (isCustom)
+        {
+            labels.Insert(0, string.IsNullOrWhiteSpace(currentValue) ? "Custom" : $"Custom: {currentValue}");
+            selectedIndex = 0;
+        }
+
+        EditorGUILayout.BeginHorizontal();
+        int nextIndex = EditorGUILayout.Popup("Prefab Type", selectedIndex, labels.ToArray());
+        string nextValue = currentValue;
+
+        if (isCustom)
+        {
+            if (nextIndex > 0)
+                nextValue = candidates[nextIndex - 1];
+        }
+        else if (nextIndex >= 0 && nextIndex < candidates.Length)
+        {
+            nextValue = candidates[nextIndex];
+        }
+
+        if (GUILayout.Button("更新", GUILayout.Width(44)))
+            prefabTypeCandidates = null;
+        EditorGUILayout.EndHorizontal();
+
+        if (isCustom && nextIndex == 0)
+            nextValue = EditorGUILayout.TextField("Custom Prefab Type", currentValue);
+
+        return nextValue;
     }
 
     void DrawPlacement(PlacementDefinition placement)
@@ -516,6 +586,87 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         SceneView.RepaintAll();
     }
 
+    void SyncSelectedStageSceneReferences(string sceneName)
+    {
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            return;
+
+        AddSceneToBuildSettings(sceneName);
+        AddStageToSelectMenuScene("Assets/Scenes/Menu.unity", sceneName);
+        AddStageToSelectMenuScene("Assets/Scenes/Briefing.unity", sceneName);
+        AddStageToSelectMenuScene("Assets/Scenes/Title.unity", sceneName);
+        AddStageToSetupScene("Assets/Scenes/SetUp.unity", sceneName);
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        EditorUtility.DisplayDialog("同期完了", $"{sceneName} をBuild Settings/Menu/Briefing/SetUpへ登録しました。", "OK");
+    }
+
+    void AddSceneToBuildSettings(string sceneName)
+    {
+        string scenePath = GetScenePath(sceneName);
+        var scenes = new List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
+
+        foreach (var scene in scenes)
+        {
+            if (scene.path == scenePath)
+            {
+                scene.enabled = true;
+                EditorBuildSettings.scenes = scenes.ToArray();
+                return;
+            }
+        }
+
+        scenes.Add(new EditorBuildSettingsScene(scenePath, true));
+        EditorBuildSettings.scenes = scenes.ToArray();
+    }
+
+    void AddStageToSelectMenuScene(string scenePath, string sceneName)
+    {
+        Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+        bool changed = false;
+
+        foreach (var rootObject in scene.GetRootGameObjects())
+        {
+            foreach (var ui in rootObject.GetComponentsInChildren<selectmenuUI>(true))
+            {
+                ui.stage_name ??= new List<string>();
+                if (ui.stage_name.Contains(sceneName)) continue;
+
+                Undo.RecordObject(ui, "Add Stage Name");
+                ui.stage_name.Add(sceneName);
+                EditorUtility.SetDirty(ui);
+                changed = true;
+            }
+        }
+
+        if (changed)
+            EditorSceneManager.SaveScene(scene);
+    }
+
+    void AddStageToSetupScene(string scenePath, string sceneName)
+    {
+        Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+        bool changed = false;
+
+        foreach (var rootObject in scene.GetRootGameObjects())
+        {
+            foreach (var ui in rootObject.GetComponentsInChildren<SetupUI>(true))
+            {
+                ui.scene_name ??= new List<string>();
+                if (ui.scene_name.Contains(sceneName)) continue;
+
+                Undo.RecordObject(ui, "Add Setup Scene Name");
+                ui.scene_name.Add(sceneName);
+                EditorUtility.SetDirty(ui);
+                changed = true;
+            }
+        }
+
+        if (changed)
+            EditorSceneManager.SaveScene(scene);
+    }
+
     static StageData NewStage()
     {
         return new StageData
@@ -573,5 +724,97 @@ public class StageSpawnJsonEditorWindow : EditorWindow
     static int SafeCount<T>(List<T> list)
     {
         return list != null ? list.Count : 0;
+    }
+
+    static string[] GetPrefabTypeCandidates()
+    {
+        if (prefabTypeCandidates != null)
+            return prefabTypeCandidates;
+
+        var values = new List<string>();
+        string sourcePath = "Assets/script/mission/Player/EnemyNameConverterToUI.cs";
+        if (File.Exists(sourcePath))
+        {
+            string source = File.ReadAllText(sourcePath);
+            foreach (Match match in EnemyNameRegex.Matches(source))
+            {
+                string value = match.Groups[1].Value;
+                if (!string.IsNullOrWhiteSpace(value) && !values.Contains(value))
+                    values.Add(value);
+            }
+        }
+
+        AddIfMissing(values, "AIR_BATTLESHIP");
+        AddIfMissing(values, "TRIGGER_EMPTY");
+        AddIfMissing(values, "UAV_STORAGE");
+        values.Sort(System.StringComparer.OrdinalIgnoreCase);
+        prefabTypeCandidates = values.ToArray();
+        return prefabTypeCandidates;
+    }
+
+    static void AddIfMissing(List<string> values, string value)
+    {
+        if (!values.Contains(value))
+            values.Add(value);
+    }
+
+    static bool HasSceneAsset(string sceneName)
+    {
+        return !string.IsNullOrWhiteSpace(sceneName) && File.Exists(GetScenePath(sceneName));
+    }
+
+    static bool IsSceneInBuildSettings(string sceneName)
+    {
+        string scenePath = GetScenePath(sceneName);
+        foreach (var scene in EditorBuildSettings.scenes)
+        {
+            if (scene.path == scenePath && scene.enabled)
+                return true;
+        }
+
+        return false;
+    }
+
+    static bool IsStageListedInScene<T>(string scenePath, string sceneName, System.Func<T, List<string>> listSelector)
+        where T : Component
+    {
+        if (string.IsNullOrWhiteSpace(sceneName) || !File.Exists(scenePath))
+            return false;
+
+        Scene scene = EditorSceneManager.GetSceneByPath(scenePath);
+        bool closeAfterCheck = false;
+
+        if (!scene.IsValid() || !scene.isLoaded)
+        {
+            scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+            closeAfterCheck = true;
+        }
+
+        bool found = false;
+        foreach (var rootObject in scene.GetRootGameObjects())
+        {
+            foreach (var component in rootObject.GetComponentsInChildren<T>(true))
+            {
+                List<string> values = listSelector(component);
+                if (values != null && values.Contains(sceneName))
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found)
+                break;
+        }
+
+        if (closeAfterCheck)
+            EditorSceneManager.CloseScene(scene, true);
+
+        return found;
+    }
+
+    static string GetScenePath(string sceneName)
+    {
+        return $"Assets/Scenes/{sceneName}.unity";
     }
 }

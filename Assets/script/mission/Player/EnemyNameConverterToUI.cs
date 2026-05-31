@@ -19,7 +19,14 @@ public class EnemyNameConverterToUI : MonoBehaviour
         new NameConversion { beforeName = "SAM", afterName = "SAM" },
         new NameConversion { beforeName = "LASM", afterName = "LASM" },
         new NameConversion { beforeName = "Railgun", afterName = "Railgun" },
-        new NameConversion { beforeName = "JAMMER", afterName = "JAMMER" }
+        new NameConversion { beforeName = "JAMMER", afterName = "JAMMER" },
+        new NameConversion { beforeName = "AIR_BATTLESHIP", afterName = "BATTLESHIP" },
+        new NameConversion { beforeName = "TRIGGER_EMPTY", afterName = "TRIGGER" },
+        new NameConversion { beforeName = "UAV_STORAGE", afterName = "UAV STORAGE" },
+        new NameConversion { beforeName = "fighter", afterName = "FIGHTER" },
+        new NameConversion { beforeName = "acem05", afterName = "ACE" },
+        new NameConversion { beforeName = "ace_m03", afterName = "ACE" },
+        new NameConversion { beforeName = "fighter_m03_special", afterName = "ACE-2" }
     };
 
     public string converter(GameObject obj)
