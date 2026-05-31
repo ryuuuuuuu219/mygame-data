@@ -241,6 +241,8 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         EditorGUI.BeginDisabledGroup(string.IsNullOrWhiteSpace(sceneName) || !hasSceneAsset);
         if (GUILayout.Button("選択Stageをシーン選択へ同期"))
             SyncSelectedStageSceneReferences(sceneName);
+        if (GUILayout.Button("Title Ally PrefabをこのSceneのRegistryへ登録"))
+            SyncTitleAllyPrefabToStageRegistry(sceneName);
         EditorGUI.EndDisabledGroup();
 
         if (!hasSceneAsset)
@@ -307,6 +309,7 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         EditorGUI.BeginChangeCheck();
         enemy.enemyId = EditorGUILayout.IntField("Enemy Id", enemy.enemyId);
         enemy.prefabType = DrawPrefabTypePopup(enemy.prefabType);
+        enemy.spawnAsAlly = EditorGUILayout.Toggle("Spawn As Ally", enemy.spawnAsAlly);
         enemy.missionTarget = EditorGUILayout.Toggle("Mission Target", enemy.missionTarget);
         enemy.hideFromHud = EditorGUILayout.Toggle("Hide From HUD", enemy.hideFromHud);
         enemy.lifetime = EditorGUILayout.FloatField("Lifetime", enemy.lifetime);
@@ -679,6 +682,86 @@ public class StageSpawnJsonEditorWindow : EditorWindow
             EditorSceneManager.SaveScene(scene);
     }
 
+    void SyncTitleAllyPrefabToStageRegistry(string sceneName)
+    {
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            return;
+
+        GameObject allyPrefab = LoadTitleAllyPrefab();
+        if (allyPrefab == null)
+        {
+            EditorUtility.DisplayDialog("登録できません", "Title.unity の TitleBackgroundAirBattle に allyAcePrefab が設定されていません。", "OK");
+            return;
+        }
+
+        string scenePath = GetScenePath(sceneName);
+        Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+        bool changed = false;
+
+        foreach (var rootObject in scene.GetRootGameObjects())
+        {
+            foreach (var registry in rootObject.GetComponentsInChildren<SpawnPrefabRegistry>(true))
+            {
+                registry.entries ??= new List<SpawnPrefabEntry>();
+                SpawnPrefabEntry entry = registry.entries.Find(x => x != null && x.prefabTypeName == "ALLY_ACE");
+                if (entry == null)
+                {
+                    entry = new SpawnPrefabEntry { prefabTypeName = "ALLY_ACE" };
+                    registry.entries.Add(entry);
+                }
+
+                if (entry.prefab == allyPrefab)
+                    continue;
+
+                Undo.RecordObject(registry, "Register Title Ally Prefab");
+                entry.prefab = allyPrefab;
+                EditorUtility.SetDirty(registry);
+                changed = true;
+            }
+        }
+
+        if (changed)
+            EditorSceneManager.SaveScene(scene);
+
+        EditorUtility.DisplayDialog("登録完了", $"{sceneName} の SpawnPrefabRegistry に ALLY_ACE を登録しました。", "OK");
+    }
+
+    GameObject LoadTitleAllyPrefab()
+    {
+        const string titleScenePath = "Assets/Scenes/Title.unity";
+        if (!File.Exists(titleScenePath))
+            return null;
+
+        Scene titleScene = EditorSceneManager.GetSceneByPath(titleScenePath);
+        bool closeAfterRead = false;
+        if (!titleScene.IsValid() || !titleScene.isLoaded)
+        {
+            titleScene = EditorSceneManager.OpenScene(titleScenePath, OpenSceneMode.Additive);
+            closeAfterRead = true;
+        }
+
+        GameObject prefab = null;
+        foreach (var rootObject in titleScene.GetRootGameObjects())
+        {
+            foreach (var titleBattle in rootObject.GetComponentsInChildren<TitleBackgroundAirBattle>(true))
+            {
+                SerializedObject serialized = new SerializedObject(titleBattle);
+                SerializedProperty allyPrefabProperty = serialized.FindProperty("allyAcePrefab");
+                prefab = allyPrefabProperty != null ? allyPrefabProperty.objectReferenceValue as GameObject : null;
+                if (prefab != null)
+                    break;
+            }
+
+            if (prefab != null)
+                break;
+        }
+
+        if (closeAfterRead)
+            EditorSceneManager.CloseScene(titleScene, true);
+
+        return prefab;
+    }
+
     static StageData NewStage()
     {
         return new StageData
@@ -705,6 +788,7 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         {
             enemyId = -1,
             prefabType = "AA_GUN",
+            spawnAsAlly = false,
             missionTarget = false,
             lifetime = 0f,
             placement = NewPlacement()
@@ -757,6 +841,7 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         }
 
         AddIfMissing(values, "AIR_BATTLESHIP");
+        AddIfMissing(values, "ALLY_ACE");
         AddIfMissing(values, "TRIGGER_EMPTY");
         AddIfMissing(values, "UAV_STORAGE");
         values.Sort(System.StringComparer.OrdinalIgnoreCase);

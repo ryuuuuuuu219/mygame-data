@@ -16,6 +16,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -66,6 +67,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -116,6 +118,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -166,6 +169,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -216,6 +220,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -266,6 +271,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -316,6 +322,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -366,6 +373,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -416,6 +424,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -466,6 +475,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -516,6 +526,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -566,6 +577,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -616,6 +628,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -666,6 +679,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -716,6 +730,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -766,6 +781,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -816,6 +832,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -866,6 +883,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -916,6 +934,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -966,6 +985,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1016,6 +1036,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1066,6 +1087,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "LASM",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -1133,6 +1155,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1183,6 +1206,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1233,6 +1257,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1283,6 +1308,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1333,6 +1359,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1383,6 +1410,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1433,6 +1461,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1483,6 +1512,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1533,6 +1563,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1583,6 +1614,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1633,6 +1665,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1683,6 +1716,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1733,6 +1767,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1783,6 +1818,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1833,6 +1869,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1883,6 +1920,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1933,6 +1971,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -1983,6 +2022,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -2033,6 +2073,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -2083,6 +2124,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -2133,6 +2175,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "SAM",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -2183,6 +2226,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "LASM",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2250,10 +2294,11 @@
                         {
                             "enemyId": -1,
                             "prefabType": "UAV_STORAGE",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
-                                "mode": "fixed",
+                                "mode": "terrainRandom",
                                 "count": 1,
                                 "isstoped": true,
                                 "position": {
@@ -2311,6 +2356,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "TRIGGER_EMPTY",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2374,6 +2420,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "UAV_STORAGE",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2424,6 +2471,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "UAV_STORAGE",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2491,6 +2539,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "ace_m03",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2541,6 +2590,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "ace_m03",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2591,6 +2641,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "ace_m03",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2641,6 +2692,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "ace_m03",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2691,6 +2743,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "fighter_m03_special",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2758,6 +2811,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AIR_BATTLESHIP",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2808,6 +2862,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "JAMMER",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -2875,6 +2930,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "Railgun",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2925,6 +2981,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -2975,6 +3032,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "Railgun",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3025,6 +3083,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3075,6 +3134,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "Railgun",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3125,6 +3185,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3175,6 +3236,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "Railgun",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3225,6 +3287,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3275,6 +3338,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3325,6 +3389,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3375,6 +3440,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3425,6 +3491,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3475,6 +3542,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3525,6 +3593,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3575,6 +3644,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3625,6 +3695,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "HR_AAGUN",
+                            "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0.0,
                             "placement": {
@@ -3675,6 +3746,7 @@
                         {
                             "enemyId": -1,
                             "prefabType": "AA_GUN",
+                            "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0.0,
                             "placement": {
@@ -3738,7 +3810,380 @@
                     "enemyIds": [],
                     "isMissionTarget": [],
                     "lifetimes": [],
-                    "enemies": []
+                    "enemies": [
+                        {
+                            "enemyId": -1,
+                            "prefabType": "ACEM05",
+                            "spawnAsAlly": false,
+                            "missionTarget": true,
+                            "lifetime": 0.0,
+                            "placement": {
+                                "mode": "terrainRandom",
+                                "count": 5,
+                                "isstoped": false,
+                                "position": {
+                                    "x": 0.0,
+                                    "y": 500.0,
+                                    "z": 1000.0
+                                },
+                                "vector": {
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": -420.0
+                                },
+                                "rotate": {
+                                    "x": 0.0,
+                                    "y": 180.0,
+                                    "z": 0.0
+                                },
+                                "snapToTerrain": false,
+                                "areaId": "m06_opening_ace_squadron",
+                                "terrainLayer": "Terrain",
+                                "radius": 280.0,
+                                "altitudeOffset": 5.0
+                            },
+                            "hideFromHud": false,
+                            "useUnknownPhaseTrigger": true,
+                            "isPhaseTrrigersParent": true,
+                            "phaseTriggerId": "m06_opening_ace_squadron",
+                            "originName": "ACEM05",
+                            "approachDistance": 2600.0,
+                            "uavLaunch": {
+                                "enabled": false,
+                                "launchOnPhaseActivate": false,
+                                "capacity": 15,
+                                "waveId": 0,
+                                "launchDelay": 0.5,
+                                "fighterCount": 3,
+                                "fighterSpacingAngle": 45.0,
+                                "fighterSpawnRadius": 80.0,
+                                "fighterSpawnAltitude": 220.0,
+                                "fighterSpeed": 350.0,
+                                "fighterPrefabType": "fighter"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "WaveId": -1,
+                    "triggerTargetWaveId": -1,
+                    "waveId": 1,
+                    "requireClearedWaves": [],
+                    "enemyIds": [],
+                    "isMissionTarget": [],
+                    "lifetimes": [],
+                    "enemies": [
+                        {
+                            "enemyId": -1,
+                            "prefabType": "TRIGGER_EMPTY",
+                            "spawnAsAlly": false,
+                            "missionTarget": true,
+                            "lifetime": 180.0,
+                            "placement": {
+                                "mode": "fixed",
+                                "count": 1,
+                                "isstoped": true,
+                                "position": {
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                },
+                                "vector": {
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                },
+                                "rotate": {
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                },
+                                "snapToTerrain": false,
+                                "areaId": "m06_opening_trigger_empty",
+                                "terrainLayer": "Terrain",
+                                "radius": 0.0,
+                                "altitudeOffset": 5.0
+                            },
+                            "hideFromHud": false,
+                            "useUnknownPhaseTrigger": false,
+                            "isPhaseTrrigersParent": false,
+                            "phaseTriggerId": "m06_opening_ace_squadron",
+                            "originName": "",
+                            "approachDistance": 0.0,
+                            "uavLaunch": {
+                                "enabled": false,
+                                "launchOnPhaseActivate": false,
+                                "capacity": 15,
+                                "waveId": 0,
+                                "launchDelay": 0.5,
+                                "fighterCount": 3,
+                                "fighterSpacingAngle": 45.0,
+                                "fighterSpawnRadius": 80.0,
+                                "fighterSpawnAltitude": 220.0,
+                                "fighterSpeed": 350.0,
+                                "fighterPrefabType": "fighter"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "WaveId": -1,
+                    "triggerTargetWaveId": -1,
+                    "waveId": 2,
+                    "requireClearedWaves": [
+                        1
+                    ],
+                    "enemyIds": [],
+                    "isMissionTarget": [],
+                    "lifetimes": [],
+                    "enemies": [
+                        {
+                            "enemyId": -1,
+                            "prefabType": "ACEM05",
+                            "spawnAsAlly": false,
+                            "missionTarget": true,
+                            "lifetime": 0.0,
+                            "placement": {
+                                "mode": "terrainRandom",
+                                "count": 4,
+                                "isstoped": false,
+                                "position": {
+                                    "x": -1600.0,
+                                    "y": 720.0,
+                                    "z": 2600.0
+                                },
+                                "vector": {
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": -360.0
+                                },
+                                "rotate": {
+                                    "x": 0.0,
+                                    "y": 145.0,
+                                    "z": 0.0
+                                },
+                                "snapToTerrain": false,
+                                "areaId": "m06_left_reinforcement",
+                                "terrainLayer": "Terrain",
+                                "radius": 320.0,
+                                "altitudeOffset": 5.0
+                            },
+                            "hideFromHud": false,
+                            "useUnknownPhaseTrigger": false,
+                            "isPhaseTrrigersParent": false,
+                            "phaseTriggerId": "",
+                            "originName": "",
+                            "approachDistance": 0.0,
+                            "uavLaunch": {
+                                "enabled": false,
+                                "launchOnPhaseActivate": false,
+                                "capacity": 15,
+                                "waveId": 0,
+                                "launchDelay": 0.5,
+                                "fighterCount": 3,
+                                "fighterSpacingAngle": 45.0,
+                                "fighterSpawnRadius": 80.0,
+                                "fighterSpawnAltitude": 220.0,
+                                "fighterSpeed": 350.0,
+                                "fighterPrefabType": "fighter"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "WaveId": -1,
+                    "triggerTargetWaveId": -1,
+                    "waveId": 3,
+                    "requireClearedWaves": [
+                        0
+                    ],
+                    "enemyIds": [],
+                    "isMissionTarget": [],
+                    "lifetimes": [],
+                    "enemies": [
+                        {
+                            "enemyId": -1,
+                            "prefabType": "ACEM05",
+                            "spawnAsAlly": false,
+                            "missionTarget": true,
+                            "lifetime": 0.0,
+                            "placement": {
+                                "mode": "terrainRandom",
+                                "count": 5,
+                                "isstoped": false,
+                                "position": {
+                                    "x": 1600.0,
+                                    "y": 740.0,
+                                    "z": 2500.0
+                                },
+                                "vector": {
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": -380.0
+                                },
+                                "rotate": {
+                                    "x": 0.0,
+                                    "y": 215.0,
+                                    "z": 0.0
+                                },
+                                "snapToTerrain": false,
+                                "areaId": "m06_right_counter_wave",
+                                "terrainLayer": "Terrain",
+                                "radius": 360.0,
+                                "altitudeOffset": 5.0
+                            },
+                            "hideFromHud": false,
+                            "useUnknownPhaseTrigger": false,
+                            "isPhaseTrrigersParent": false,
+                            "phaseTriggerId": "",
+                            "originName": "",
+                            "approachDistance": 0.0,
+                            "uavLaunch": {
+                                "enabled": false,
+                                "launchOnPhaseActivate": false,
+                                "capacity": 15,
+                                "waveId": 0,
+                                "launchDelay": 0.5,
+                                "fighterCount": 3,
+                                "fighterSpacingAngle": 45.0,
+                                "fighterSpawnRadius": 80.0,
+                                "fighterSpawnAltitude": 220.0,
+                                "fighterSpeed": 350.0,
+                                "fighterPrefabType": "fighter"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "WaveId": -1,
+                    "triggerTargetWaveId": -1,
+                    "waveId": 4,
+                    "requireClearedWaves": [
+                        3
+                    ],
+                    "enemyIds": [],
+                    "isMissionTarget": [],
+                    "lifetimes": [],
+                    "enemies": [
+                        {
+                            "enemyId": -1,
+                            "prefabType": "ACEM05",
+                            "spawnAsAlly": false,
+                            "missionTarget": true,
+                            "lifetime": 0.0,
+                            "placement": {
+                                "mode": "terrainRandom",
+                                "count": 5,
+                                "isstoped": false,
+                                "position": {
+                                    "x": 0.0,
+                                    "y": 860.0,
+                                    "z": 3600.0
+                                },
+                                "vector": {
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": -430.0
+                                },
+                                "rotate": {
+                                    "x": 0.0,
+                                    "y": 180.0,
+                                    "z": 0.0
+                                },
+                                "snapToTerrain": false,
+                                "areaId": "m06_high_pursuit_wave",
+                                "terrainLayer": "Terrain",
+                                "radius": 420.0,
+                                "altitudeOffset": 5.0
+                            },
+                            "hideFromHud": false,
+                            "useUnknownPhaseTrigger": false,
+                            "isPhaseTrrigersParent": false,
+                            "phaseTriggerId": "",
+                            "originName": "",
+                            "approachDistance": 0.0,
+                            "uavLaunch": {
+                                "enabled": false,
+                                "launchOnPhaseActivate": false,
+                                "capacity": 15,
+                                "waveId": 0,
+                                "launchDelay": 0.5,
+                                "fighterCount": 3,
+                                "fighterSpacingAngle": 45.0,
+                                "fighterSpawnRadius": 80.0,
+                                "fighterSpawnAltitude": 220.0,
+                                "fighterSpeed": 350.0,
+                                "fighterPrefabType": "fighter"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "WaveId": -1,
+                    "triggerTargetWaveId": -1,
+                    "waveId": 5,
+                    "requireClearedWaves": [
+                        0,
+                        2,
+                        3,
+                        4
+                    ],
+                    "enemyIds": [],
+                    "isMissionTarget": [],
+                    "lifetimes": [],
+                    "enemies": [
+                        {
+                            "enemyId": -1,
+                            "prefabType": "AceM03Special",
+                            "spawnAsAlly": false,
+                            "missionTarget": true,
+                            "lifetime": 0.0,
+                            "placement": {
+                                "mode": "terrainRandom",
+                                "count": 3,
+                                "isstoped": false,
+                                "position": {
+                                    "x": 0.0,
+                                    "y": 980.0,
+                                    "z": 4700.0
+                                },
+                                "vector": {
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": -460.0
+                                },
+                                "rotate": {
+                                    "x": 0.0,
+                                    "y": 180.0,
+                                    "z": 0.0
+                                },
+                                "snapToTerrain": false,
+                                "areaId": "m06_final_special_aces",
+                                "terrainLayer": "Terrain",
+                                "radius": 260.0,
+                                "altitudeOffset": 5.0
+                            },
+                            "hideFromHud": false,
+                            "useUnknownPhaseTrigger": false,
+                            "isPhaseTrrigersParent": false,
+                            "phaseTriggerId": "",
+                            "originName": "",
+                            "approachDistance": 0.0,
+                            "uavLaunch": {
+                                "enabled": false,
+                                "launchOnPhaseActivate": false,
+                                "capacity": 15,
+                                "waveId": 0,
+                                "launchDelay": 0.5,
+                                "fighterCount": 3,
+                                "fighterSpacingAngle": 45.0,
+                                "fighterSpawnRadius": 80.0,
+                                "fighterSpawnAltitude": 220.0,
+                                "fighterSpeed": 350.0,
+                                "fighterPrefabType": "fighter"
+                            }
+                        }
+                    ]
                 }
             ]
         }

@@ -195,4 +195,5 @@ public class TitleBackgroundAirBattle : MonoBehaviour
         light.intensity = directionalLightIntensity;
         light.transform.rotation = Quaternion.Euler(directionalLightEulerAngles);
     }
+
 }

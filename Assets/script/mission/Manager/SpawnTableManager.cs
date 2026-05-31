@@ -477,6 +477,7 @@ public class EnemySpawnDefinition
 {
     public int enemyId;
     public string prefabType;
+    public bool spawnAsAlly;
     public bool missionTarget;
     public float lifetime;
     public PlacementDefinition placement;

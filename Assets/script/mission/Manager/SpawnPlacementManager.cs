@@ -78,9 +78,10 @@ public class SpawnPlacementManager : MonoBehaviour
 
         if (!registeredEnemy.TryGetComponent(out AugumentStatus aug)) return result;
 
-        aug.missionObjective = definition.missionTarget;
-        aug.isEnemy = true;
-        aug.isPlayer = false;
+        bool spawnAsAlly = definition.spawnAsAlly || definition.prefabType == "ALLY_ACE";
+        aug.missionObjective = !spawnAsAlly && definition.missionTarget;
+        aug.isEnemy = !spawnAsAlly;
+        aug.isPlayer = spawnAsAlly;
         aug.lifeTime = definition.lifetime;
         aug.issortie = true;
         aug.waveID = waveId;
@@ -92,10 +93,13 @@ public class SpawnPlacementManager : MonoBehaviour
 
         enemy.SetActive(true);
         registeredEnemy.SetActive(true);
-        ObjectManager.Instance.RegisterEnemy(registeredEnemy, waveId);
+        if (spawnAsAlly)
+            ObjectManager.Instance.RegisterAlly(registeredEnemy);
+        else
+            ObjectManager.Instance.RegisterEnemy(registeredEnemy, waveId);
 
-        result.aliveEnemy = 1;
-        result.aliveTarget = definition.missionTarget ? 1 : 0;
+        result.aliveEnemy = spawnAsAlly ? 0 : 1;
+        result.aliveTarget = !spawnAsAlly && definition.missionTarget ? 1 : 0;
         result.spawnedEnemy = registeredEnemy;
         return result;
     }

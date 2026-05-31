@@ -21,6 +21,7 @@ public class EnemyNameConverterToUI : MonoBehaviour
         new NameConversion { beforeName = "Railgun", afterName = "Railgun" },
         new NameConversion { beforeName = "JAMMER", afterName = "JAMMER" },
         new NameConversion { beforeName = "AIR_BATTLESHIP", afterName = "BATTLESHIP" },
+        new NameConversion { beforeName = "ALLY_ACE", afterName = "ALLY" },
         new NameConversion { beforeName = "TRIGGER_EMPTY", afterName = "TRIGGER" },
         new NameConversion { beforeName = "UAV_STORAGE", afterName = "UAV STORAGE" },
         new NameConversion { beforeName = "fighter", afterName = "FIGHTER" },
