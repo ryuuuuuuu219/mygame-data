@@ -1,0 +1,335 @@
+﻿AircraftController 現状と改善案
+作成日: 2026-05-31
+
+対象
+----
+E:\はこんばっと\Assets\script\mission\Core\AircraftController.cs
+
+目的
+----
+AircraftController はプレイヤー機、味方AI、敵機AIの飛行挙動の土台になる。
+敵機判断AIを改善する場合も、最終的にはこのクラスへ pitch / roll / yaw と throttle を渡すため、ここが不安定だとAI側を賢くしても挙動が読みにくくなる。
+
+このメモでは、現状の処理、強み、問題点、改善案を整理する。
+
+
+現状の役割
+----------
+AircraftController は以下を担当している。
+
+- Rigidbody と AugumentStatus の取得
+- ステータス値から機体性能を読み込む
+  - 加速度
+  - 最高速度
+  - 機動性(ピッチ)
+  - 機動性(ロール)
+  - 機動性(ヨー)
+- 継承先から操舵入力を受け取る
+  - GetControlInput()
+  - 戻り値は Vector3
+  - x = pitch
+  - y = roll
+  - z = yaw
+- 継承先からスロットル入力を受け取る
+  - GetThrottleInput()
+- 継承先からリミッター状態を受け取る
+  - GetLimiter()
+- FixedUpdate で簡易飛行物理を処理する
+  - 推力
+  - 前方速度への補正
+  - 空気抵抗
+  - 揚力
+  - 操舵トルク
+  - 失速時の機首下げ
+  - 最高速度制限
+  - NaN/Infinity 防止
+
+
+現在の処理フロー
+----------------
+1. Awake
+   - AugumentStatus と Rigidbody を取得する。
+
+2. Start
+   - AugumentStatus が初期化済みなら InitFromStatus を呼ぶ。
+   - 未初期化なら OnInitialized に InitFromStatus を登録する。
+   - Rigidbody の基本設定を行う。
+   - 初速として transform.forward * thrustPower を入れる。
+
+3. FixedUpdate
+   - GetControlInput() を取得し、0.3 倍する。
+   - GetThrottleInput() を取得する。
+   - GetLimiter() を取得する。
+   - throttle を Lerp で目標値へ寄せ、0 から 5 に Clamp する。
+   - status.currentHeat に throttle を入れる。
+   - speedRatio = 現在速度 / maxSpeed を計算する。
+   - 推力と前方速度補正で rb.linearVelocity を直接 Lerp 更新する。
+   - 抵抗と揚力を AddForce する。
+   - 速度が stallSpeed 未満なら操舵を弱める。
+   - limiterOn が false の場合は unlimitedtorque を使って強い旋回を許可する。
+   - 失速時は機首を下へ向けるトルクを追加する。
+   - 最後に速度を maxSpeed へ Clamp する。
+
+
+現在の強み
+----------
+- 継承先AIとの境界が明確。
+  - AIは GetControlInput / GetThrottleInput を返せばよい。
+- 飛行制御が1箇所に集まっている。
+  - 敵機AIを増やしても基本物理を共有できる。
+- AugumentStatus から性能値を読むため、ステータス設計と接続されている。
+- 失速時の操舵低下と機首下げがあり、最低限の飛行らしさがある。
+- NaN/Infinity の検出とリセットが入っている。
+- GetLimiter() が virtual なので、プレイヤー/AIで制限解除挙動を変えられる。
+
+
+現在の問題点
+------------
+1. rb.linearVelocity を直接書き換えている
+   - 推力処理で velocity を Lerp しているため、AddForce ベースの物理と混ざっている。
+   - ミサイル被弾、衝突、外力、風などを追加したときに、速度補正で打ち消しやすい。
+
+2. throttle の意味が広い
+   - 0 から 5 の値として扱われる。
+   - 推力倍率、熱量 currentHeat、AIの加減速判断が同じ値に依存している。
+   - 「アフターバーナー」「通常推力」「ブレーキ」「熱源の強さ」を分けにくい。
+
+3. controlInput に固定の 0.3 倍がかかる
+   - 継承先AIが返す入力の意味が分かりづらい。
+   - AI側で 1 を返しても実際には 0.3 扱いになる。
+   - 調整値が AircraftController に埋まっている。
+
+4. torquePower の軸対応が混乱しやすい
+   - InitFromStatus では
+     - ピッチ -> torquePower.x
+     - ロール -> torquePower.z
+     - ヨー -> torquePower.y
+   - AddTorque では
+     - transform.right に torquePower.x
+     - transform.forward に torquePower.y
+     - transform.up に torquePower.z
+   - コメント上の Vector3 の意味と実際の軸が読み取りづらい。
+
+5. limiterOn が入力値と内部補正の両方に使われる
+   - GetLimiter() の結果を入れた後、失速時に true へ上書きする。
+   - デバッグ時に「AIがリミッターを入れた」のか「失速で強制された」のか見分けにくい。
+
+6. InitFromStatus のイベント解除がない
+   - OnInitialized に登録した後、解除していない。
+   - 多重初期化やライフサイクル変更時の副作用が出る可能性がある。
+
+7. status が null の場合の保護が薄い
+   - RequireComponent はあるが、生成タイミングや壊れたPrefabでは null リスクがある。
+   - FixedUpdate で status.currentHeat を直接触る。
+
+8. mass が常に 1 に固定される
+   - 機体の重量差、兵装差、大型敵との差を出しづらい。
+   - Rigidbody 側の設定を inspector で調整しても Start で上書きされる。
+
+9. 揚力モデルがかなり簡易
+   - transform.up と Vector3.up の Dot が高いほど揚力が出る。
+   - 逆さ飛行では揚力がほぼ消える。
+   - 速度と迎角の関係は見ていない。
+
+10. 失速時の機首下げが急に入りやすい
+    - stallRatio < 0.9 で下向きトルクが入る。
+    - AI側の回避・上昇入力と競合し、意図しない姿勢変化になる可能性がある。
+
+
+改善方針
+--------
+いきなり本格フライトモデルに置き換えず、現行の操作感を残したまま「読みやすく、調整しやすく、AIから扱いやすい」状態にする。
+
+優先順位は以下。
+
+1. 入力と内部状態の意味を明確にする
+2. デバッグしやすくする
+3. 既存AIを壊さず係数を外出しする
+4. 速度更新を少しずつ物理寄りにする
+5. 将来的に機体プロファイル化する
+
+
+短期改善案
+----------
+短期では挙動を大きく変えず、事故を減らす。
+
+1. 制御入力倍率を変数化する
+   - 現状:
+     - GetControlInput() * 0.3f
+   - 改善:
+     - public float controlInputScale = 0.3f;
+   - 効果:
+     - 敵機/味方/プレイヤーで調整しやすくなる。
+
+2. リミッター理由を分ける
+   - desiredLimiter = GetLimiter()
+   - forcedStallLimiter = stallRatio < 1f
+   - limiterOn = desiredLimiter || forcedStallLimiter
+   - 効果:
+     - デバッグ時に失速由来かAI由来か分かる。
+
+3. status null ガードを入れる
+   - status が null なら currentHeat 更新をスキップする。
+   - InitFromStatus でも status null を確認する。
+
+4. OnInitialized の解除
+   - InitFromStatus 実行後に status.OnInitialized -= InitFromStatus を行う。
+   - OnDestroy でも解除しておく。
+
+5. mass 上書きを任意化する
+   - public bool overrideRigidbodyMass = true;
+   - public float aircraftMass = 1f;
+   - 効果:
+     - 大型機やボスの差を出せる。
+
+6. デバッグ用フィールドを追加する
+   - currentSpeed
+   - speedRatio
+   - stallRatio
+   - targetThrottle
+   - desiredLimiter
+   - forcedStallLimiter
+   - controlInput
+   - torqueScale
+
+
+中期改善案
+----------
+中期ではAIと物理の接続を整理する。
+
+1. 入力構造体を作る
+   - 今は Vector3 で pitch/roll/yaw を返している。
+   - 将来的には以下のような構造にする。
+
+   AircraftInput
+   - pitch
+   - roll
+   - yaw
+   - throttle
+   - brake
+   - limiter
+
+   効果:
+   - throttle と brake を分けられる。
+   - AIコードの意図が読みやすい。
+
+2. throttle を 0 から 1 基準に寄せる
+   - 現状の 0 から 5 は内部推力倍率としては便利だが、入力としては強すぎる。
+   - 入力は 0 から 1、内部で afterburnerMultiplier を掛ける形にする。
+
+3. currentHeat を throttle から分離する
+   - heat = throttleHeat + afterburnerHeat + damageHeat などに分けられるようにする。
+   - 熱誘導ミサイルやフレアとの接続がしやすくなる。
+
+4. 速度制御を関数に分割する
+   - ApplyThrust()
+   - ApplyDrag()
+   - ApplyLift()
+   - ApplyControlTorque()
+   - ApplyStallRecovery()
+   - ClampSpeed()
+
+   効果:
+   - どの処理が挙動を作っているか追いやすい。
+   - 敵機用/大型機用の差分を作りやすい。
+
+5. 速度直接Lerpの係数を調整可能にする
+   - public float velocityAlignment = 0.05f;
+   - public float highSpeedAlignment = 0.95f;
+   - 現行挙動を維持しつつ、機体ごとに慣性の強さを調整できる。
+
+
+長期改善案
+----------
+長期では「機体性能」「飛行物理」「AI入力」を分離する。
+
+1. AircraftFlightProfile を作る
+   - ScriptableObject またはSerializableクラス。
+   - thrustPower
+   - maxSpeed
+   - stallSpeed
+   - liftPower
+   - dragPower
+   - pitchPower
+   - rollPower
+   - yawPower
+   - mass
+   - controlInputScale
+   - throttleResponse
+   - velocityAlignment
+
+2. AircraftController はプロファイルを読むだけにする
+   - AugumentStatus から直接読む処理は ProfileBuilder へ移す。
+   - プレイヤー/敵/味方で同じ物理を使い、性能差はProfileで出す。
+
+3. 外力を尊重する物理へ寄せる
+   - rb.linearVelocity 直接代入を減らす。
+   - AddForce / ForceMode.Acceleration を中心にする。
+   - ただし現行のゲーム感が変わるため、段階移行が必要。
+
+4. 失速と揚力を少し飛行機寄りにする
+   - angleOfAttack を計算する。
+   - 速度と迎角から揚力を出す。
+   - 失速時は急に下へ向けるのではなく、揚力低下と抗力増加で自然に落とす。
+
+
+AI改良との接続
+--------------
+ImprovedEnemyAircraftAI などの新AIは、最終的に AircraftController へ以下を渡す。
+
+- 操舵方向
+  - pitch / roll / yaw
+- スロットル
+  - 追尾、離脱、回避、高度復帰などに応じた推力
+- リミッター
+  - 通常は true
+  - エースや高機動時だけ false
+
+AircraftController 側でやるべきこと:
+- 入力を素直に反映する。
+- 失速や最高速度など最低限の安全制限を担当する。
+- AIの意図を隠すほど強い補正をしない。
+- デバッグ値を出して、AI側の判断と実際の機体挙動を比較できるようにする。
+
+
+優先して実装したい変更
+--------------------
+1. controlInputScale の追加
+   - 固定 0.3f を外出しする。
+
+2. throttleResponse の追加
+   - 現状は Time.fixedDeltaTime だけで Lerp している。
+   - public float throttleResponse = 1f; を追加し、反応速度を調整できるようにする。
+
+3. limiter の理由分離
+   - desiredLimiter
+   - forcedStallLimiter
+   - limiterOn
+
+4. Rigidbody mass の上書き制御
+   - overrideRigidbodyMass
+   - aircraftMass
+
+5. FixedUpdate の処理分割
+   - まず関数分割だけ行い、挙動は変えない。
+
+
+実装時の注意
+------------
+- 既存AIは GetControlInput の戻り値が 0.3 倍される前提で調整されている。
+  - controlInputScale の初期値は必ず 0.3f にする。
+- throttle は既存AIが 5f を返すため、上限 5f は当面維持する。
+- maxSpeed clamp は現行ゲームバランスに効いているため、最初は残す。
+- rb.linearVelocity の直接更新を急にやめると、全機体の操作感が変わる。
+- PlayerAircraft / ArryAceAircraft / EnemyAceAircraft 系の挙動確認が必要。
+
+
+最終目標
+--------
+AircraftController は、以下の状態を目指す。
+
+- AIやプレイヤー入力を分かりやすく受け取る。
+- 機体性能はプロファイルかステータスから安定して読む。
+- 推力、抗力、揚力、操舵、失速が関数単位で読める。
+- デバッグ値で「AIは何をしたかったか」「機体は実際にどう動いたか」を比較できる。
+- 現行のゲーム感を壊さず、敵機AIの改善を受け止められる土台にする。

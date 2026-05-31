@@ -1,0 +1,436 @@
+﻿航空機 敵機判断AI 現状と改善案
+作成日: 2026-05-31
+
+目的
+----
+航空機系の敵AIを回収し、今後の改修で迷わないように現状の判断構造、問題点、改善方針を整理する。
+ここで扱う「判断AI」は、敵機がどの目標を追うか、どの行動状態を選ぶか、どの方向へ操舵するか、どのスロットルを使うかを決める部分を指す。
+
+
+対象コード
+--------
+- 通常敵機
+  - Assets/script/mission/Enemy/Units/Other/EnemyAircraft.cs
+- 長距離寄りの敵機
+  - Assets/script/mission/Enemy/Units/Other/EnemyLRAceAircraft.cs
+- エース敵機
+  - Assets/script/mission/Enemy/Units/Other/EnemyAceAircraft.cs
+- M03用エース敵機
+  - Assets/script/mission/Enemy/Units/Other/EnemyAceAircraftM03.cs
+- 敵機の旧FCS/目標選択/射撃
+  - Assets/script/mission/Enemy/Weapons/FCS_e.cs
+- 地上対空系でも使う共通目標選択
+  - Assets/script/mission/Enemy/Units/Other/EnemyTargetSelector.cs
+- 飛行制御の親クラス
+  - Assets/script/mission/Core/AircraftController.cs
+
+
+現状の全体像
+----------
+敵航空機AIは、AircraftController を継承し、以下の2つを上書きして動いている。
+
+- GetControlInput()
+  - pitch / roll / yaw の入力を返す。
+  - AircraftController 側で 0.3 倍され、Rigidbody のトルクへ変換される。
+- GetThrottleInput()
+  - 0 から 5 程度のスロットル目標値を返す。
+  - AircraftController 側で Lerp され、推力と熱量 currentHeat に反映される。
+
+つまり敵機AIは、最終的には「目標方向」と「速度方針」を返すだけの構造になっている。
+この点は回収しやすい。判断層を整理しても、AircraftController 側の物理挙動を大きく壊さずに差し替えられる。
+
+
+目標選択の現状
+------------
+航空機系の多くは FCS_e に依存して目標を取得している。
+
+FCS_e の挙動:
+- ObjectManager.Instance.allies から味方/プレイヤー側を候補にする。
+- 速度ベクトル基準で前方 60 度以内を視野内とみなす。
+- detectRange 内で FOV が小さい対象を target にする。
+- 最も近い対象を waytarget にする。
+- target がない場合は waytarget を target に補完する。
+- lockRange 内かつ視野内なら lockon になり、機銃とミサイルを撃つ。
+
+問題:
+- AIの航法目標と射撃目標が FCS_e に混ざっている。
+- target と waytarget の意味がやや曖昧で、AI側で再補正している。
+- 視野判定が機体 forward ではなく速度ベクトル基準なので、低速・失速・旋回中に意図が読みにくい。
+- 対空砲系では EnemyTargetSelector が別に存在しており、航空機AIとは目標選択ロジックが分裂している。
+
+
+通常敵機 EnemyAircraft の現状
+-------------------------
+構造:
+- FCS_e.waytarget を target にする。
+- 高度 600 未満なら上昇、10000 超なら下降を Overshoot 扱いで行う。
+- 5秒ごとに距離変化を見て、近距離で距離が詰まらない場合に Overshoot を発生させる。
+- Overshoot 中は pattern に応じて加速/減速/上昇/下降を行う。
+- 通常時の GetControlInput はほぼ空で、積極的な追尾操舵が入っていない。
+
+現状の印象:
+- 通常敵機は「飛んでいるが、賢く戦う」よりも「スタック回避と高度回復が中心」になっている。
+- 近距離で詰まったときだけ挙動が変わるため、プレイヤーから見ると意図が弱い。
+- コメント文字化けが多く、仕様確認がしづらい。
+
+
+長距離敵機 EnemyLRAceAircraft の現状
+-------------------------------
+構造:
+- FCS_e.waytarget を target にする。
+- ToLeadpoint でガンリード相当の未来位置方向を計算する。
+- 通常時はリード方向へロール・ピッチ・ヨーを入れる。
+- 距離 5000 未満で逃げる pattern 6 が入り、長距離維持を狙っている。
+- 距離 8000 超または失速時は加速、6000 未満では減速寄りになる。
+
+現状の印象:
+- 通常敵機より戦闘意図が明確で、遠距離維持型として読める。
+- ただし Overshoot という名前に、回避、離脱、高度補正、ランダム機動が全部入っている。
+- pattern 番号で行動を分けているため、調整やデバッグが難しい。
+
+
+エース敵機 EnemyAceAircraft の現状
+-----------------------------
+ステート:
+- Pursuit: 純粋追尾
+- Offset: 緩めの追尾
+- Overshoot: 減速
+- RecoverAltitude: 上昇
+- Evade: 回避
+- Exit: 離脱
+- none
+
+判断:
+- statetimer が切れたタイミングで状態を再判定する。
+- 高度が RecoverAltitude 閾値未満なら RecoverAltitude。
+- 距離が Offset 閾値未満なら Offset。
+- 高度が 10000 超なら Pursuit。
+- 距離が Exit 閾値未満なら Exit。
+- 距離が Overshoot 閾値未満かつ速度方向と目標方向の角度が 90 度超なら Overshoot。
+- どれでもなければ Pursuit。
+
+操舵:
+- manuver() でワールド方向を機体ローカルへ変換し、ロール主体で向きを合わせる。
+- 下方向に目標があるほどピッチを抑え、ロールとヨーで姿勢を作る。
+- ToLeadpoint で弾速と相手速度から簡易リードを計算する。
+- Offset 以外ではリード位置を保持し、Offset ではランダム offset を混ぜる。
+
+現状の印象:
+- 基本の空戦AIとしては一番回収しやすい。
+- ステート名と操舵/スロットルが比較的対応している。
+- ただし Evade はステート定義だけあり、通常判定からほぼ選ばれない。
+- 高度超過時に Pursuit へ戻すなど、境界回復の意味がステート名からやや読みにくい。
+
+
+M03エース EnemyAceAircraftM03 の現状
+--------------------------------
+特徴:
+- EnemyAceAircraft を発展させたスコア式の判断AI。
+- 各ステートに level と delay を持たせ、最大 level のステートへ遷移する。
+- bookingstate と transitiondelaytimer により、急なステート切替を抑えている。
+- isUseAugument が true の場合、遠距離戦用の phase 行動を追加する。
+
+通常判断 levelCalc:
+- RecoverAltitude
+  - 高度 1000 未満、または 8000 超で優先度が上がる。
+- Pursuit
+  - 距離が BORDER_Pursuit より遠いほど優先度が上がる。
+- Exit
+  - 距離が BORDER_Exit より近いほど優先度が上がる。
+- Offset
+  - 距離 800 未満で優先度が上がる。
+- Overshoot
+  - 距離、スロットル、相手から見た角度、自機から見た角度を掛け合わせて算出する。
+- Evade
+  - ObjectManager.Instance.missiles_a を見て、ミサイルが近いほど優先度を Time.deltaTime で積算する。
+
+遠距離補助 levelCalc_augument:
+- None
+- Exiting
+- Aheading
+- Attacking_notching
+- Attacking_seminotching
+- Intercepting_seminotching
+- Intercepting_headon
+
+遠距離では、離脱して距離を作り、ノッチング角を取りながら再接近する流れを作ろうとしている。
+通常ステートの上に phase が被さるため、M03専用の強い個性としては良い。
+
+問題:
+- currentstate を levelCalc と levelCalc_augument の両方が直接書き換える。
+- vectorCalc がステート変更時だけ実行されるため、targetdir が古いまま残る可能性がある。
+- Evade の level がフレーム加算だが、毎回 stateParams[i].level = 0 でリセットされるため、実質的には「そのフレームの近接ミサイル評価」に近い。
+- ミサイル回避で ObjectManager.Instance.missiles_a の全弾を見るが、自機を狙っているかの確認は vectorCalc 側に寄っている。
+- phase の遷移条件が角度/距離の直接比較で、デバッグ表示がないと現在意図を把握しづらい。
+
+
+現在の強み
+--------
+- AircraftController との境界が明確で、AIは入力値を返すだけになっている。
+- エース系はステート制御へ進化しており、改修の土台がある。
+- M03エースには level + delay の考え方があり、ステート遷移のチャタリング対策が始まっている。
+- リード計算がすでに実装されており、単純追尾より強い挙動を作れる。
+- 遠距離戦、ノッチング、離脱、再接近など、目指している空戦像はコード上に残っている。
+
+
+現在の弱み
+--------
+- 通常敵、長距離敵、エース、M03エースで判断方式が分裂している。
+- Overshoot という名前に、減速、回避、上昇、下降、逃走、ランダム機動が混在している。
+- FCS_e が目標選択、ロック、射撃、弾数、ステータス読込まで持っており、AI判断と武器制御が密結合している。
+- stateParams を enum の int 値で参照しているため、enum 順変更に弱い。
+- コメント文字化けが残っており、意図の継承が難しい。
+- AIの現在状態、目標、ステート優先度、phase が画面上で見えにくい。
+- ミサイル回避の脅威判定が粗く、全ミサイルを同じように扱いやすい。
+- 低高度/高高度の境界処理が各クラスに重複している。
+- targetdir の更新頻度や保持タイミングがクラスごとに異なる。
+
+
+改善方針
+------
+まず「全部を新AIに置き換える」のではなく、現行挙動を回収しながら共通部品へ寄せる。
+おすすめは以下の順番。
+
+1. デバッグ可視化を先に入れる
+   - 敵機の現在 target 名
+   - currentstate
+   - currentphase
+   - distance
+   - altitude
+   - throttle
+   - selected targetdir
+   - missile threat level
+   を DebugHUD か Gizmos で表示できるようにする。
+
+2. 用語を整理する
+   - Overshoot を万能回避名として使わない。
+   - 例:
+     - Pursuit: 追う
+     - LeadPursuit: 偏差追尾
+     - Offset: 横/上下にずらして接近
+     - Extend: 離脱して距離を作る
+     - EvadeMissile: ミサイル回避
+     - RecoverAltitude: 高度回復
+     - BoundaryReturn: 戦闘空域へ戻る
+     - ReAttack: 再攻撃姿勢へ入る
+
+3. センサー/目標選択を分離する
+   - FCS_e から AI 用の target 取得を直接読むのをやめる。
+   - AircraftEnemySensor のような部品にまとめる。
+   - 目標選択の出力を以下に分ける。
+     - primaryTarget: 攻撃対象
+     - navigationTarget: 航法上追う対象
+     - nearestThreat: 回避対象
+     - hasWeaponLock: 武器発射できる状態
+
+4. ステート評価をスコア式に統一する
+   - EnemyAceAircraftM03 の level + delay 方式をベースにする。
+   - 通常敵は評価項目を少なくし、エースは項目を増やす。
+   - ステートごとに Score, EnterDelay, MinDuration, Cooldown を持たせる。
+
+5. 操舵生成を共通化する
+   - manuver(worldDir) は良い土台なので共通ユーティリティ化する。
+   - リード計算 ToLeadpoint / PredictIntercept も重複しているため共通化する。
+   - 「どこへ向くか」と「どう舵を切るか」を分ける。
+
+6. 武器発射判断をAI判断から切り離す
+   - AIは「攻撃姿勢に入っている」「発射許可」を出す。
+   - 射撃側は lock、射線、クールダウン、弾数を見て撃つ。
+   - これにより、逃走中に撃つ/撃たない、正面会敵で撃つ、離脱中は撃たない等を調整しやすくする。
+
+
+提案する新構造
+------------
+EnemyAircraftBrain
+- 敵機判断AIの中心。
+- Sensor、Decision、Steering、WeaponIntent を束ねる。
+
+EnemyAircraftSensor
+- target 候補、距離、角度、高度、相対速度、ミサイル脅威を収集する。
+- FCS_e から独立させる。
+
+EnemyAircraftDecision
+- ステートごとのスコアを計算する。
+- 遷移 delay、最低維持時間、優先度補正を管理する。
+
+EnemyAircraftSteering
+- ステートから目標方向 targetdir を作る。
+- targetdir を manuver() へ通して pitch/roll/yaw に変換する。
+
+EnemyAircraftWeaponIntent
+- 現在ステートに応じて、機銃/ミサイル発射許可を返す。
+- 実際の発射は FCS_e または新 WeaponController 側に任せる。
+
+
+ステート案
+--------
+基本セット:
+- Pursuit
+  - 遠距離で目標へ接近する。
+  - throttle: 高め。
+- LeadPursuit
+  - 中距離で偏差方向へ向く。
+  - throttle: 中から高。
+- Offset
+  - 近距離で正面衝突/単調追尾を避ける。
+  - throttle: 中から低。
+- Extend
+  - 近すぎるときに距離を作る。
+  - throttle: 高。
+- EvadeMissile
+  - ミサイル脅威が高いときに最優先。
+  - throttle: 高、または状況により一瞬絞る。
+- RecoverAltitude
+  - 低高度/高高度から安全高度へ戻る。
+  - throttle: 高。
+- ReAttack
+  - 離脱後、再度攻撃角へ入る。
+  - throttle: 中から高。
+
+エース追加:
+- Notch
+  - 相手の進行方向に対して横方向を取る。
+- SemiNotch
+  - 攻撃姿勢へ戻しながら横成分を残す。
+- HeadOnIntercept
+  - 正面会敵を作る。
+- Drag
+  - プレイヤーを引き延ばしてから反転する。
+
+
+スコア評価案
+----------
+各ステートは 0 以上の score を持つ。
+最大 score のステートへ即時遷移せず、EnterDelay と MinDuration を通して確定する。
+
+評価に使う値:
+- distance
+- altitude
+- targetAspect
+  - 相手から見て自機がどの角度にいるか。
+- noseToTargetAngle
+  - 自機の機首/速度方向が目標にどれだけ向いているか。
+- closureRate
+  - 接近速度。
+- ownSpeedRatio
+  - stallSpeed と maxSpeed に対する現在速度。
+- missileThreat
+  - 自機を狙っているミサイルの危険度。
+- weaponReady
+  - 武器が撃てるか。
+- lineOfSight
+  - 射線が通るか。
+
+例:
+- EvadeMissile
+  - missileThreat が高いほど上がる。
+  - 近距離かつミサイル速度ベクトルが自機へ向いている場合に大きく上げる。
+- RecoverAltitude
+  - altitude < minAltitude または altitude > maxAltitude で上げる。
+- Extend
+  - distance < minCombatDistance かつ closureRate が高いと上げる。
+- LeadPursuit
+  - distance が攻撃距離内、noseToTargetAngle が小さいと上げる。
+- Offset
+  - distance が近く、正面に入りすぎていると上げる。
+- Pursuit
+  - distance が遠いと上げる。
+
+
+ミサイル回避の改善案
+----------------
+現状は ObjectManager.Instance.missiles_a を見て近いミサイルを脅威にしている。
+改善後は「自機を狙っているか」「接近しているか」「回避猶予があるか」を見る。
+
+脅威判定:
+- missile.target == 自機 transform なら高評価。
+- target が取れない場合でも、ミサイル速度ベクトルと自機方向の Dot が高ければ候補にする。
+- closingSpeed が正なら危険、負なら低危険。
+- timeToImpact = distance / closingSpeed を計算する。
+- timeToImpact が短いほど EvadeMissile score を上げる。
+
+回避方向:
+- ミサイル進行方向に対して横方向へ逃げる。
+- 地面へ突っ込む方向は避ける。
+- 自機速度方向を少し残し、失速しない。
+- フレア実装があるなら、EvadeMissile 遷移時に発射許可を出す。
+
+
+段階的な実装手順
+--------------
+Phase 1: 現状の見える化
+- EnemyAceAircraftM03 に現在ステート/phase/score を public または debug 用で見えるようにする。
+- Gizmos で targetdir と target 方向を表示する。
+- コメント文字化けがある EnemyAircraft / HRAAGUN 仕様メモ周辺は必要範囲で修正する。
+
+Phase 2: 共通ユーティリティ回収
+- manuver() を共通化する。
+- PredictIntercept() を共通化する。
+- 高度境界判定を共通化する。
+- ミサイル脅威判定を共通化する。
+
+Phase 3: M03方式を標準AIへ移植
+- EnemyAceAircraftM03 の level + delay 方式を EnemyAircraftBrain に抽出する。
+- 既存 EnemyAceAircraft は新 Brain を使う形に寄せる。
+- 通常敵機は簡易プロファイル、エースは高性能プロファイルで同じ Brain を使う。
+
+Phase 4: FCS_e の責務分離
+- 目標選択を Sensor へ移す。
+- 射撃/ロック/弾数管理を WeaponController へ寄せる。
+- FCS_e は互換用ラッパーとして残すか、段階的に削除する。
+
+Phase 5: 調整データ化
+- 敵機ごとのAI設定を ScriptableObject または prefab inspector 値へ逃がす。
+- 通常機、長距離機、エース、M03特殊機で同じコードを使い、設定だけ変える。
+
+
+優先して直したい具体点
+------------------
+1. EnemyAceAircraftM03 の targetdir 更新
+   - 現状は vectorCalc がステート切替時中心なので、追尾方向が古くなりやすい。
+   - 目標追尾系ステートでは一定間隔、または毎フレーム軽量更新する。
+
+2. Evade の脅威判定
+   - 自機を狙っていないミサイルまで強く評価しない。
+   - timeToImpact を導入する。
+
+3. stateParams の enum int 依存
+   - 配列ではなく Dictionary、または固定フィールドにする。
+   - 少なくとも初期化時に state と index の対応を検証する。
+
+4. Overshoot の命名整理
+   - 減速なら OvershootBrake。
+   - 距離を作るなら Extend。
+   - 高度補正なら RecoverAltitude。
+   - 逃走なら Exit/Extend。
+
+5. FCS_e 依存の整理
+   - AIは FCS_e.target / waytarget を直接読まない。
+   - Sensor 経由で target を受け取る。
+
+
+短期的な改善だけで済ませる場合
+--------------------------
+大改修前に小さく効く修正:
+- EnemyAceAircraftM03 の vectorCalc をステート変更時だけでなく、0.2秒間隔で更新する。
+- Evade level を「狙われているミサイル」に限定する。
+- DebugHUD に敵機の currentstate を表示する。
+- EnemyAircraft の通常時 GetControlInput に、target へ向く最低限の manuver を入れる。
+- EnemyLRAceAircraft の pattern 番号を enum に置き換える。
+
+
+最終目標
+------
+敵航空機AIは、次の状態を目指す。
+
+- 通常機
+  - 素直に追うが、近すぎたら離脱し、高度を守る。
+- 長距離機
+  - 距離を維持し、正面から撃ち合わず、引き撃ちする。
+- エース機
+  - 追尾、離脱、再攻撃、ミサイル回避を明確に切り替える。
+- M03特殊機
+  - ノッチングや正面会敵を使い、他の敵機より意図のある空戦をする。
+
+コード上は、同じ Brain と Sensor を使い、プロファイル設定で個性を分ける。
+これにより、敵機ごとの挙動を増やしても、AI判断の修正が一箇所に集まり、調整とデバッグがしやすくなる。
