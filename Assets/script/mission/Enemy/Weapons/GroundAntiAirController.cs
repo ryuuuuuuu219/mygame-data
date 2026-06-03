@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[RequireComponent(typeof(EnemyTargetSelector))]
 public class GroundAntiAirController : MonoBehaviour
 {
     public bool useGun = true;

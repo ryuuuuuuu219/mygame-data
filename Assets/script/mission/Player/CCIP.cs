@@ -8,6 +8,7 @@ using static WeaponSystem;
 
 public class CCIP : MonoBehaviour
 {
+    const int HudSortingOrder = short.MaxValue;
     [SerializeField] Camera hudCam;
     Camera mainCam;
     [SerializeField] DebugHUD debugHUD;
@@ -42,6 +43,7 @@ public class CCIP : MonoBehaviour
     AugumentStatus status;
 
     GameObject tgt;
+    Material hudLineMaterial;
 
     void Start()
     {
@@ -53,14 +55,19 @@ public class CCIP : MonoBehaviour
         leftlines = new List<GameObject>();
         rightlines = new List<GameObject>();
 
+        ConfigureHudLine(ccipLine);
+        ConfigureHudLine(linkLine);
+
         for (int i = 0; i < ccipMaxPoints; i++)
         {
 
             var left = Instantiate(ccipLine, transform);
+            ConfigureHudLine(left);
             left.SetActive(false);
             leftlines.Add(left);
 
             var right = Instantiate(ccipLine, transform);
+            ConfigureHudLine(right);
             right.SetActive(false);
             rightlines.Add(right);
 
@@ -73,6 +80,29 @@ public class CCIP : MonoBehaviour
         else
         {
         }
+    }
+
+    void ConfigureHudLine(GameObject lineObject)
+    {
+        if (lineObject == null) return;
+        if (!lineObject.TryGetComponent(out LineRenderer line)) return;
+
+        line.material = GetHudLineMaterial();
+        line.sortingOrder = HudSortingOrder;
+    }
+
+    Material GetHudLineMaterial()
+    {
+        if (hudLineMaterial != null)
+            return hudLineMaterial;
+
+        Shader shader = Shader.Find("HUD/AlwaysOnTop");
+        if (shader == null)
+            shader = Shader.Find("Sprites/Default");
+
+        hudLineMaterial = new Material(shader);
+        hudLineMaterial.renderQueue = 5000;
+        return hudLineMaterial;
     }
 
     void LateUpdate()

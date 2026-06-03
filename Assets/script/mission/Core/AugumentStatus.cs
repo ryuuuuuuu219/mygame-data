@@ -330,9 +330,9 @@ public class StatusTable
             pageName = "StandardMissile",
             stats = new StatEntry[]
             {
-                new StatEntry{ key = "ミサイル：初速", range = new modify{ min=100f, max=600f, step=5f } },
+                new StatEntry{ key = "ミサイル：初速", range = new modify{ min=200f, max=600f, step=5f } },
                 new StatEntry{ key = "ミサイル：威力", range = new modify{ min=10f, max=200f, step=5f } },
-                new StatEntry{ key = "ミサイル：最高速", range = new modify{ min=100f, max=800f, step=5f } },
+                new StatEntry{ key = "ミサイル：最高速", range = new modify{ min=300f, max=1000f, step=5f } },
                 new StatEntry{ key = "ミサイル：加速度", range = new modify{ min=0f, max=100f, step=1f } },
                 new StatEntry{ key = "ミサイル：誘導力", range = new modify{ min=45f, max=360f, step=1f } },
                 new StatEntry{ key = "ミサイル：誘導象限", range = new modify{ min=45f, max=180f, step=1f } },

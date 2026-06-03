@@ -50,8 +50,6 @@ public class EnemyAceAircraftM03 : AircraftController
     [SerializeField] AIState bookingstate = AIState.Pursuit;
 
     public float distdetecttimer = 0;
-    bool isBaseVectordefined = false;
-
     Vector3 targetdir;
 
     float accelthrottle = 5f;
@@ -83,17 +81,12 @@ public class EnemyAceAircraftM03 : AircraftController
 
         // AIステート評価
         levelCalc();
-        if (!isBaseVectordefined)
-        {
-            isBaseVectordefined=true;
-            // ステート決定後に1回だけ目標ベクトルを算出
-            vectorCalc();
-        }
         if (isUseAugument)
         {
             // 遠距離用の補助挙動
             levelCalc_augument();
         }
+        vectorCalc();
 
         if (weapon == null)
         {
@@ -192,7 +185,6 @@ public class EnemyAceAircraftM03 : AircraftController
             {
                 currentstate = bookingstate;
                 transitiondelaytimer = 0f;
-                isBaseVectordefined = false;
             }
         }
         for (int i = 0; i < stateParams.Length; i++)
@@ -205,6 +197,7 @@ public class EnemyAceAircraftM03 : AircraftController
     public float basedist_close = 1000f;
     public float notchingangle = 98f;
     public float seminotchingangle = 45f;
+    float exitingTimer = 0f;
     enum AIphase
     {
         None = 0,
@@ -233,16 +226,14 @@ public class EnemyAceAircraftM03 : AircraftController
         {
             // 離脱→正面→ノッチング→接近の順で遷移
             currentphase = AIphase.Exiting;
+            exitingTimer = basedist / Mathf.Max(rb.linearVelocity.magnitude, 1f);
             targetdir = notchingVec();
         }
         else if (currentphase == AIphase.Exiting)
         {
             currentstate = AIState.Exit;
-            if (currentstate == AIState.Evade)
-            {
-                currentphase = AIphase.None;
-            }
-            else if (Dist > basedist)
+            exitingTimer -= Time.deltaTime;
+            if (Dist > basedist || exitingTimer <= 0f)
             {
                 currentphase = AIphase.Aheading;
                 targetdir = notchingVec();
