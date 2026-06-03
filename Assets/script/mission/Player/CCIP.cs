@@ -347,19 +347,21 @@ public class CCIP : MonoBehaviour
         Vector3 muzzlePos = muzzle.position;
         Vector3 targetVelocity = GetTargetVelocity(tgt, targetStatus);
 
-        if (!TryPredictGunAimPoint(
+        if (!TryBuildGunReticlePoint(
+            plane.transform.position,
             muzzlePos,
             rb.linearVelocity,
+            muzzle.forward,
             tgt.transform.position,
             targetVelocity,
             bulletSpeed,
-            out Vector3 aimPoint))
+            out Vector3 reticlePoint))
         {
             gunMarker.gameObject.SetActive(false);
             return;
         }
 
-        Vector3 screenLead = mainCam.WorldToScreenPoint(aimPoint);
+        Vector3 screenLead = mainCam.WorldToScreenPoint(reticlePoint);
         gunMarker.position = screenLead;
         gunMarker.gameObject.SetActive(screenLead.z > 0);
     }
@@ -371,6 +373,47 @@ public class CCIP : MonoBehaviour
             return targetRb.linearVelocity;
 
         return targetStatus.Velocity / Mathf.Max(Time.deltaTime, 0.0001f);
+    }
+
+    bool TryBuildGunReticlePoint(
+        Vector3 shooterCenter,
+        Vector3 muzzlePos,
+        Vector3 shooterVelocity,
+        Vector3 muzzleForward,
+        Vector3 targetPos,
+        Vector3 targetVel,
+        float bulletSpeed,
+        out Vector3 reticlePoint)
+    {
+        reticlePoint = Vector3.zero;
+
+        if (!TryPredictGunAimPoint(
+            muzzlePos,
+            shooterVelocity,
+            targetPos,
+            targetVel,
+            bulletSpeed,
+            out Vector3 futureTargetPoint))
+        {
+            return false;
+        }
+
+        Vector3 leadOffset = futureTargetPoint - targetPos;
+        float targetRange = Vector3.Distance(shooterCenter, targetPos);
+
+        Vector3 bulletVelocity = shooterVelocity + muzzleForward.normalized * bulletSpeed;
+        if (!TryIntersectRaySphere(
+            muzzlePos,
+            bulletVelocity.normalized,
+            shooterCenter,
+            targetRange,
+            out Vector3 ballisticRangePoint))
+        {
+            return false;
+        }
+
+        reticlePoint = ballisticRangePoint - leadOffset;
+        return true;
     }
 
     bool TryPredictGunAimPoint(
@@ -395,6 +438,38 @@ public class CCIP : MonoBehaviour
         }
 
         aimPoint = targetPos + targetVel * t;
+        return true;
+    }
+
+    bool TryIntersectRaySphere(
+        Vector3 rayOrigin,
+        Vector3 rayDirection,
+        Vector3 sphereCenter,
+        float sphereRadius,
+        out Vector3 hitPoint)
+    {
+        const float epsilon = 0.0001f;
+        hitPoint = Vector3.zero;
+
+        if (rayDirection.sqrMagnitude < epsilon || sphereRadius <= epsilon)
+            return false;
+
+        Vector3 originToCenter = rayOrigin - sphereCenter;
+        float b = 2f * Vector3.Dot(originToCenter, rayDirection);
+        float c = Vector3.Dot(originToCenter, originToCenter) - sphereRadius * sphereRadius;
+        float discriminant = b * b - 4f * c;
+        if (discriminant < 0f) return false;
+
+        float sqrt = Mathf.Sqrt(discriminant);
+        float t1 = (-b - sqrt) * 0.5f;
+        float t2 = (-b + sqrt) * 0.5f;
+
+        bool t1ok = t1 > epsilon;
+        bool t2ok = t2 > epsilon;
+        if (!t1ok && !t2ok) return false;
+
+        float t = t1ok && t2ok ? Mathf.Min(t1, t2) : (t1ok ? t1 : t2);
+        hitPoint = rayOrigin + rayDirection * t;
         return true;
     }
 
