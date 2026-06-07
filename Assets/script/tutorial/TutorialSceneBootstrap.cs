@@ -1,7 +1,11 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class TutorialSceneBootstrap : MonoBehaviour
 {
@@ -9,6 +13,8 @@ public class TutorialSceneBootstrap : MonoBehaviour
     const string MainScene = "M00";
 
     static bool registered;
+    string bootSceneName;
+    TMP_FontAsset resolvedFont;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Initialize()
@@ -34,11 +40,19 @@ public class TutorialSceneBootstrap : MonoBehaviour
 
         var root = new GameObject("TutorialSceneBootstrap");
         var bootstrap = root.AddComponent<TutorialSceneBootstrap>();
-        bootstrap.Setup(scene.name);
+        bootstrap.bootSceneName = scene.name;
+    }
+
+    IEnumerator Start()
+    {
+        yield return null;
+        Setup(bootSceneName);
     }
 
     void Setup(string sceneName)
     {
+        resolvedFont = ResolveNotoFont();
+
         if (sceneName == PreScene)
             SetupPreM00();
         else if (sceneName == MainScene)
@@ -63,6 +77,8 @@ public class TutorialSceneBootstrap : MonoBehaviour
 
     void SetupM00()
     {
+        DisableSpawnManagers();
+
         Transform player = FindPlayer();
         if (player != null)
         {
@@ -108,13 +124,17 @@ public class TutorialSceneBootstrap : MonoBehaviour
         attractor.range = 900f;
         attractor.strength = 0.22f;
 
-        CreateAimBalloon(gunTarget.transform);
         CreateUavTrainingArea();
 
         var switchSpawner = gameObject.AddComponent<TutorialTargetSwitchSpawner>();
         switchSpawner.player = player;
-        switchSpawner.enemyPrefab = CreateTargetSwitchPrefab();
-        switchSpawner.missionObjective = true;
+        switchSpawner.enemyPrefabA = CreateTargetSwitchPrefab(player.transform.position + player.forward * 700f);
+        switchSpawner.missionObjectiveA = false;
+        switchSpawner.scoreZero = true;
+
+        Vector3 twoOClockDirection = Quaternion.Euler(0f, 60f, 0f) * player.forward;
+        switchSpawner.enemyPrefabB = CreateTargetSwitchPrefab(player.transform.position + twoOClockDirection * 700f);
+        switchSpawner.missionObjectiveB = true;
         switchSpawner.scoreZero = true;
     }
 
@@ -147,6 +167,8 @@ public class TutorialSceneBootstrap : MonoBehaviour
         rect.sizeDelta = size;
 
         var text = obj.GetComponent<TextMeshProUGUI>();
+        if (resolvedFont != null)
+            text.font = resolvedFont;
         text.fontSize = fontSize;
         text.alignment = alignment;
         text.color = Color.white;
@@ -209,12 +231,14 @@ public class TutorialSceneBootstrap : MonoBehaviour
         return enemy;
     }
 
-    GameObject CreateTargetSwitchPrefab()
+    GameObject CreateTargetSwitchPrefab(Vector3 position)
     {
         var prefab = GameObject.CreatePrimitive(PrimitiveType.Capsule);
         prefab.name = "TutorialTargetSwitchEnemyPrefab";
         prefab.transform.localScale = new Vector3(12f, 8f, 24f);
         prefab.SetActive(false);
+        prefab.transform.position = position;
+        prefab.transform.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
 
         var rb = prefab.AddComponent<Rigidbody>();
         rb.useGravity = false;
@@ -228,30 +252,10 @@ public class TutorialSceneBootstrap : MonoBehaviour
         status.SetScoreReward(0f);
 
         var orbit = prefab.AddComponent<Orbitcruise>();
-        orbit.center = new Vector3(0f, 1500f, -1100f);
+        orbit.center = position;
         orbit.useStartDistanceAsRadius = true;
         orbit.cruiseThrottle = 0.8f;
         return prefab;
-    }
-
-    void CreateAimBalloon(Transform target)
-    {
-        var balloon = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        balloon.name = "TutorialAimBalloon";
-        balloon.transform.position = target.position + target.forward * 110f + Vector3.up * 25f;
-        balloon.transform.localScale = Vector3.one * 18f;
-
-        var rb = balloon.AddComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.mass = 0.2f;
-        rb.linearDamping = 1.2f;
-
-        var joint = balloon.AddComponent<SpringJoint>();
-        joint.connectedBody = target.GetComponent<Rigidbody>();
-        joint.spring = 15f;
-        joint.damper = 4f;
-        joint.maxDistance = 130f;
-        joint.minDistance = 80f;
     }
 
     void CreateUavTrainingArea()
@@ -260,6 +264,7 @@ public class TutorialSceneBootstrap : MonoBehaviour
         storage.name = "TutorialUavStorageLauncher";
         storage.transform.position = new Vector3(-800f, 1500f, -750f);
         storage.transform.localScale = new Vector3(80f, 24f, 80f);
+        storage.SetActive(true);
 
         var rb = storage.AddComponent<Rigidbody>();
         rb.useGravity = false;
@@ -275,11 +280,52 @@ public class TutorialSceneBootstrap : MonoBehaviour
         status.SetScoreReward(0f);
 
         TextMeshPro text = storage.AddComponent<TextMeshPro>();
+        if (resolvedFont != null)
+            text.font = resolvedFont;
         text.text = "マルチロックミサイルを試してみましょう\n複数のUAVを視界に入れて、一斉発射できます。";
         text.fontSize = 36f;
         text.alignment = TextAlignmentOptions.Center;
         text.color = Color.cyan;
         text.transform.localPosition = Vector3.up * 120f;
         text.transform.rotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
+    }
+
+    void DisableSpawnManagers()
+    {
+        var managers = FindObjectsByType<SpawnTableManager>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var manager in managers)
+        {
+            if (manager != null)
+                manager.enabled = false;
+        }
+    }
+
+    TMP_FontAsset ResolveNotoFont()
+    {
+#if UNITY_EDITOR
+        TMP_FontAsset asset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/NotoSansJP-Regular SDF.asset");
+        if (asset != null)
+            return asset;
+#endif
+
+        var uiTexts = FindObjectsByType<TextMeshProUGUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var text in uiTexts)
+        {
+            if (text != null && text.font != null && text.font.name.Contains("NotoSansJP-Regular SDF"))
+                return text.font;
+        }
+
+        var worldTexts = FindObjectsByType<TextMeshPro>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var text in worldTexts)
+        {
+            if (text != null && text.font != null && text.font.name.Contains("NotoSansJP-Regular SDF"))
+                return text.font;
+        }
+
+        TMP_FontAsset resourceFont = Resources.Load<TMP_FontAsset>("NotoSansJP-Regular SDF");
+        if (resourceFont != null)
+            return resourceFont;
+
+        return TMP_Settings.defaultFontAsset;
     }
 }

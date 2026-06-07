@@ -22,6 +22,7 @@ public class AircraftController : MonoBehaviour
     public Vector3 Velocity;
 
     public AugumentStatus status; 
+    Vector3 externalControlAssist;
     
     protected virtual void Awake()
     {
@@ -72,7 +73,8 @@ public class AircraftController : MonoBehaviour
     {
         if (rb == null) return;
 
-        Vector3 controlInput = GetControlInput() * 0.3f;
+        Vector3 controlInput = (GetControlInput() + externalControlAssist) * 0.3f;
+        externalControlAssist = Vector3.zero;
         float targetThrottle = GetThrottleInput();
         limiterOn = GetLimiter();
 
@@ -160,4 +162,9 @@ public class AircraftController : MonoBehaviour
     protected virtual float GetThrottleInput() => 1f;
 
     protected virtual bool GetLimiter() => true;
+
+    public void AddControlAssist(Vector3 assistInput)
+    {
+        externalControlAssist += Vector3.ClampMagnitude(assistInput, 1f);
+    }
 }

@@ -4,12 +4,16 @@ public class TutorialTargetSwitchSpawner : MonoBehaviour
 {
     public Transform player;
     public GameObject enemyPrefab;
-    public float triggerZ = -800f;
+    public GameObject enemyPrefabA;
+    public GameObject enemyPrefabB;
+    public float triggerZ = -1500f;
     public float spawnDistance = 700f;
     public float spawnAltitudeOffset = 0f;
     public float secondEnemyClockAngle = 60f;
     public bool scoreZero = true;
     public bool missionObjective;
+    public bool missionObjectiveA;
+    public bool missionObjectiveB;
 
     bool spawned;
 
@@ -25,7 +29,7 @@ public class TutorialTargetSwitchSpawner : MonoBehaviour
 
     void Update()
     {
-        if (spawned || player == null || enemyPrefab == null) return;
+        if (spawned || player == null || (enemyPrefab == null && enemyPrefabA == null && enemyPrefabB == null)) return;
         if (player.position.z >= triggerZ) return;
 
         SpawnPair();
@@ -34,13 +38,15 @@ public class TutorialTargetSwitchSpawner : MonoBehaviour
 
     void SpawnPair()
     {
-        SpawnEnemy(player.forward, "TutorialTargetSwitchEnemy_0");
+        SpawnEnemy(enemyPrefabA != null ? enemyPrefabA : enemyPrefab, player.forward, "TutorialTargetSwitchEnemy_0", missionObjectiveA || missionObjective);
         Vector3 secondDirection = Quaternion.AngleAxis(secondEnemyClockAngle, Vector3.up) * player.forward;
-        SpawnEnemy(secondDirection, "TutorialTargetSwitchEnemy_2");
+        SpawnEnemy(enemyPrefabB != null ? enemyPrefabB : enemyPrefab, secondDirection, "TutorialTargetSwitchEnemy_2", missionObjectiveB || missionObjective);
     }
 
-    void SpawnEnemy(Vector3 direction, string objectName)
+    void SpawnEnemy(GameObject prefab, Vector3 direction, string objectName, bool isMissionObjective)
     {
+        if (prefab == null) return;
+
         direction.y = 0f;
         if (direction.sqrMagnitude < 0.0001f)
             direction = Vector3.forward;
@@ -48,14 +54,15 @@ public class TutorialTargetSwitchSpawner : MonoBehaviour
         Vector3 position = player.position + direction.normalized * spawnDistance;
         position.y += spawnAltitudeOffset;
 
-        GameObject enemy = Instantiate(enemyPrefab, position, Quaternion.LookRotation(-direction.normalized, Vector3.up));
+        GameObject enemy = Instantiate(prefab, position, Quaternion.LookRotation(-direction.normalized, Vector3.up));
         enemy.name = objectName;
+        enemy.SetActive(true);
 
         if (enemy.TryGetComponent(out AugumentStatus status))
         {
             status.isEnemy = true;
             status.isPlayer = false;
-            status.missionObjective = missionObjective;
+            status.missionObjective = isMissionObjective;
             status.issortie = true;
             if (scoreZero)
                 status.SetScoreReward(0f);
