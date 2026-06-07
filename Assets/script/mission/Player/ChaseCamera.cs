@@ -11,6 +11,9 @@ public class ChaseCameraController : MonoBehaviour
     [Header("Right Stick Settings")]
     public float sensitivity = 45f;   // 右スティックの視点移動角度（度/最大入力）
     public float returnSpeed = 1f;    // 入力がないときに機体方向に戻る速度
+    [SerializeField] float inputDeadZone = 0.05f;
+
+    public bool IsCameraInputActive { get; private set; }
 
     private float yawOffset;   // 相対Yaw
     private float pitchOffset; // 相対Pitch
@@ -24,6 +27,7 @@ public class ChaseCameraController : MonoBehaviour
         var input = InputManager.Instance;
         float inputX = input.horizontalR; // 右スティックX
         float inputY = input.verticalR;   // 右スティックY
+        IsCameraInputActive = new Vector2(inputX, inputY).sqrMagnitude > inputDeadZone * inputDeadZone;
 
 
         // 入力に応じて相対オフセットを更新

@@ -12,8 +12,11 @@ public class CCIP : MonoBehaviour
     [SerializeField] Camera hudCam;
     Camera mainCam;
     [SerializeField] DebugHUD debugHUD;
+    [SerializeField] ChaseCameraController chaseCameraController;
 
     public RectTransform gunMarker;          // ガンリードマーカー
+    RectTransform gunMarkerParentRect;
+    Camera gunMarkerCanvasCamera;
 
     [Header("Player")]
     public GameObject plane;
@@ -48,9 +51,12 @@ public class CCIP : MonoBehaviour
     void Start()
     {
         mainCam = Camera.main;
+        CacheGunMarkerCanvas();
 
         weapon = plane.GetComponent<WeaponSystem>();
         rb = plane.GetComponent<Rigidbody>();
+        if (chaseCameraController == null && plane != null)
+            chaseCameraController = plane.GetComponent<ChaseCameraController>();
 
         leftlines = new List<GameObject>();
         rightlines = new List<GameObject>();
@@ -107,6 +113,9 @@ public class CCIP : MonoBehaviour
 
     void LateUpdate()
     {
+        if (mainCam == null)
+            mainCam = Camera.main;
+
         showCCIP = weapon.mode == WeaponMode.UGB;
 
         if (debugHUD.Lockedtargets.Count > 0)
@@ -115,7 +124,11 @@ public class CCIP : MonoBehaviour
         }
 
         // -------- ガンリード更新 --------
-        if (gunMarker != null && weapon != null && tgt != null)
+        if (gunMarker != null && chaseCameraController != null && chaseCameraController.IsCameraInputActive)
+        {
+            gunMarker.gameObject.SetActive(false);
+        }
+        else if (gunMarker != null && weapon != null && tgt != null)
         {
             if (Vector3.Distance(plane.transform.position, tgt.transform.position) < debugHUD.gunRange)
             {
@@ -327,7 +340,7 @@ public class CCIP : MonoBehaviour
     // ガンリード計算（軽量反復）
     void UpdateGunReticle()
     {
-        if (rb == null || tgt == null || weapon == null) return;
+        if (rb == null || tgt == null || weapon == null || mainCam == null) return;
 
         var targetStatus = tgt.GetComponent<AugumentStatus>();
         if (targetStatus == null)
@@ -351,7 +364,8 @@ public class CCIP : MonoBehaviour
             plane.transform.position,
             muzzlePos,
             rb.linearVelocity,
-            muzzle.forward,
+            mainCam.transform.position,
+            mainCam.transform.forward,
             tgt.transform.position,
             targetVelocity,
             bulletSpeed,
@@ -362,8 +376,10 @@ public class CCIP : MonoBehaviour
         }
 
         Vector3 screenLead = mainCam.WorldToScreenPoint(reticlePoint);
-        gunMarker.position = screenLead;
-        gunMarker.gameObject.SetActive(screenLead.z > 0);
+        bool isInFront = screenLead.z > mainCam.nearClipPlane;
+        gunMarker.gameObject.SetActive(isInFront);
+        if (isInFront)
+            SetGunMarkerScreenPosition(screenLead);
     }
 
     Vector3 GetTargetVelocity(GameObject target, AugumentStatus targetStatus)
@@ -379,7 +395,8 @@ public class CCIP : MonoBehaviour
         Vector3 shooterCenter,
         Vector3 muzzlePos,
         Vector3 shooterVelocity,
-        Vector3 muzzleForward,
+        Vector3 reticleRayOrigin,
+        Vector3 reticleRayForward,
         Vector3 targetPos,
         Vector3 targetVel,
         float bulletSpeed,
@@ -401,10 +418,9 @@ public class CCIP : MonoBehaviour
         Vector3 leadOffset = futureTargetPoint - targetPos;
         float targetRange = Vector3.Distance(shooterCenter, targetPos);
 
-        Vector3 bulletVelocity = shooterVelocity + muzzleForward.normalized * bulletSpeed;
         if (!TryIntersectRaySphere(
-            muzzlePos,
-            bulletVelocity.normalized,
+            reticleRayOrigin,
+            reticleRayForward.normalized,
             shooterCenter,
             targetRange,
             out Vector3 ballisticRangePoint))
@@ -414,6 +430,49 @@ public class CCIP : MonoBehaviour
 
         reticlePoint = ballisticRangePoint - leadOffset;
         return true;
+    }
+
+    void CacheGunMarkerCanvas()
+    {
+        if (gunMarker == null) return;
+
+        Canvas canvas = gunMarker.GetComponentInParent<Canvas>();
+        if (canvas == null)
+        {
+            gunMarkerParentRect = null;
+            gunMarkerCanvasCamera = null;
+            return;
+        }
+
+        gunMarkerParentRect = gunMarker.parent as RectTransform;
+        gunMarkerCanvasCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay
+            ? null
+            : canvas.worldCamera != null ? canvas.worldCamera : mainCam;
+    }
+
+    void SetGunMarkerScreenPosition(Vector3 screenPos)
+    {
+        if (gunMarkerParentRect == null)
+            CacheGunMarkerCanvas();
+
+        if (gunMarkerParentRect == null)
+        {
+            gunMarker.position = screenPos;
+            return;
+        }
+
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            gunMarkerParentRect,
+            screenPos,
+            gunMarkerCanvasCamera,
+            out Vector2 localPos))
+        {
+            gunMarker.anchoredPosition = localPos;
+        }
+        else
+        {
+            gunMarker.position = screenPos;
+        }
     }
 
     bool TryPredictGunAimPoint(

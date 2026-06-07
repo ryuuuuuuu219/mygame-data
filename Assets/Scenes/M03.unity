@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!29 &1
 OcclusionCullingSettings:
@@ -602,6 +602,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -770,6 +771,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1247,6 +1249,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SpawnPlacementManager
   prefabRegistry: {fileID: 245426233}
   worldGenerator: {fileID: 0}
+  terrainExposeOffset: 0
 --- !u!114 &245426233
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1656,6 +1659,10 @@ MonoBehaviour:
   lacunarity: 2
   canyonThreshold: 0.868
   canyonMinimumHeight: 0.143
+  blockSampleStep: 10
+  blockHeightSteps: 10
+  blockBaseHeight: 0
+  blockSideThickness: 1
   water: {fileID: 0}
   waterHeight: 8
   boundaryOffset: 2
@@ -1678,7 +1685,6 @@ MonoBehaviour:
   playerSaturation: 0.8
   playerValue: 0.6
   randomHueRange: 0.1
-  terrain: {fileID: 0}
   isgenerating: 0
 --- !u!1 &376673030
 GameObject:
@@ -2245,14 +2251,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 520181366}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 13
   m_Type: 1
   m_Color: {r: 1, g: 0.9909123, b: 0.8784314, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 100
+  m_CookieSize2D: {x: 100, y: 100}
   m_Shadows:
     m_Type: 0
     m_Resolution: -1
@@ -2297,7 +2303,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
-  m_ShadowRadius: 0
+  m_ShapeRadius: 0
   m_ShadowAngle: 0
   m_LightUnit: 1
   m_LuxAtDistance: 1
@@ -2940,7 +2946,7 @@ Transform:
   m_GameObject: {fileID: 796543696}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1200, z: -3500}
+  m_LocalPosition: {x: 0, y: 1400, z: -3500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3068,6 +3074,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &796543702
 MeshFilter:
@@ -3128,6 +3135,7 @@ MonoBehaviour:
   mslturnRate: 90
   mslbreakAngle: 90
   mslProportionalConstant: 3
+  mslFixedTarget: 0
   missileTimerA: 0
   missileTimerB: 0
   maxnAAM: 0
@@ -7898,7 +7906,7 @@ ParticleSystem:
     vectorLabel1_3: W
 --- !u!199 &796543707
 ParticleSystemRenderer:
-  serializedVersion: 6
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -7944,6 +7952,7 @@ ParticleSystemRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_RenderMode: 0
   m_MeshDistribution: 0
   m_SortMode: 0
@@ -7975,7 +7984,6 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
-  m_MaskInteraction: 0
 --- !u!114 &796543708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7994,6 +8002,12 @@ MonoBehaviour:
   MissileArray: 
   AlartUIprefub: {fileID: 7850232646143825981, guid: 8c89b5d912fe9614181cca84ed65f384, type: 3}
   Canvas: {fileID: 86112872}
+  warningNearDistance: 300
+  warningFarDistance: 3500
+  missileNearInterval: 0.05
+  missileFarInterval: 0.8
+  lockNearInterval: 0.45
+  lockFarInterval: 1.4
   lockAlerts: []
   missileAlerts: []
   Camera: {fileID: 1074083610}
@@ -8038,9 +8052,11 @@ MonoBehaviour:
   ECM: 0
   waveID: -1
   currentHeat: 1
+  destructionEffectRadius: 12
   hp: 0
   maxhp: 100
   lifeTime: 0
+  preferInspectorStatus: 1
   CurrentStatus:
     statusdic:
     - pageName: Aircraft
@@ -8381,6 +8397,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -8517,6 +8534,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -8841,6 +8859,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -8944,9 +8963,11 @@ MonoBehaviour:
   ECM: 0
   waveID: -1
   currentHeat: 1
+  destructionEffectRadius: 12
   hp: 0
   maxhp: 100
   lifeTime: 10
+  preferInspectorStatus: 1
   CurrentStatus:
     statusdic:
     - pageName: Aircraft
@@ -9261,14 +9282,14 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1097357051}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 13
   m_Type: 2
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
-  m_CookieSize: 10
+  m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 0
     m_Resolution: -1
@@ -9313,7 +9334,7 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
-  m_ShadowRadius: 0
+  m_ShapeRadius: 0
   m_ShadowAngle: 0
   m_LightUnit: 1
   m_LuxAtDistance: 1
@@ -9632,6 +9653,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -9665,9 +9687,11 @@ MonoBehaviour:
   targetLocator: {fileID: 724190744}
   edgeOffset: 50
   LockedFrame: 1
+  multiLockCount: 1
   detecttargets: []
   markingtargets: []
   Lockedtargets: []
+  deceived: 0
 --- !u!1 &1313269416
 GameObject:
   m_ObjectHideFlags: 0
@@ -9856,6 +9880,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -10418,6 +10443,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -11290,6 +11316,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -11707,6 +11734,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -11848,6 +11876,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
+  m_UseReflectionProbes: 0
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -11914,6 +11943,11 @@ MonoBehaviour:
   friendColor: {r: 0, g: 1, b: 1, a: 1}
   enemyColor: {r: 0, g: 1, b: 0, a: 1}
   targetColor: {r: 1, g: 0, b: 0, a: 1}
+  jammerWaveColor: {r: 0, g: 1, b: 0, a: 1}
+  jammerWaveMaterial: {fileID: 0}
+  jammerWavePoolSize: 4
+  radarMaskRoot: {fileID: 0}
+  createRadarMask: 1
   detectRange: 3000
   radarRadius: 100
   arrysUI: []
