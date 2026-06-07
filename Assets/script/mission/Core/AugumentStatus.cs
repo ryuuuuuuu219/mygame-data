@@ -18,6 +18,8 @@ public class AugumentStatus : MonoBehaviour
 
     public float currentHeat = 1f;
     public float destructionEffectRadius = 12f;
+    [Tooltip("撃破時に加算するスコア。0以上ならこの値を使い、負数なら従来通りmaxhpを使う。")]
+    public float scoreReward = -1f;
 
     public float hp,maxhp = 100;
     public float lifeTime = 10f;
@@ -32,6 +34,16 @@ public class AugumentStatus : MonoBehaviour
         max = maxhp;
 
         return max > 0f;
+    }
+
+    public float GetScoreReward()
+    {
+        return scoreReward >= 0f ? scoreReward : maxhp;
+    }
+
+    public void SetScoreReward(float reward)
+    {
+        scoreReward = Mathf.Max(0f, reward);
     }
 
     public void storeHP()
@@ -227,9 +239,10 @@ public class AugumentStatus : MonoBehaviour
         if (!isPlayer && isEnemy)
         {
             var OM = ObjectManager.Instance;
+            float awardedScore = GetScoreReward();
             OM.destroyedUIflag = true;
-            OM.score += maxhp;
-            Debug.Log($"{name} destroyed. Score awarded: {maxhp}");
+            OM.score += awardedScore;
+            Debug.Log($"{name} destroyed. Score awarded: {awardedScore}");
             ImpactEffectFactory.Spawn(transform.position, destructionEffectRadius);
             GeneratedAudioManager.Play(GeneratedAudioCue.Destroyed, transform.position, 0.85f);
 
