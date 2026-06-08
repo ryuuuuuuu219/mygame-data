@@ -608,39 +608,39 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PreM00TutorialBootstrap
   guideLayouts:
-  - textPosition: {x: -380, y: 170}
-    from: {x: -150, y: 170}
-    to: {x: -100, y: 106}
-  - textPosition: {x: -380, y: 105}
-    from: {x: -150, y: 105}
-    to: {x: -100, y: 63}
-  - textPosition: {x: -380, y: 40}
-    from: {x: -150, y: 40}
-    to: {x: -100, y: 20}
-  - textPosition: {x: -380, y: -25}
-    from: {x: -150, y: -25}
-    to: {x: -100, y: -23}
-  - textPosition: {x: -380, y: -90}
-    from: {x: -150, y: -90}
-    to: {x: -100, y: -66}
-  - textPosition: {x: 380, y: 170}
-    from: {x: 150, y: 170}
-    to: {x: 110, y: 106}
-  - textPosition: {x: 380, y: 105}
-    from: {x: 150, y: 105}
-    to: {x: 110, y: 63}
-  - textPosition: {x: 380, y: 40}
-    from: {x: 150, y: 40}
-    to: {x: 110, y: 20}
-  - textPosition: {x: 380, y: -25}
-    from: {x: 150, y: -25}
-    to: {x: 110, y: -23}
-  - textPosition: {x: 380, y: -90}
-    from: {x: 150, y: -90}
-    to: {x: 110, y: -66}
-  - textPosition: {x: 380, y: -155}
-    from: {x: 150, y: -155}
-    to: {x: 110, y: -109}
+  - textPosition: {x: -430, y: 170}
+    from: {x: -200, y: 170}
+    to: []
+  - textPosition: {x: -430, y: 105}
+    from: {x: -200, y: 105}
+    to: []
+  - textPosition: {x: -430, y: 40}
+    from: {x: -200, y: 40}
+    to: []
+  - textPosition: {x: -430, y: -25}
+    from: {x: -200, y: -25}
+    to: []
+  - textPosition: {x: -430, y: -90}
+    from: {x: -200, y: -90}
+    to: []
+  - textPosition: {x: 430, y: 170}
+    from: {x: 200, y: 170}
+    to: []
+  - textPosition: {x: 430, y: 105}
+    from: {x: 200, y: 105}
+    to: []
+  - textPosition: {x: 430, y: 40}
+    from: {x: 200, y: 40}
+    to: []
+  - textPosition: {x: 430, y: -25}
+    from: {x: 200, y: -25}
+    to: []
+  - textPosition: {x: 430, y: -90}
+    from: {x: 200, y: -90}
+    to: []
+  - textPosition: {x: 430, y: -155}
+    from: {x: 200, y: -155}
+    to: []
 --- !u!4 &452890702
 Transform:
   m_ObjectHideFlags: 0

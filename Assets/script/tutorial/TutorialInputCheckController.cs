@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -18,20 +18,20 @@ public class TutorialInputCheckController : MonoBehaviour
     public bool autoLoadNextScene;
     public float autoLoadDelay = 1.5f;
 
-    public InputCheck[] checks =
+    public void SetLabel(TextMeshProUGUI[] labelTexts)
     {
-        new InputCheck { label = "左スティック左右: ロール" },
-        new InputCheck { label = "左スティック上下: ピッチ" },
-        new InputCheck { label = "右スティック: 視点移動" },
-        new InputCheck { label = "R1: 加速" },
-        new InputCheck { label = "L1: 減速" },
-        new InputCheck { label = "R2/L2: ヨー" },
-        new InputCheck { label = "左スティック押し込み + 減速: 機動制限解除" },
-        new InputCheck { label = "△: 目標切替" },
-        new InputCheck { label = "○: ミサイル / 選択兵装発射" },
-        new InputCheck { label = "×: 機銃" },
-        new InputCheck { label = "□: 兵装切替" },
-    };
+        if (labelTexts == null) return;
+        
+        checks = new InputCheck[labelTexts.Length];
+        for (int i = 0; i < labelTexts.Length; i++)
+        {
+            checks[i] = new InputCheck();
+            if (labelTexts[i] != null)
+                checks[i].label = labelTexts[i].text.ToString();
+        }
+    }
+
+    public InputCheck[] checks;
 
     bool completed;
     float completedTimer;
@@ -67,20 +67,20 @@ public class TutorialInputCheckController : MonoBehaviour
         if (string.IsNullOrEmpty(nextSceneName)) return;
         SceneManager.LoadScene(nextSceneName);
     }
-
     void UpdateChecks(InputManager input)
     {
-        Complete(0, Mathf.Abs(input.horizontalL) > 0.35f);
-        Complete(1, Mathf.Abs(input.verticalL) > 0.35f);
-        Complete(2, Mathf.Abs(input.horizontalR) > 0.35f || Mathf.Abs(input.verticalR) > 0.35f);
-        Complete(3, input.r1 || input.accel > 0.1f);
-        Complete(4, input.l1 || input.accel < -0.1f);
-        Complete(5, input.altr2 || input.altl2 || Mathf.Abs(input.r2 - input.l2) > 0.1f);
-        Complete(6, input.stickL && input.accel < -0.1f);
-        Complete(7, input.targetChange);
-        Complete(8, input.fireMissile);
-        Complete(9, input.fireGun);
-        Complete(10, input.changeWeapon);
+        Complete(0, input.altr2 || input.altl2 || Mathf.Abs(input.r2 - input.l2) > 0.1f); // R2/L2: 左右ヨー
+        Complete(1, input.l1 || input.accel < -0.1f);                                     // L1: 減速
+        Complete(2, Mathf.Abs(input.horizontalL) > 0.35f);                                 // 左スティック左右: ロール
+        Complete(3, Mathf.Abs(input.verticalL) > 0.35f);                                   // 左スティック上下: ピッチ
+        Complete(4, input.stickL && input.accel < -0.1f);                                  // 左スティック押し込み + L1: 機動力制限解除
+
+        Complete(5, input.r1 || input.accel > 0.1f);                                       // R1: 加速
+        Complete(6, input.targetChange);                                                   // △: 目標切替
+        Complete(7, input.changeWeapon);                                                   // □: 主兵装切替
+        Complete(8, input.fireMissile);                                                    // ○: 主兵装発射
+        Complete(9, input.fireGun);                                                        // ×: 機銃発射
+        Complete(10, Mathf.Abs(input.horizontalR) > 0.35f || Mathf.Abs(input.verticalR) > 0.35f); // 右スティック: 視点移動
     }
 
     void Complete(int index, bool condition)

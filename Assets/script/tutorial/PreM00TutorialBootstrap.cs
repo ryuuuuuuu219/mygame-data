@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,36 +14,136 @@ public class PreM00TutorialBootstrap : MonoBehaviour
     {
         public Vector2 textPosition;
         public Vector2 from;
-        public Vector2 to;
+        public Vector2[] to;
     }
 
     const string MainScene = "M00";
 
     public GuideLayout[] guideLayouts =
+{
+    // 左1: R2/L2 / ヨー
+    new GuideLayout
     {
-        // 左1: R2/L2 / ヨー
-        new GuideLayout { textPosition = new Vector2(-380f, 170f), from = new Vector2(-150f, 170f), to = new Vector2(-100f, 106f) },
-        // 左2: L1 / 減速
-        new GuideLayout { textPosition = new Vector2(-380f, 105f), from = new Vector2(-150f, 105f), to = new Vector2(-100f, 63f) },
-        // 左3: 左スティック左右 / ロール
-        new GuideLayout { textPosition = new Vector2(-380f, 40f), from = new Vector2(-150f, 40f), to = new Vector2(-100f, 20f) },
-        // 左4: 左スティック上下 / ピッチ
-        new GuideLayout { textPosition = new Vector2(-380f, -25f), from = new Vector2(-150f, -25f), to = new Vector2(-100f, -23f) },
-        // 左5: 左スティック押し込み + 減速 / 機動制限解除
-        new GuideLayout { textPosition = new Vector2(-380f, -90f), from = new Vector2(-150f, -90f), to = new Vector2(-100f, -66f) },
-        // 右1: R1 / 加速
-        new GuideLayout { textPosition = new Vector2(380f, 170f), from = new Vector2(150f, 170f), to = new Vector2(110f, 106f) },
-        // 右2: △ / 目標切替
-        new GuideLayout { textPosition = new Vector2(380f, 105f), from = new Vector2(150f, 105f), to = new Vector2(110f, 63f) },
-        // 右3: □ / 兵装切替
-        new GuideLayout { textPosition = new Vector2(380f, 40f), from = new Vector2(150f, 40f), to = new Vector2(110f, 20f) },
-        // 右4: ○ / ミサイル・選択兵装発射
-        new GuideLayout { textPosition = new Vector2(380f, -25f), from = new Vector2(150f, -25f), to = new Vector2(110f, -23f) },
-        // 右5: × / 機銃
-        new GuideLayout { textPosition = new Vector2(380f, -90f), from = new Vector2(150f, -90f), to = new Vector2(110f, -66f) },
-        // 右6: 右スティック / 視点移動
-        new GuideLayout { textPosition = new Vector2(380f, -155f), from = new Vector2(150f, -155f), to = new Vector2(110f, -109f) },
-    };
+        textPosition = new Vector2(-430f, 170f),
+        from = new Vector2(-200f, 170f),
+        to = new[]
+        {
+            new Vector2(-100f, 106f),
+            new Vector2(100f, 106f),
+        }
+    },
+
+    // 左2: L1 / 減速
+    new GuideLayout
+    {
+        textPosition = new Vector2(-430f, 105f),
+        from = new Vector2(-200f, 105f),
+        to = new[]
+        {
+            new Vector2(-100f, 63f)
+        }
+    },
+
+    // 左3: 左スティック左右 / ロール
+    new GuideLayout
+    {
+        textPosition = new Vector2(-430f, 40f),
+        from = new Vector2(-200f, 40f),
+        to = new[]
+        {
+            new Vector2(-100f, -109f)
+        }
+    },
+
+    // 左4: 左スティック上下 / ピッチ
+    new GuideLayout
+    {
+        textPosition = new Vector2(-430f, -25f),
+        from = new Vector2(-200f, -25f),
+        to = new[]
+        {
+            new Vector2(-100f, -109f)
+        }
+    },
+
+    // 左5: 左スティック押し込み + 減速 / 機動制限解除
+    new GuideLayout
+    {
+        textPosition = new Vector2(-430f, -90f),
+        from = new Vector2(-200f, -90f),
+        to = new[]
+        {
+            new Vector2(-100f, -109f),
+            new Vector2(-100f, 63f),
+        }
+    },
+
+    // 右1: R1 / 加速
+    new GuideLayout
+    {
+        textPosition = new Vector2(430f, 170f),
+        from = new Vector2(200f, 170f),
+        to = new[]
+        {
+            new Vector2(112f, 63f)
+        }
+    },
+
+    // 右2: △ / 目標切替
+    new GuideLayout
+    {
+        textPosition = new Vector2(430f, 105f),
+        from = new Vector2(200f, 105f),
+        to = new[]
+        {
+            new Vector2(112f, 20f)
+        }
+    },
+
+    // 右3: □ / 兵装切替
+    new GuideLayout
+    {
+        textPosition = new Vector2(430f, 40f),
+        from = new Vector2(200f, 40f),
+        to = new[]
+        {
+            new Vector2(83f, -23f)
+        }
+    },
+
+    // 右4: ○ / 主兵装発射
+    new GuideLayout
+    {
+        textPosition = new Vector2(430f, -25f),
+        from = new Vector2(200f, -25f),
+        to = new[]
+        {
+            new Vector2(130f, -23f)
+        }
+    },
+
+    // 右5: × / 機銃発射
+    new GuideLayout
+    {
+        textPosition = new Vector2(430f, -90f),
+        from = new Vector2(200f, -90f),
+        to = new[]
+        {
+            new Vector2(112f, -66f)
+        }
+    },
+
+    // 右6: 右スティック / 視点移動
+    new GuideLayout
+    {
+        textPosition = new Vector2(430f, -155f),
+        from = new Vector2(200f, -155f),
+        to = new[]
+        {
+            new Vector2(112f, -109f)
+        }
+    },
+};
 
     TMP_FontAsset resolvedFont;
     Canvas canvas;
@@ -88,7 +188,7 @@ public class PreM00TutorialBootstrap : MonoBehaviour
 
         var controller = gameObject.AddComponent<TutorialInputCheckController>();
         controller.checklistText = summaryText;
-        controller.checkTexts = checkTexts;
+        controller.SetLabel(checkTexts);
         controller.nextSceneName = MainScene;
         controller.autoLoadNextScene = false;
     }
@@ -148,7 +248,15 @@ public class PreM00TutorialBootstrap : MonoBehaviour
                 layout.textPosition.x < 0f ? TextAlignmentOptions.Right : TextAlignmentOptions.Left);
 
             texts[i].text = labels[i];
-            CreateGuideLine("TutorialInputGuideLine" + i, layout.from, layout.to);
+            foreach (Vector2 target in layout.to)
+            {
+                CreateGuideLine(
+                    "TutorialInputGuideLine:to" + target.x+"," + target.y,
+                    layout.from,
+                    target);
+            }
+
+            Debug.Log("Created guide text: " + labels[i] + " at " + layout.textPosition);
         }
 
         return texts;
@@ -159,7 +267,8 @@ public class PreM00TutorialBootstrap : MonoBehaviour
         if (guideLayouts != null && index >= 0 && index < guideLayouts.Length && guideLayouts[index] != null)
             return guideLayouts[index];
 
-        return new GuideLayout { textPosition = Vector2.zero, from = Vector2.zero, to = Vector2.zero };
+        Vector2[] toArray = new Vector2[1] { new Vector2(0f, 0f) };
+        return new GuideLayout { textPosition = Vector2.zero, from = Vector2.zero, to = toArray };
     }
 
     TextMeshProUGUI CreateOverlayText(
