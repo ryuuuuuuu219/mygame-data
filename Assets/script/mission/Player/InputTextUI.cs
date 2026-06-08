@@ -16,6 +16,9 @@ public class InputTextUI : MonoBehaviour
 
     void Start()
     {
+        if (i == null)
+            i = InputManager.Instance;
+
         LbasePos = Lstick.anchoredPosition;
         RbasePos = Rstick.anchoredPosition;
     }
@@ -25,12 +28,12 @@ public class InputTextUI : MonoBehaviour
         if (i == null) return;
 
         text.text =
-            "　" + (i.altl2 ? "LT" : "・") + "\t\t\t　" + (i.altr2 ? "RT" : "・") + "\n" +
-            "　" + (i.l1 ? "LB" : "・") + "\t\t\t　" + (i.r1 ? "RB" : "・") + "\n" +
-            "　" + (i.up ? "↑" : "・") + "\t\t\t　" + (i.north ? "▲" : "・") + "\n" +
-            (i.left ? "←" : "・") + "　" + (i.right ? "→" : "・") + "\t\t" + (i.west ? "■" : "・") + "　" +(i.east ? "●" : "・") + "\n" +
-            "　" + (i.down ? "↓" : "・") + "\t\t\t　" + (i.south ? "×" : "・") + "\n" +
-            "　" + (i.stickL ? "LS" : "・") + "\t\t\t　" + (i.stickR ? "RS" : "・") + "\n";
+            "  " + (i.altl2 ? "LT" : "\u30fb") + "\t\t\t  " + (i.altr2 ? "RT" : "\u30fb") + "\n" +
+            "  " + (i.l1 ? "LB" : "\u30fb") + "\t\t\t  " + (i.r1 ? "RB" : "\u30fb") + "\n" +
+            "  " + (i.up ? "\u2191" : "\u30fb") + "\t\t\t  " + (i.north ? "\u25b3" : "\u30fb") + "\n" +
+            (i.left ? "\u2190" : "\u30fb") + "  " + (i.right ? "\u2192" : "\u30fb") + "\t\t" + (i.west ? "\u25a1" : "\u30fb") + "  " + (i.east ? "\u25cb" : "\u30fb") + "\n" +
+            "  " + (i.down ? "\u2193" : "\u30fb") + "\t\t\t  " + (i.south ? "\u00d7" : "\u30fb") + "\n" +
+            "  " + (i.stickL ? "LS" : "\u30fb") + "\t\t\t  " + (i.stickR ? "RS" : "\u30fb") + "\n";
 
         Lstick.anchoredPosition = LbasePos + new Vector2(i.horizontalL, -i.verticalL) * range;
         Rstick.anchoredPosition = RbasePos + new Vector2(i.horizontalR, i.verticalR) * range;

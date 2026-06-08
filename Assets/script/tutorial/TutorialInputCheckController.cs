@@ -13,6 +13,7 @@ public class TutorialInputCheckController : MonoBehaviour
     }
 
     public TextMeshProUGUI checklistText;
+    public TextMeshProUGUI[] checkTexts;
     public string nextSceneName = "M00";
     public bool autoLoadNextScene;
     public float autoLoadDelay = 1.5f;
@@ -49,6 +50,12 @@ public class TutorialInputCheckController : MonoBehaviour
         UpdateText();
 
         if (!completed) return;
+
+        if (input.submit)
+        {
+            LoadNextScene();
+            return;
+        }
 
         completedTimer += Time.deltaTime;
         if (autoLoadNextScene && completedTimer >= autoLoadDelay)
@@ -96,19 +103,28 @@ public class TutorialInputCheckController : MonoBehaviour
 
     void UpdateText()
     {
-        if (checklistText == null) return;
-
         var text = "操作確認\n\n";
-        foreach (var check in checks)
+        for (int i = 0; i < checks.Length; i++)
         {
+            var check = checks[i];
             if (check == null) continue;
-            text += (check.completed ? "[OK] " : "[--] ") + check.label + "\n";
+
+            string line = (check.completed ? "[OK] " : "[--] ") + check.label;
+            text += line + "\n";
+
+            if (checkTexts != null && i < checkTexts.Length && checkTexts[i] != null)
+            {
+                checkTexts[i].text = check.completed
+                    ? "<u><color=#66ff88>" + check.label + "</color></u>"
+                    : check.label;
+            }
         }
 
         if (completed)
-            text += "\n操作確認完了。";
+            text += "\n操作確認完了。決定入力で M00 へ進みます。";
 
-        checklistText.text = text;
+        if (checklistText != null)
+            checklistText.text = text;
     }
 
     void SetText(string text)

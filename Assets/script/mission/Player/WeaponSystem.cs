@@ -185,6 +185,9 @@ public class WeaponSystem : MonoBehaviour
     void TryFireGun()
     {
         if (Time.time < nextFireTime) return;
+        if (rb == null || bulletpool == null || gunMuzzle == null)
+            return;
+
         if (currentBullets <= 0)
         {
             GeneratedAudioManager.Play(GeneratedAudioCue.Empty, null, 0.45f);
