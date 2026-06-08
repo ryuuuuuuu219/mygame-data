@@ -262,9 +262,17 @@ public class TutorialSceneBootstrap : MonoBehaviour
     {
         var storage = GameObject.CreatePrimitive(PrimitiveType.Cube);
         storage.name = "TutorialUavStorageLauncher";
-        storage.transform.position = new Vector3(-800f, 1500f, -750f);
+        storage.transform.position = new Vector3(-800f, 240f, -750f);
         storage.transform.localScale = new Vector3(80f, 24f, 80f);
         storage.SetActive(true);
+
+        MeshRenderer renderer = storage.GetComponent<MeshRenderer>();
+        if (renderer != null)
+        {
+            renderer.enabled = true;
+            renderer.material = new Material(Shader.Find("Standard"));
+            renderer.material.color = new Color(0f, 0.85f, 1f, 1f);
+        }
 
         var rb = storage.AddComponent<Rigidbody>();
         rb.useGravity = false;
@@ -272,22 +280,30 @@ public class TutorialSceneBootstrap : MonoBehaviour
 
         var status = storage.AddComponent<AugumentStatus>();
         status.isEnemy = true;
+        status.isPlayer = false;
         status.issortie = true;
+        status.isVisible = true;
         status.missionObjective = false;
+        status.waveID = -1;
         status.lifeTime = 0f;
         status.hp = 2000f;
         status.maxhp = 2000f;
         status.SetScoreReward(0f);
 
-        TextMeshPro text = storage.AddComponent<TextMeshPro>();
+        ObjectManager.Instance?.RegisterEnemy(storage, status.waveID);
+
+        var label = new GameObject("TutorialUavStorageLauncherLabel");
+        label.transform.SetParent(storage.transform, false);
+        label.transform.localPosition = Vector3.up * 30f;
+        label.transform.localRotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
+
+        TextMeshPro text = label.AddComponent<TextMeshPro>();
         if (resolvedFont != null)
             text.font = resolvedFont;
         text.text = "マルチロックミサイルを試してみましょう\n複数のUAVを視界に入れて、一斉発射できます。";
-        text.fontSize = 36f;
+        text.fontSize = 10f;
         text.alignment = TextAlignmentOptions.Center;
         text.color = Color.cyan;
-        text.transform.localPosition = Vector3.up * 120f;
-        text.transform.rotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
     }
 
     void DisableSpawnManagers()
