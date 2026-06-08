@@ -36,8 +36,8 @@ public class AircraftController : MonoBehaviour
         status.altGetVar("加速度", out thrustPower);
         status.altGetVar("最高速度", out maxSpeed);
         status.altGetVar("機動性(ピッチ)", out torquePower.x);
-        status.altGetVar("機動性(ロール)", out torquePower.z);
-        status.altGetVar("機動性(ヨー)", out torquePower.y);
+        status.altGetVar("機動性(ロール)", out torquePower.y);
+        status.altGetVar("機動性(ヨー)", out torquePower.z);
 
         maxSpeed = Mathf.Max(1f, maxSpeed);
     }
@@ -120,9 +120,14 @@ public class AircraftController : MonoBehaviour
             ? stallRatio
             : unlimitedtorque;
 
-        rb.AddTorque(transform.right * -controlInput.x * torquePower.x * torqueScale);
-        rb.AddTorque(transform.forward * -controlInput.y * torquePower.y * torqueScale);
-        rb.AddTorque(transform.up * controlInput.z * torquePower.z * torqueScale);
+        Vector3 pitchTorque = transform.right * -controlInput.x * torquePower.x * torqueScale;
+        Vector3 rollTorque = transform.forward * -controlInput.y * torquePower.y * torqueScale;
+        Vector3 yawTorque = transform.up * controlInput.z * torquePower.z * torqueScale;
+        Torque = pitchTorque + rollTorque + yawTorque;
+
+        rb.AddTorque(pitchTorque);
+        rb.AddTorque(rollTorque);
+        rb.AddTorque(yawTorque);
 
         // 失速時の機首下げ
         if (stallRatio < 0.9f)
@@ -134,7 +139,9 @@ public class AircraftController : MonoBehaviour
             if (angle > 0.1f)
             {
                 Vector3 axis = Vector3.Cross(forward, Vector3.down).normalized;
-                rb.AddTorque(axis.normalized * (0.9f - stallRatio) * torquePower.x * Time.fixedDeltaTime*10f);
+                Vector3 stallTorque = axis.normalized * (0.9f - stallRatio) * torquePower.x * Time.fixedDeltaTime*10f;
+                Torque += stallTorque;
+                rb.AddTorque(stallTorque);
             }
         }
 

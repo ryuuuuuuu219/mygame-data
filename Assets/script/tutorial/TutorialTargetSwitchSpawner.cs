@@ -57,6 +57,7 @@ public class TutorialTargetSwitchSpawner : MonoBehaviour
         GameObject enemy = Instantiate(prefab, position, Quaternion.LookRotation(-direction.normalized, Vector3.up));
         enemy.name = objectName;
         enemy.SetActive(true);
+        SyncVectorWithPlayer(enemy);
 
         if (enemy.TryGetComponent(out AugumentStatus status))
         {
@@ -70,5 +71,24 @@ public class TutorialTargetSwitchSpawner : MonoBehaviour
 
         if (ObjectManager.Instance != null)
             ObjectManager.Instance.RegisterEnemy(enemy, -1);
+    }
+
+    void SyncVectorWithPlayer(GameObject enemy)
+    {
+        if (player == null || enemy == null) return;
+
+        Rigidbody playerRb = player.GetComponent<Rigidbody>();
+        Vector3 velocity = playerRb != null ? playerRb.linearVelocity : Vector3.zero;
+        if (velocity.sqrMagnitude < 0.0001f)
+            velocity = player.forward;
+
+        if (enemy.TryGetComponent(out Rigidbody enemyRb))
+            enemyRb.linearVelocity = velocity;
+
+        if (enemy.TryGetComponent(out AircraftController aircraft))
+            aircraft.Velocity = velocity;
+
+        if (enemy.TryGetComponent(out AugumentStatus status))
+            status.Velocity = velocity;
     }
 }

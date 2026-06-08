@@ -199,11 +199,11 @@ public class TutorialSceneBootstrap : MonoBehaviour
 
     GameObject CreateTutorialEnemy(string objectName, Vector3 position, bool missionTarget)
     {
-        var enemy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+        var enemy = GameObject.CreatePrimitive(PrimitiveType.Cube);
         enemy.name = objectName;
         enemy.transform.position = position;
         enemy.transform.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);
-        enemy.transform.localScale = new Vector3(14f, 8f, 28f);
+        enemy.transform.localScale = Vector3.one;
 
         var rb = enemy.AddComponent<Rigidbody>();
         rb.useGravity = false;
@@ -233,9 +233,9 @@ public class TutorialSceneBootstrap : MonoBehaviour
 
     GameObject CreateTargetSwitchPrefab(Vector3 position)
     {
-        var prefab = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+        var prefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
         prefab.name = "TutorialTargetSwitchEnemyPrefab";
-        prefab.transform.localScale = new Vector3(12f, 8f, 24f);
+        prefab.transform.localScale = Vector3.one;
         prefab.SetActive(false);
         prefab.transform.position = position;
         prefab.transform.rotation = Quaternion.LookRotation(Vector3.forward, Vector3.up);

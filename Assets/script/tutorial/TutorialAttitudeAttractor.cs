@@ -6,9 +6,9 @@ public class TutorialAttitudeAttractor : MonoBehaviour
     public Transform aimPoint;
     public float range = 800f;
     public float maxPitchYawDegreesPerSecond = 25f;
-    public float strength = 0.35f;
-    public float torqueStrength = 12f;
-    public float maxTorque = 8f;
+    public float strength = 0.9f;
+    public float torqueStrength = 40f;
+    public float maxTorque = 30f;
     public bool affectPitch = true;
     public bool affectYaw = true;
     public bool createAimTargetOnStart = true;
@@ -16,7 +16,7 @@ public class TutorialAttitudeAttractor : MonoBehaviour
     public Vector3 aimTargetScale = new(1f, 1f, 1f);
     public float aimTargetHp = 100f;
     public float targetFollowSharpness = 12f;
-    public float minLeadDistance = 40f;
+    public float minLeadDistance = 3f;
     public float maxLeadDistance = 450f;
     public bool attractPlayerToSelf = true;
     public bool fallbackToTransformRotation;
@@ -87,16 +87,26 @@ public class TutorialAttitudeAttractor : MonoBehaviour
 
     void ApplyControlAssist(float pitchError, float yawError)
     {
-        float strengthScale = Mathf.Clamp01(strength);
         Vector3 assistInput = new(
-            Mathf.Clamp(-pitchError * strengthScale, -1f, 1f),
+            CalculateControlAssist(-pitchError),
             0f,
-            Mathf.Clamp(yawError * strengthScale, -1f, 1f)
+            CalculateControlAssist(yawError)
         );
 
         if (assistInput.sqrMagnitude <= 0.0001f) return;
 
         playerAircraft.AddControlAssist(assistInput);
+    }
+
+    float CalculateControlAssist(float angleError)
+    {
+        const float fixedAssist = 0.45f;
+        float threshold = 2f * Mathf.Deg2Rad;
+
+        if (Mathf.Abs(angleError) <= threshold)
+            return angleError;
+
+        return Mathf.Sign(angleError) * fixedAssist;
     }
 
     void ApplyPhysicsAssist(float pitchError, float yawError)
