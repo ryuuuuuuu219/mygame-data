@@ -367,7 +367,7 @@ public class DebugHUD : MonoBehaviour
         // -------- 目標探索 --------
         detecttargets.Clear();
 
-        bool stdm = weapon.mode == WeaponMode.MSL;
+        bool stdm = weapon?.mode == WeaponMode.MSL;
 
         lockRange = stdm ? SlockRange : LlockRange;
         LockedFrame = stdm ? 1 : multiLockCount;

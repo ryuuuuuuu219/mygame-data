@@ -578,6 +578,84 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9b0c1f267fb676249a9a21a92f95c240, type: 3}
+--- !u!1 &452890700
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 452890702}
+  - component: {fileID: 452890701}
+  m_Layer: 0
+  m_Name: PreM00TutorialBootstrap
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &452890701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 452890700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea9828ea590010b40bbf889b7d8f7fa8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PreM00TutorialBootstrap
+  guideLayouts:
+  - textPosition: {x: -380, y: 170}
+    from: {x: -150, y: 170}
+    to: {x: -100, y: 106}
+  - textPosition: {x: -380, y: 105}
+    from: {x: -150, y: 105}
+    to: {x: -100, y: 63}
+  - textPosition: {x: -380, y: 40}
+    from: {x: -150, y: 40}
+    to: {x: -100, y: 20}
+  - textPosition: {x: -380, y: -25}
+    from: {x: -150, y: -25}
+    to: {x: -100, y: -23}
+  - textPosition: {x: -380, y: -90}
+    from: {x: -150, y: -90}
+    to: {x: -100, y: -66}
+  - textPosition: {x: 380, y: 170}
+    from: {x: 150, y: 170}
+    to: {x: 110, y: 106}
+  - textPosition: {x: 380, y: 105}
+    from: {x: 150, y: 105}
+    to: {x: 110, y: 63}
+  - textPosition: {x: 380, y: 40}
+    from: {x: 150, y: 40}
+    to: {x: 110, y: 20}
+  - textPosition: {x: 380, y: -25}
+    from: {x: 150, y: -25}
+    to: {x: 110, y: -23}
+  - textPosition: {x: 380, y: -90}
+    from: {x: 150, y: -90}
+    to: {x: 110, y: -66}
+  - textPosition: {x: 380, y: -155}
+    from: {x: 150, y: -155}
+    to: {x: 110, y: -109}
+--- !u!4 &452890702
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 452890700}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 133.1818, y: 528.31256, z: 205.37637}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &490684598
 GameObject:
   m_ObjectHideFlags: 0
@@ -1002,9 +1080,7 @@ GameObject:
   - component: {fileID: 796543699}
   - component: {fileID: 796543698}
   - component: {fileID: 796543703}
-  - component: {fileID: 796543704}
   - component: {fileID: 796543705}
-  - component: {fileID: 796543708}
   - component: {fileID: 796543709}
   - component: {fileID: 796543707}
   - component: {fileID: 796543710}
@@ -1182,58 +1258,6 @@ MonoBehaviour:
   sensitivity: 170
   returnSpeed: 45
   inputDeadZone: 0.05
---- !u!114 &796543704
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 796543696}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b4d82182642fe5f46b1e832e68adbf13, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mode: 0
-  maxBullets: 120
-  currentBullets: 0
-  gunMuzzle: {fileID: 796543697}
-  bulletSpeed: 305
-  fireRate: 0.1
-  spreadAngle: 0
-  gunPower: 3
-  gunSize: 0.5
-  maxMissiles: 2
-  currentMissiles: 0
-  missileHardpoint: {fileID: 796543697}
-  missileSpeed: 100
-  missilelifeTime: 2
-  missileCooldown: 1
-  mslPower: 10
-  mslacceleration: 20
-  mslmaxspeed: 150
-  mslturnRate: 90
-  mslbreakAngle: 90
-  mslProportionalConstant: 3
-  mslFixedTarget: 0
-  missileTimerA: 0
-  missileTimerB: 0
-  maxnAAM: 0
-  currentnAAM: 0
-  multiCooldown: 5
-  multiTimers: []
-  UGBPrefab: {fileID: 6430656931321840813, guid: 78f92360dffd5eb45b18c8f12cfb32c6, type: 3}
-  maxUGB: 0
-  currentUGB: 0
-  damageRadius: 0
-  damage: 0
-  proximityRadius: 0
-  useProximityFuse: 1
-  ugbTimer: 0
-  ugbcooldown: 2
-  bulletpool: {fileID: 0}
-  debugHUD: {fileID: 1269224635}
-  status: {fileID: 796543710}
 --- !u!114 &796543705
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6064,33 +6088,6 @@ ParticleSystemRenderer:
   m_MeshWeighting1: 1
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
---- !u!114 &796543708
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 796543696}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff6c7efd7bb66b449b68797ccd4ae8cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Lockingenemys: []
-  LockingArray: 
-  Missiles: []
-  MissileArray: 
-  AlartUIprefub: {fileID: 7850232646143825981, guid: 8c89b5d912fe9614181cca84ed65f384, type: 3}
-  Canvas: {fileID: 86112872}
-  warningNearDistance: 300
-  warningFarDistance: 3500
-  missileNearInterval: 0.05
-  missileFarInterval: 0.8
-  lockNearInterval: 0.45
-  lockFarInterval: 1.4
-  lockAlerts: []
-  missileAlerts: []
-  Camera: {fileID: 1074083610}
 --- !u!114 &796543709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8317,3 +8314,4 @@ SceneRoots:
   - {fileID: 520181368}
   - {fileID: 796543697}
   - {fileID: 1097357054}
+  - {fileID: 452890702}
