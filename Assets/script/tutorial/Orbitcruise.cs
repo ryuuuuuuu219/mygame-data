@@ -18,8 +18,16 @@ public class Orbitcruise : AircraftController
     public float cruiseThrottle = 1.1f;
     public float lowSpeedThrottle = 2.5f;
     public float yawOnlyStrength = 0.8f;
+    public float downwardPitchLimit = 0.35f;
+
+    [Header("Debug")]
+    public bool showTargetDebugLines = true;
+    public Vector3 targetPosition;
+    public float debugLineWidth = 4f;
 
     Vector3 targetDirection;
+    LineRenderer centerToTargetLine;
+    LineRenderer selfToTargetLine;
 
     protected override void Start()
     {
@@ -36,17 +44,54 @@ public class Orbitcruise : AircraftController
         targetDirection = transform.forward;
     }
 
+    void OnDestroy()
+    {
+        if (centerToTargetLine != null)
+            Destroy(centerToTargetLine.gameObject);
+        if (selfToTargetLine != null)
+            Destroy(selfToTargetLine.gameObject);
+    }
+
     void Update()
     {
-        Vector3 offset = transform.position - center;
-        offset.y = 0f;
-        Vector3 radial = SafeNormalize(offset, transform.right);
+        Vector3 toCenter = center - transform.position;
+        toCenter.y = 0f;
 
-        Vector3 tangent = Vector3.Cross(Vector3.up, radial) *
-                          Mathf.Sign(Mathf.Approximately(orbitDirection, 0f) ? 1f : orbitDirection);
+        float distance = toCenter.magnitude;
+        Vector3 horizontalForward = transform.forward;
+        horizontalForward.y = 0f;
+        horizontalForward = SafeNormalize(horizontalForward, transform.forward);
 
-        float radiusError = offset.magnitude - orbitRadius;
-        Vector3 correction = -radial * Mathf.Clamp(radiusError / Mathf.Max(1f, orbitRadius), -1f, 1f) * radiusCorrection;
+        if (distance < 1f)
+        {
+            float side = Mathf.Sign(Mathf.Approximately(orbitDirection, 0f) ? 1f : orbitDirection);
+            targetPosition = center + transform.right * side * Mathf.Max(orbitRadius, 1f);
+        }
+        else
+        {
+            float targetAngle = Mathf.Atan2(toCenter.z, toCenter.x) * Mathf.Rad2Deg;
+            float currentAngle = transform.eulerAngles.y;
+            bool isLeft = Mathf.DeltaAngle(targetAngle, currentAngle) < 0f;
+            float side = Mathf.Approximately(orbitDirection, 0f)
+                ? (isLeft ? -1f : 1f)
+                : Mathf.Sign(orbitDirection);
+
+            if (distance < orbitRadius)
+            {
+                Vector3 tangent = Vector3.Cross(Vector3.up, toCenter.normalized) * side;
+                targetPosition = center + tangent * orbitRadius;
+            }
+            else
+            {
+                float theta = Mathf.Acos(Mathf.Clamp(orbitRadius / distance, -1f, 1f)) * Mathf.Rad2Deg;
+                float orbitAngle = targetAngle + theta * side;
+                Vector3 tangentPoint = center + new Vector3(
+                    Mathf.Cos(orbitAngle * Mathf.Deg2Rad),
+                    0f,
+                    Mathf.Sin(orbitAngle * Mathf.Deg2Rad)) * orbitRadius;
+                targetPosition = tangentPoint;
+            }
+        }
 
         Vector3 vertical = Vector3.zero;
         if (transform.position.y < minAltitude)
@@ -54,15 +99,23 @@ public class Orbitcruise : AircraftController
         else if (transform.position.y > maxAltitude)
             vertical = Vector3.down * altitudeCorrection;
 
-        targetDirection = SafeNormalize(tangent + correction + vertical, transform.forward);
+        Vector3 targetVector = targetPosition - transform.position;
+        targetVector.y = 0f;
+        targetDirection = SafeNormalize(targetVector + vertical, transform.forward);
+        UpdateDebugLines();
     }
 
     protected override Vector3 GetControlInput()
     {
         Vector3 localDir = transform.InverseTransformDirection(SafeNormalize(targetDirection, transform.forward));
-        float yaw = Mathf.Clamp(localDir.x, -1f, 1f) * yawOnlyStrength;
+        float downFactor = Mathf.Clamp01(-localDir.y);
 
-        return new Vector3(0f, 0f, yaw);
+        float roll = Mathf.Clamp(localDir.x, -1f, 1f);
+        float pitchScale = Mathf.Lerp(downwardPitchLimit, 1f, 1f - downFactor);
+        float pitch = Mathf.Clamp(localDir.y, -1f, 1f) * pitchScale;
+        float yaw = Mathf.Clamp(localDir.x, -1f, 1f) * Mathf.Lerp(0.25f, 1f, downFactor) * yawOnlyStrength;
+
+        return new Vector3(pitch, roll, yaw);
     }
 
     protected override float GetThrottleInput()
@@ -92,5 +145,63 @@ public class Orbitcruise : AircraftController
             && !float.IsInfinity(value.x)
             && !float.IsInfinity(value.y)
             && !float.IsInfinity(value.z);
+    }
+
+    void UpdateDebugLines()
+    {
+        if (!showTargetDebugLines)
+        {
+            SetLineEnabled(centerToTargetLine, false);
+            SetLineEnabled(selfToTargetLine, false);
+            return;
+        }
+
+        EnsureDebugLines();
+
+        SetLine(centerToTargetLine, center, targetPosition, Color.blue);
+        SetLine(selfToTargetLine, transform.position, targetPosition, Color.red);
+    }
+
+    void EnsureDebugLines()
+    {
+        if (centerToTargetLine == null)
+            centerToTargetLine = CreateDebugLine("OrbitCenterToTargetLine", Color.blue);
+        if (selfToTargetLine == null)
+            selfToTargetLine = CreateDebugLine("OrbitSelfToTargetLine", Color.red);
+    }
+
+    LineRenderer CreateDebugLine(string objectName, Color color)
+    {
+        GameObject obj = new(objectName);
+        obj.transform.SetParent(null, true);
+
+        LineRenderer line = obj.AddComponent<LineRenderer>();
+        line.positionCount = 2;
+        line.useWorldSpace = true;
+        line.startWidth = debugLineWidth;
+        line.endWidth = debugLineWidth;
+        line.material = new Material(Shader.Find("Sprites/Default"));
+        line.startColor = color;
+        line.endColor = color;
+        return line;
+    }
+
+    void SetLine(LineRenderer line, Vector3 start, Vector3 end, Color color)
+    {
+        if (line == null) return;
+
+        line.enabled = true;
+        line.startWidth = debugLineWidth;
+        line.endWidth = debugLineWidth;
+        line.startColor = color;
+        line.endColor = color;
+        line.SetPosition(0, start);
+        line.SetPosition(1, end);
+    }
+
+    void SetLineEnabled(LineRenderer line, bool enabled)
+    {
+        if (line != null)
+            line.enabled = enabled;
     }
 }

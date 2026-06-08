@@ -13,7 +13,7 @@ public class TutorialAttitudeAttractor : MonoBehaviour
     public bool affectYaw = true;
     public bool createAimTargetOnStart = true;
     public Vector3 aimTargetLocalOffset = new(0f, 20f, 120f);
-    public Vector3 aimTargetScale = new(12f, 12f, 12f);
+    public Vector3 aimTargetScale = new(1f, 1f, 1f);
     public float aimTargetHp = 100f;
     public float targetFollowSharpness = 12f;
     public float minLeadDistance = 40f;
@@ -150,7 +150,7 @@ public class TutorialAttitudeAttractor : MonoBehaviour
             leadOffset = fallbackDirection * minLeadDistance;
         }
 
-        return transform.position + leadOffset;
+        return transform.position - leadOffset;
     }
 
     float ResolvePlayerGunBulletSpeed()
