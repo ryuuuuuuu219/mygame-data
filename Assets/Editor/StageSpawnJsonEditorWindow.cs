@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -228,8 +228,8 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         string sceneName = stage.sceneName;
         bool hasSceneAsset = HasSceneAsset(sceneName);
         bool inBuildSettings = IsSceneInBuildSettings(sceneName);
-        bool inMenu = IsStageListedInScene<selectmenuUI>("Assets/Scenes/Menu.unity", sceneName, ui => ui.stage_name);
-        bool inBriefing = IsStageListedInScene<selectmenuUI>("Assets/Scenes/Briefing.unity", sceneName, ui => ui.stage_name);
+        bool inMenu = IsStageListedInScene<selectmenuUI>("Assets/Scenes/Menu.unity", sceneName, ui => ui.stageNames());
+        bool inBriefing = IsStageListedInScene<selectmenuUI>("Assets/Scenes/Briefing.unity", sceneName, ui => ui.stageNames());
         bool inSetup = IsStageListedInScene<SetupUI>("Assets/Scenes/SetUp.unity", sceneName, ui => ui.scene_name);
 
         EditorGUILayout.LabelField("Scene Asset", hasSceneAsset ? "OK" : "Missing Assets/Scenes/<SceneName>.unity");
@@ -645,11 +645,10 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         {
             foreach (var ui in rootObject.GetComponentsInChildren<selectmenuUI>(true))
             {
-                ui.stage_name ??= new List<string>();
-                if (ui.stage_name.Contains(sceneName)) continue;
+                if (ui.stageNames().Contains(sceneName)) continue;
 
                 Undo.RecordObject(ui, "Add Stage Name");
-                ui.stage_name.Add(sceneName);
+                ui.stageNames().Add(sceneName);
                 EditorUtility.SetDirty(ui);
                 changed = true;
             }

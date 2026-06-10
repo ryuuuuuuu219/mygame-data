@@ -610,37 +610,50 @@ MonoBehaviour:
   guideLayouts:
   - textPosition: {x: -430, y: 170}
     from: {x: -200, y: 170}
-    to: []
+    to:
+    - {x: -100, y: 106}
+    - {x: 100, y: 106}
   - textPosition: {x: -430, y: 105}
     from: {x: -200, y: 105}
-    to: []
+    to:
+    - {x: -100, y: 63}
   - textPosition: {x: -430, y: 40}
     from: {x: -200, y: 40}
-    to: []
+    to:
+    - {x: -100, y: -109}
   - textPosition: {x: -430, y: -25}
     from: {x: -200, y: -25}
-    to: []
+    to:
+    - {x: -100, y: -109}
   - textPosition: {x: -430, y: -90}
     from: {x: -200, y: -90}
-    to: []
+    to:
+    - {x: -100, y: -109}
+    - {x: -100, y: 63}
   - textPosition: {x: 430, y: 170}
     from: {x: 200, y: 170}
-    to: []
+    to:
+    - {x: 112, y: 63}
   - textPosition: {x: 430, y: 105}
     from: {x: 200, y: 105}
-    to: []
+    to:
+    - {x: 112, y: 20}
   - textPosition: {x: 430, y: 40}
     from: {x: 200, y: 40}
-    to: []
+    to:
+    - {x: 83, y: -23}
   - textPosition: {x: 430, y: -25}
     from: {x: 200, y: -25}
-    to: []
+    to:
+    - {x: 130, y: -23}
   - textPosition: {x: 430, y: -90}
     from: {x: 200, y: -90}
-    to: []
+    to:
+    - {x: 112, y: -66}
   - textPosition: {x: 430, y: -155}
     from: {x: 200, y: -155}
-    to: []
+    to:
+    - {x: 112, y: -109}
 --- !u!4 &452890702
 Transform:
   m_ObjectHideFlags: 0

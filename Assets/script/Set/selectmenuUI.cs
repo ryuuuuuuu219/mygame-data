@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,7 +8,6 @@ using UnityEngine.SceneManagement;
 public class selectmenuUI : MonoBehaviour
 {
     public TextMeshProUGUI hudText;          // HUDテキスト
-    public List<string> stage_name = new List<string>();
 
     public int selectedstage;
 
@@ -15,7 +15,6 @@ public class selectmenuUI : MonoBehaviour
     void Start()
     {
         Time.timeScale = 1f;
-        RemoveUnavailableStages();
         if (SceneManager.GetActiveScene().name == "Briefing")
         {
             selectedstage = PlayerPrefs.GetInt("selectedstage", 0);
@@ -109,9 +108,9 @@ public class selectmenuUI : MonoBehaviour
         {
             hudText.text = "ミッション選択\n\n";
 
-            for (int i = 0; i < stage_name.Count; i++)
+            for (int i = 0; i < missionCount; i++)
             {
-                hudText.text += Line(i, "Stage", stage_name[i]) + "\n";
+                hudText.text += Line(i, GetStagename(i)) + "\n";
             }
 
             hudText.text +=
@@ -144,9 +143,11 @@ public class selectmenuUI : MonoBehaviour
         }
     }
 
+    int missionCount => missionText.Count;
     readonly Dictionary<string, string> missionText = new Dictionary<string, string>()
     {
         #region ブリーフィング文章はここへ手打ちで追加・調整する。
+        {"M00","チュートリアルです\n表示される案内に従って操作方法、飛行、ロックオン、攻撃を確認してください。"},
         {"M01","対空陣地中央の長射程地対空ミサイルを破壊せよ\n一定高度（900）以上を飛ぶと長距離ミサイルに狙われるので低空侵入を推奨する" },
         {"M02","作戦空域内の未確認物体を強行偵察せよ" },
         {"M03","敵航空隊を撃破せよ" },
@@ -163,7 +164,13 @@ public class selectmenuUI : MonoBehaviour
         {"M14","対空制圧砲弾母艦、改修型重巡航管制機「ほにゃほにゃ」を破壊せよ" }
 
         #endregion
+
     };
+
+    public List<string> stageNames()
+    {
+        return missionText.Keys.ToList();
+    }
 
     /*
     復号用
@@ -178,10 +185,18 @@ public class selectmenuUI : MonoBehaviour
 
     string GetSelectedStageName()
     {
-        if (selectedstage < 0 || selectedstage >= stage_name.Count)
+        if (selectedstage < 0 || selectedstage >= missionCount)
             return "";
 
-        return stage_name[selectedstage];
+        return missionText.Keys.ElementAt(selectedstage);
+    }
+
+    string GetStagename(int index)
+    {
+        if (index < 0 || index >= missionCount)
+            return "";
+        string r = missionText.Keys.ElementAt(index);
+        return r;
     }
 
     string BuildMissionDescription(string stageName)
@@ -195,20 +210,20 @@ public class selectmenuUI : MonoBehaviour
         return "作戦空域内のすべての敵目標を撃破せよ。";
     }
 
-    string Line(int index, string label, string value)
+    string Line(int index, string value)
     {
         string head = (selectedstage == index) ? "> " : "  ";
-        return head + stage_name[index];
+        return head + GetStagename(index);
     }
 
 
     void StageChange(float value)
     {
-        if (stage_name.Count == 0)
+        if (missionCount == 0)
             return;
 
         bool increase = value > 0;
-        int numSubjects = stage_name.Count - 1;
+        int numSubjects = missionCount - 1;
         if (increase)
         {
             selectedstage++;
@@ -222,18 +237,6 @@ public class selectmenuUI : MonoBehaviour
         GeneratedAudioManager.Play(GeneratedAudioCue.UiMove);
     }
 
-    void RemoveUnavailableStages()
-    {
-        for (int i = stage_name.Count - 1; i >= 0; i--)
-        {
-            if (!IsSceneAvailable(stage_name[i]))
-            {
-                Debug.LogWarning("[selectmenuUI] Removed unavailable stage from list: " + stage_name[i]);
-                stage_name.RemoveAt(i);
-            }
-        }
-    }
-
     bool IsSceneAvailable(string sceneName)
     {
         if (string.IsNullOrEmpty(sceneName))
@@ -244,10 +247,10 @@ public class selectmenuUI : MonoBehaviour
 
     int ClampStageIndex(int index)
     {
-        if (stage_name.Count <= 0)
+        if (missionCount <= 0)
             return 0;
 
-        return Mathf.Clamp(index, 0, stage_name.Count - 1);
+        return Mathf.Clamp(index, 0, missionCount - 1);
     }
 }
 
