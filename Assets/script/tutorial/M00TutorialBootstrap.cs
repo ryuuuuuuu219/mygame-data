@@ -9,8 +9,40 @@ using UnityEditor;
 public class M00TutorialBootstrap : MonoBehaviour
 {
     const string UavStorageLauncherGuideText =
-        "\u30de\u30eb\u30c1\u30ed\u30c3\u30af\u30df\u30b5\u30a4\u30eb\u3092\u8a66\u3057\u3066\u307f\u307e\u3057\u3087\u3046\n\u8907\u6570\u306eUAV\u3092\u8996\u754c\u306b\u5165\u308c\u3066\u3001\u4e00\u6589\u767a\u5c04\u3067\u304d\u307e\u3059\u3002";
-
+        "UAV発着場\nマルチロックミサイルを試してみましょう\n複数のUAVを視界に入れて、一斉発射できます。";
+    static readonly string[][] BasicControlsGuideTexts =
+    {
+        new[]
+        {
+            "ピッチ",
+            "左スティック上下で機首を上げ下げします。",
+            "機首を上げると上昇、下げると降下します。"
+        },
+        new[]
+        {
+            "ロール",
+            "左スティック左右で機体を傾けます。",
+            "傾けた状態で機首を上げると旋回できます。"
+        },
+        new[]
+        {
+            "ヨー",
+            "R2 / L2で機首を左右に向けます。",
+            "細かい向きの調整に使います。"
+        },
+        new[]
+        {
+            "加減速",
+            "R1で加速、L1で減速します。",
+            "速度が落ちすぎると曲がりにくくなります。"
+        },
+        new[]
+        {
+            "機動制限解除",
+            "左スティック押し込み + 減速で機動制限を解除します。",
+            "急旋回できますが、速度低下に注意してください。"
+        }
+    };
     TMP_FontAsset resolvedFont;
 
     IEnumerator Start()
@@ -32,6 +64,8 @@ public class M00TutorialBootstrap : MonoBehaviour
 
             if (player.TryGetComponent(out Rigidbody rb))
                 rb.linearVelocity = player.forward * 180f;
+
+            PrepareTutorialWeapons(player);
         }
 
         TextMeshProUGUI reminder = CreateOverlayText(
@@ -54,6 +88,16 @@ public class M00TutorialBootstrap : MonoBehaviour
             new Vector2(900f, 80f),
             24f,
             TextAlignmentOptions.Center);
+        flightArea.center = new Vector3(0f, 1500f, 0f);
+        flightArea.radius = 700f;
+        flightArea.markerXZ = new Vector2(0f, 0f);
+        flightArea.markerY = 10000f;
+        flightArea.markerHeight = 20000f;
+        flightArea.markerText = "基本操作確認エリア";
+        flightArea.markerTextFont = resolvedFont;
+        flightArea.markerTextColor = new Color(1f, 0.35f, 0.25f, 1f);
+
+        CreateBasicControlsDetailArea(player, flightArea);
 
         var reminderHud = gameObject.AddComponent<TutorialFlightReminderHUD>();
         reminderHud.player = player;
@@ -69,7 +113,13 @@ public class M00TutorialBootstrap : MonoBehaviour
         attractor.range = 900f;
         attractor.strength = 0.22f;
 
-        CreateUavTrainingArea(player);
+        AddAreaMarker(
+            player,
+            attractor.transform.position,
+            attractor.range,
+            "機銃補助エリア\n誘引付きの標的");
+
+        CreateUavTrainingArea(player, CreateTargetSwitchPrefab(new Vector3(-800f, 1500f, -950f), player));
 
         if (player == null)
             return;
@@ -94,6 +144,83 @@ public class M00TutorialBootstrap : MonoBehaviour
 
         var status = FindFirstObjectByType<AugumentStatus>();
         return status != null && status.isPlayer ? status.transform : null;
+    }
+
+    void PrepareTutorialWeapons(Transform player)
+    {
+        if (player == null) return;
+        WeaponSystem weaponSystem = player.GetComponent<WeaponSystem>();
+        if (weaponSystem == null) return;
+
+        weaponSystem.maxnAAM = Mathf.Max(weaponSystem.maxnAAM, 4);
+        weaponSystem.currentnAAM = Mathf.Max(weaponSystem.currentnAAM, weaponSystem.maxnAAM);
+        while (weaponSystem.multiTimers.Count < weaponSystem.maxnAAM)
+            weaponSystem.multiTimers.Add(0f);
+    }
+
+    static string BuildGuideText(string[] guideTexts)
+    {
+        if (guideTexts == null)
+            return "";
+
+        return string.Join("\n", guideTexts);
+    }
+
+    void CreateBasicControlsDetailArea(Transform player, TutorialBasicFlightArea parentArea)
+    {
+        if (parentArea == null || BasicControlsGuideTexts.Length == 0)
+            return;
+
+        var detailRoot = new GameObject("TutorialBasicControlsDetailAreas");
+        detailRoot.transform.SetParent(parentArea.transform, false);
+
+        float placementRadius = parentArea.radius * 0.5f;
+        float detailRadius = Mathf.Min(parentArea.radius * 0.22f, placementRadius * 0.45f);
+        float angleStep = 360f / BasicControlsGuideTexts.Length;
+
+        for (int i = 0; i < BasicControlsGuideTexts.Length; i++)
+        {
+            Vector3 offset = Quaternion.Euler(0f, angleStep * i, 0f) * Vector3.forward * placementRadius;
+            Vector3 detailCenter = parentArea.center + offset;
+            var detailObject = new GameObject($"TutorialBasicControlsDetailArea_{i + 1:00}");
+            detailObject.transform.SetParent(detailRoot.transform, false);
+
+            var detailArea = detailObject.AddComponent<TutorialBasicFlightArea>();
+            detailArea.player = player;
+            detailArea.center = detailCenter;
+            detailArea.radius = detailRadius;
+            detailArea.markerXZ = new Vector2(detailCenter.x, detailCenter.z);
+            detailArea.markerY = parentArea.markerY;
+            detailArea.markerHeight = parentArea.markerHeight;
+            detailArea.markerColor = new Color(1f, 0.45f, 0.05f, 0.13f);
+            detailArea.markerText = BuildGuideText(BasicControlsGuideTexts[i]);
+            detailArea.markerTextFont = resolvedFont;
+            detailArea.markerTextSize = 8f;
+            detailArea.markerTextColor = new Color(1f, 0.95f, 0.65f, 1f);
+        }
+    }
+
+    TutorialBasicFlightArea AddAreaMarker(
+        Transform player,
+        Vector3 center,
+        float radius,
+        string markerText,
+        float markerTextSize = 12f,
+        Color? markerTextColor = null)
+    {
+        var markerXZ = new Vector2(center.x, center.z);
+        var area = gameObject.AddComponent<TutorialBasicFlightArea>();
+        area.player = player;
+        area.center = center;
+        area.radius = radius;
+        area.markerXZ = markerXZ;
+        area.markerY = 10000f;
+        area.markerHeight = 20000f;
+        area.markerText = markerText;
+        area.markerTextFont = resolvedFont;
+        area.markerTextSize = markerTextSize;
+        area.markerTextColor = markerTextColor ?? new Color(1f, 0.35f, 0.25f, 1f);
+        return area;
     }
 
     TextMeshProUGUI CreateOverlayText(
@@ -233,11 +360,11 @@ public class M00TutorialBootstrap : MonoBehaviour
         var targetTable = new StatusTable();
         targetStatus.CurrentStatus = targetTable;
 
-        CopyFlightStatFromPlayer(targetTable, player, "\u6a5f\u52d5\u6027(\u30d4\u30c3\u30c1)", 4f);
-        CopyFlightStatFromPlayer(targetTable, player, "\u6a5f\u52d5\u6027(\u30ed\u30fc\u30eb)", 4f);
-        CopyFlightStatFromPlayer(targetTable, player, "\u6a5f\u52d5\u6027(\u30e8\u30fc)", 4f);
-        CopyFlightStatFromPlayer(targetTable, player, "\u52a0\u901f\u5ea6", 100f);
-        CopyFlightStatFromPlayer(targetTable, player, "\u6700\u9ad8\u901f\u5ea6", 300f);
+        CopyFlightStatFromPlayer(targetTable, player, "機動性(ピッチ)", 4f);
+        CopyFlightStatFromPlayer(targetTable, player, "機動性(ロール)", 4f);
+        CopyFlightStatFromPlayer(targetTable, player, "機動性(ヨー)", 4f);
+        CopyFlightStatFromPlayer(targetTable, player, "加速度", 100f);
+        CopyFlightStatFromPlayer(targetTable, player, "最高速度", 300f);
     }
 
     void CopyFlightStatFromPlayer(StatusTable targetTable, Transform player, string key, float fallback)
@@ -262,18 +389,18 @@ public class M00TutorialBootstrap : MonoBehaviour
         {
             switch (key)
             {
-                case "\u6a5f\u52d5\u6027(\u30d4\u30c3\u30c1)": return aircraft.torquePower.x > 0f ? aircraft.torquePower.x : fallback;
-                case "\u6a5f\u52d5\u6027(\u30ed\u30fc\u30eb)": return aircraft.torquePower.y > 0f ? aircraft.torquePower.y : fallback;
-                case "\u6a5f\u52d5\u6027(\u30e8\u30fc)": return aircraft.torquePower.z > 0f ? aircraft.torquePower.z : fallback;
-                case "\u52a0\u901f\u5ea6": return aircraft.thrustPower > 0f ? aircraft.thrustPower : fallback;
-                case "\u6700\u9ad8\u901f\u5ea6": return aircraft.maxSpeed > 0f ? aircraft.maxSpeed : fallback;
+                case "機動性(ピッチ)": return aircraft.torquePower.x > 0f ? aircraft.torquePower.x : fallback;
+                case "機動性(ロール)": return aircraft.torquePower.y > 0f ? aircraft.torquePower.y : fallback;
+                case "機動性(ヨー)": return aircraft.torquePower.z > 0f ? aircraft.torquePower.z : fallback;
+                case "加速度": return aircraft.thrustPower > 0f ? aircraft.thrustPower : fallback;
+                case "最高速度": return aircraft.maxSpeed > 0f ? aircraft.maxSpeed : fallback;
             }
         }
 
         return fallback;
     }
 
-    void CreateUavTrainingArea(Transform player)
+    void CreateUavTrainingArea(Transform player, GameObject uavPrefab)
     {
         var storage = GameObject.CreatePrimitive(PrimitiveType.Cube);
         storage.name = "TutorialUavStorageLauncher";
@@ -307,41 +434,25 @@ public class M00TutorialBootstrap : MonoBehaviour
 
         ObjectManager.Instance?.RegisterEnemy(storage, status.waveID);
 
-        CreateWorldTutorialText(
-            storage.transform,
-            "TutorialUavStorageLauncherLabel",
-            Vector3.up * 30f,
+        AddAreaMarker(
             player,
+            storage.transform.position,
+            520f,
             UavStorageLauncherGuideText,
             10f,
             Color.cyan);
-    }
 
-    TextMeshPro CreateWorldTutorialText(
-        Transform parent,
-        string objectName,
-        Vector3 localPosition,
-        Transform player,
-        string message,
-        float fontSize,
-        Color color)
-    {
-        var label = new GameObject(objectName);
-        label.transform.SetParent(parent, false);
-        label.transform.localPosition = localPosition;
-        label.transform.localRotation = Quaternion.LookRotation(Vector3.back, Vector3.up);
-
-        var yawToPlayer = label.AddComponent<TutorialTextYawToPlayer>();
-        yawToPlayer.player = player;
-
-        TextMeshPro text = label.AddComponent<TextMeshPro>();
-        if (resolvedFont != null)
-            text.font = resolvedFont;
-        text.text = message;
-        text.fontSize = fontSize;
-        text.alignment = TextAlignmentOptions.Center;
-        text.color = color;
-        return text;
+        var spawner = gameObject.AddComponent<TutorialUavTrainingSpawner>();
+        spawner.player = player;
+        spawner.enemyPrefab = uavPrefab;
+        spawner.center = new Vector3(-800f, 1500f, -950f);
+        spawner.progressText = CreateOverlayText(
+            "TutorialUavProgressText",
+            new Vector2(0.5f, 0.84f),
+            Vector2.zero,
+            new Vector2(1000f, 80f),
+            22f,
+            TextAlignmentOptions.Center);
     }
 
     void DisableSpawnManagers()
