@@ -5,6 +5,7 @@ public class TutorialSceneBootstrap : MonoBehaviour
 {
     const string PreScene = "preM00";
     const string MainScene = "M00";
+    const string DocumentScene = "document";
 
     static bool registered;
 
@@ -27,13 +28,16 @@ public class TutorialSceneBootstrap : MonoBehaviour
 
     static void Bootstrap(Scene scene)
     {
-        if (scene.name != PreScene && scene.name != MainScene)
+        if (scene.name != PreScene && scene.name != MainScene && scene.name != DocumentScene)
             return;
 
         if (scene.name == PreScene && FindFirstObjectByType<PreM00TutorialBootstrap>() != null)
             return;
 
         if (scene.name == MainScene && FindFirstObjectByType<M00TutorialBootstrap>() != null)
+            return;
+
+        if (scene.name == DocumentScene && FindFirstObjectByType<DocumentTutorialBootstrap>() != null)
             return;
 
         if (FindFirstObjectByType<TutorialSceneBootstrap>() != null)
@@ -44,7 +48,9 @@ public class TutorialSceneBootstrap : MonoBehaviour
 
         if (scene.name == PreScene)
             root.AddComponent<PreM00TutorialBootstrap>();
-        else
+        else if (scene.name == MainScene)
             root.AddComponent<M00TutorialBootstrap>();
+        else
+            root.AddComponent<DocumentTutorialBootstrap>();
     }
 }

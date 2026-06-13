@@ -13,8 +13,8 @@ public class TutorialBasicFlightArea : MonoBehaviour
     public float markerHeight = 20000f;
     public Color markerColor = new(1f, 0.08f, 0.04f, 0.18f);
     public string markerText;
-    public float markerTextSize = 12f;
-    public Color markerTextColor = Color.white;
+    public float markerTextSize = 10f;
+    public Color markerTextColor = Color.cyan;
     public TMP_FontAsset markerTextFont;
     public string areaMessage = "基本飛行エリア: ロール、ピッチ、ヨー、加減速を確認してください。";
 

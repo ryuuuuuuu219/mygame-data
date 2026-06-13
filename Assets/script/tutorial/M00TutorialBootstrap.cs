@@ -8,6 +8,16 @@ using UnityEditor;
 
 public class M00TutorialBootstrap : MonoBehaviour
 {
+    const float AreaSignTextSize = 50f;
+    static readonly Color AreaSignTextColor = Color.cyan;
+    const string TargetAcquisitionGuideText =
+        "目標捕捉\nレーダーの赤い点がミッション目標です。\n画面端の矢印を追って、目標を視界に入れてください。";
+    const string TargetLocatorGuideText =
+        "ターゲットロケーター\n視野外の追跡目標は、画面端の緑円で方向を示します。\n円が上に来るようにロールして旋回してください。";
+    const string HudUiGuideText =
+        "HUD / UI確認\n緑枠は追跡対象、赤枠はロックオン完了です。\nTGT / HP / Next / Arry と機首・進行方向マーカーを確認してください。";
+    const string MissileWeaponGuideText =
+        "ミサイル / 兵装切替\n赤枠になったら○でミサイルを発射できます。\n□で兵装を切り替え、再装填と弾数も確認してください。";
     const string UavStorageLauncherGuideText =
         "UAV発着場\nマルチロックミサイルを試してみましょう\n複数のUAVを視界に入れて、一斉発射できます。";
     static readonly string[][] BasicControlsGuideTexts =
@@ -95,9 +105,29 @@ public class M00TutorialBootstrap : MonoBehaviour
         flightArea.markerHeight = 20000f;
         flightArea.markerText = "基本操作確認エリア";
         flightArea.markerTextFont = resolvedFont;
-        flightArea.markerTextColor = new Color(1f, 0.35f, 0.25f, 1f);
+        ApplyAreaSignStyle(flightArea);
 
         CreateBasicControlsDetailArea(player, flightArea);
+        AddAreaMarker(
+            player,
+            new Vector3(0f, 1500f, 1500f),
+            800f,
+            TargetAcquisitionGuideText);
+        AddAreaMarker(
+            player,
+            new Vector3(-1500f, 1500f, 500f),
+            700f,
+            TargetLocatorGuideText);
+        AddAreaMarker(
+            player,
+            new Vector3(1500f, 1500f, 900f),
+            650f,
+            HudUiGuideText);
+        AddAreaMarker(
+            player,
+            new Vector3(1500f, 1500f, -1500f),
+            800f,
+            MissileWeaponGuideText);
 
         var reminderHud = gameObject.AddComponent<TutorialFlightReminderHUD>();
         reminderHud.player = player;
@@ -119,21 +149,8 @@ public class M00TutorialBootstrap : MonoBehaviour
             attractor.range,
             "機銃補助エリア\n誘引付きの標的");
 
-        CreateUavTrainingArea(player, CreateTargetSwitchPrefab(new Vector3(-800f, 1500f, -950f), player));
+        CreateUavTrainingArea(player, CreateUavTrainingEnemyPrefab());
 
-        if (player == null)
-            return;
-
-        var switchSpawner = gameObject.AddComponent<TutorialTargetSwitchSpawner>();
-        switchSpawner.player = player;
-        switchSpawner.enemyPrefabA = CreateTargetSwitchPrefab(player.position + player.forward * 700f, player);
-        switchSpawner.missionObjectiveA = false;
-        switchSpawner.scoreZero = true;
-
-        Vector3 twoOClockDirection = Quaternion.Euler(0f, 60f, 0f) * player.forward;
-        switchSpawner.enemyPrefabB = CreateTargetSwitchPrefab(player.position + twoOClockDirection * 700f, player);
-        switchSpawner.missionObjectiveB = true;
-        switchSpawner.scoreZero = true;
     }
 
     Transform FindPlayer()
@@ -194,19 +211,25 @@ public class M00TutorialBootstrap : MonoBehaviour
             detailArea.markerHeight = parentArea.markerHeight;
             detailArea.markerColor = new Color(1f, 0.45f, 0.05f, 0.13f);
             detailArea.markerText = BuildGuideText(BasicControlsGuideTexts[i]);
-            detailArea.markerTextFont = resolvedFont;
-            detailArea.markerTextSize = 8f;
-            detailArea.markerTextColor = new Color(1f, 0.95f, 0.65f, 1f);
+            ApplyAreaSignStyle(detailArea);
         }
+    }
+
+    void ApplyAreaSignStyle(TutorialBasicFlightArea area)
+    {
+        if (area == null)
+            return;
+
+        area.markerTextFont = resolvedFont;
+        area.markerTextSize = AreaSignTextSize;
+        area.markerTextColor = AreaSignTextColor;
     }
 
     TutorialBasicFlightArea AddAreaMarker(
         Transform player,
         Vector3 center,
         float radius,
-        string markerText,
-        float markerTextSize = 12f,
-        Color? markerTextColor = null)
+        string markerText)
     {
         var markerXZ = new Vector2(center.x, center.z);
         var area = gameObject.AddComponent<TutorialBasicFlightArea>();
@@ -217,9 +240,7 @@ public class M00TutorialBootstrap : MonoBehaviour
         area.markerY = 10000f;
         area.markerHeight = 20000f;
         area.markerText = markerText;
-        area.markerTextFont = resolvedFont;
-        area.markerTextSize = markerTextSize;
-        area.markerTextColor = markerTextColor ?? new Color(1f, 0.35f, 0.25f, 1f);
+        ApplyAreaSignStyle(area);
         return area;
     }
 
@@ -305,99 +326,13 @@ public class M00TutorialBootstrap : MonoBehaviour
         return enemy;
     }
 
-    GameObject CreateTargetSwitchPrefab(Vector3 position, Transform player)
+    GameObject CreateUavTrainingEnemyPrefab()
     {
         var prefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        prefab.name = "TutorialTargetSwitchEnemyPrefab";
+        prefab.name = "TutorialUavTrainingEnemyPrefab";
         prefab.transform.localScale = Vector3.one;
         prefab.SetActive(false);
-        prefab.transform.position = position;
-        prefab.transform.rotation = player != null
-            ? player.rotation
-            : Quaternion.LookRotation(Vector3.forward, Vector3.up);
-
-        var rb = prefab.AddComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.linearVelocity = prefab.transform.forward * ResolvePlayerInitialSpeed(player);
-
-        var status = prefab.AddComponent<AugumentStatus>();
-        status.isEnemy = true;
-        status.issortie = true;
-        status.hp = 300f;
-        status.maxhp = 300f;
-        status.lifeTime = 0f;
-        status.SetScoreReward(0f);
-        ApplyPlayerFlightStatus(status, player);
-
-        var orbit = prefab.AddComponent<Orbitcruise>();
-        orbit.center = position;
-        orbit.useStartDistanceAsRadius = true;
-        orbit.cruiseThrottle = 1f;
-        orbit.lowSpeedThrottle = 2.5f;
         return prefab;
-    }
-
-    float ResolvePlayerInitialSpeed(Transform player)
-    {
-        if (player != null && player.TryGetComponent(out Rigidbody playerRb))
-        {
-            float speed = playerRb.linearVelocity.magnitude;
-            if (speed > 0.1f)
-                return speed;
-        }
-
-        if (player != null && player.TryGetComponent(out AircraftController aircraft) && aircraft.maxSpeed > 0f)
-            return Mathf.Min(aircraft.maxSpeed, 180f);
-
-        return 180f;
-    }
-
-    void ApplyPlayerFlightStatus(AugumentStatus targetStatus, Transform player)
-    {
-        if (targetStatus == null)
-            return;
-
-        var targetTable = new StatusTable();
-        targetStatus.CurrentStatus = targetTable;
-
-        CopyFlightStatFromPlayer(targetTable, player, "機動性(ピッチ)", 4f);
-        CopyFlightStatFromPlayer(targetTable, player, "機動性(ロール)", 4f);
-        CopyFlightStatFromPlayer(targetTable, player, "機動性(ヨー)", 4f);
-        CopyFlightStatFromPlayer(targetTable, player, "加速度", 100f);
-        CopyFlightStatFromPlayer(targetTable, player, "最高速度", 300f);
-    }
-
-    void CopyFlightStatFromPlayer(StatusTable targetTable, Transform player, string key, float fallback)
-    {
-        ref float targetValue = ref targetTable.GetVar(key);
-        targetValue = ResolvePlayerFlightStat(player, key, fallback);
-    }
-
-    float ResolvePlayerFlightStat(Transform player, string key, float fallback)
-    {
-        if (player == null)
-            return fallback;
-
-        if (player.TryGetComponent(out AugumentStatus playerStatus) && playerStatus.IsInitialized)
-        {
-            playerStatus.altGetVar(key, out float statusValue);
-            if (statusValue > 0f)
-                return statusValue;
-        }
-
-        if (player.TryGetComponent(out AircraftController aircraft))
-        {
-            switch (key)
-            {
-                case "機動性(ピッチ)": return aircraft.torquePower.x > 0f ? aircraft.torquePower.x : fallback;
-                case "機動性(ロール)": return aircraft.torquePower.y > 0f ? aircraft.torquePower.y : fallback;
-                case "機動性(ヨー)": return aircraft.torquePower.z > 0f ? aircraft.torquePower.z : fallback;
-                case "加速度": return aircraft.thrustPower > 0f ? aircraft.thrustPower : fallback;
-                case "最高速度": return aircraft.maxSpeed > 0f ? aircraft.maxSpeed : fallback;
-            }
-        }
-
-        return fallback;
     }
 
     void CreateUavTrainingArea(Transform player, GameObject uavPrefab)
@@ -438,9 +373,7 @@ public class M00TutorialBootstrap : MonoBehaviour
             player,
             storage.transform.position,
             520f,
-            UavStorageLauncherGuideText,
-            10f,
-            Color.cyan);
+            UavStorageLauncherGuideText);
 
         var spawner = gameObject.AddComponent<TutorialUavTrainingSpawner>();
         spawner.player = player;

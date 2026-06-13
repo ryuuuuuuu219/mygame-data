@@ -39,6 +39,9 @@ EditorBuildSettings:
     path: Assets/Scenes/preM00.unity
     guid: 2a7d991d97164d218af79a6fb08f0a51
   - enabled: 1
+    path: Assets/Scenes/document.unity
+    guid: 8f2bcb8b0f3840d39d0f56d67fc6a351
+  - enabled: 1
     path: Assets/Scenes/M00.unity
     guid: 3a2f5590919546d09f35524fa87ca9d2
   - enabled: 1
