@@ -303,8 +303,10 @@ public class M00TutorialBootstrap : MonoBehaviour
         enemy.transform.localScale = Vector3.one;
 
         var rb = enemy.AddComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.mass = 1f;
+        TutorialRigidbodyStabilizer.Configure(rb, makeKinematic: false, freezeRotation: false);
+        var stabilizer = enemy.AddComponent<TutorialRigidbodyStabilizer>();
+        stabilizer.makeKinematic = false;
+        stabilizer.freezeRotation = false;
 
         var status = enemy.AddComponent<AugumentStatus>();
         status.isEnemy = true;
@@ -312,8 +314,8 @@ public class M00TutorialBootstrap : MonoBehaviour
         status.issortie = true;
         status.missionObjective = missionTarget;
         status.lifeTime = 0f;
-        status.hp = 400f;
-        status.maxhp = 400f;
+        status.hp = Mathf.Infinity;
+        status.maxhp = Mathf.Infinity;
         status.SetScoreReward(0f);
 
         var orbit = enemy.AddComponent<Orbitcruise>();
@@ -352,8 +354,10 @@ public class M00TutorialBootstrap : MonoBehaviour
         }
 
         var rb = storage.AddComponent<Rigidbody>();
-        rb.useGravity = false;
-        rb.isKinematic = true;
+        TutorialRigidbodyStabilizer.Configure(rb, makeKinematic: true, freezeRotation: true);
+        var stabilizer = storage.AddComponent<TutorialRigidbodyStabilizer>();
+        stabilizer.makeKinematic = true;
+        stabilizer.freezeRotation = true;
 
         var status = storage.AddComponent<AugumentStatus>();
         status.isEnemy = true;
@@ -363,8 +367,8 @@ public class M00TutorialBootstrap : MonoBehaviour
         status.missionObjective = false;
         status.waveID = -1;
         status.lifeTime = 0f;
-        status.hp = 2000f;
-        status.maxhp = 2000f;
+        status.hp = Mathf.Infinity;
+        status.maxhp = Mathf.Infinity;
         status.SetScoreReward(0f);
 
         ObjectManager.Instance?.RegisterEnemy(storage, status.waveID);

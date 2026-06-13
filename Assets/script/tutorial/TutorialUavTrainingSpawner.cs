@@ -57,7 +57,12 @@ public class TutorialUavTrainingSpawner : MonoBehaviour
         Rigidbody rb = enemy.GetComponent<Rigidbody>();
         if (rb == null)
             rb = enemy.AddComponent<Rigidbody>();
-        rb.useGravity = false;
+        TutorialRigidbodyStabilizer.Configure(rb, makeKinematic: false, freezeRotation: false);
+        TutorialRigidbodyStabilizer stabilizer = enemy.GetComponent<TutorialRigidbodyStabilizer>();
+        if (stabilizer == null)
+            stabilizer = enemy.AddComponent<TutorialRigidbodyStabilizer>();
+        stabilizer.makeKinematic = false;
+        stabilizer.freezeRotation = false;
         rb.linearVelocity = enemy.transform.forward * 160f;
 
         AugumentStatus status = enemy.GetComponent<AugumentStatus>();

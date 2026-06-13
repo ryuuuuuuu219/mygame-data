@@ -147,6 +147,7 @@ public class selectmenuUI : MonoBehaviour
     readonly Dictionary<string, string> missionText = new Dictionary<string, string>()
     {
         #region ブリーフィング文章はここへ手打ちで追加・調整する。
+        {"Document","座学です\nこのゲームの世界観、用語、基本的な操作方法を説明します。"},
         {"M00","チュートリアルです\n表示される案内に従って操作方法、飛行、ロックオン、攻撃を確認してください。"},
         {"M01","対空陣地中央の長射程地対空ミサイルを破壊せよ\n一定高度（900）以上を飛ぶと長距離ミサイルに狙われるので低空侵入を推奨する" },
         {"M02","作戦空域内の未確認物体を強行偵察せよ" },

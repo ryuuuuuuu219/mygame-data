@@ -193,9 +193,10 @@ public class TutorialAttitudeAttractor : MonoBehaviour
         cube.transform.localScale = aimTargetScale;
 
         Rigidbody targetRb = cube.AddComponent<Rigidbody>();
-        targetRb.useGravity = false;
-        targetRb.isKinematic = true;
-        targetRb.detectCollisions = true;
+        TutorialRigidbodyStabilizer.Configure(targetRb, makeKinematic: true, freezeRotation: true);
+        var stabilizer = cube.AddComponent<TutorialRigidbodyStabilizer>();
+        stabilizer.makeKinematic = true;
+        stabilizer.freezeRotation = true;
 
         ConfigureAimTargetStatus(cube);
 
