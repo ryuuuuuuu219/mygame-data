@@ -15,7 +15,7 @@ public class SetupUI : MonoBehaviour
     public TextMeshProUGUI itemPointText;
     public TextMeshProUGUI itemValueText;
     public TextMeshProUGUI itemPrevNextText;
-    public List<string> scene_name = new List<string>();
+    private List<string> scene_name;
 
     const string StdIndexKey = "WeaponSelectIndex_stdm";
     const string GunIndexKey = "WeaponSelectIndex_gun";
@@ -68,8 +68,9 @@ public class SetupUI : MonoBehaviour
         }
         EnsureSplitTextObjects();
 
+        scene_name = SelectMenuText.BuildSortieStageKeys(IsSceneAvailable);
         RemoveUnavailableScenes();
-        selectedstage = PlayerPrefs.GetInt("selectedstage", 0);
+        selectedstage = PlayerPrefs.GetInt("selectedSortieIndex", PlayerPrefs.GetInt("selectedstage", 0));
         selectedstage = ClampIndex(selectedstage, scene_name.Count);
         PlayerPrefs.SetInt("selectedstage", selectedstage);
         stdmIndex = PlayerPrefs.GetInt(StdIndexKey, 0);

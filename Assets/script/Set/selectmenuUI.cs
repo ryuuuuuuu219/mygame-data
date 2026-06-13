@@ -1,27 +1,33 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class selectmenuUI : MonoBehaviour
+public partial class selectmenuUI : MonoBehaviour
 {
-    public TextMeshProUGUI hudText;          // HUDテキスト
+    const string SelectedMissionKeyPref = "selectedMissionKey";
+    const string SelectedSortieIndexPref = "selectedSortieIndex";
 
     public int selectedstage;
+    List<string> selectableStageKeys;
 
     // Start is called before the first frame update
     void Start()
     {
         Time.timeScale = 1f;
+        selectableStageKeys = BuildSelectableStageKeys();
+
         if (SceneManager.GetActiveScene().name == "Briefing")
         {
-            selectedstage = PlayerPrefs.GetInt("selectedstage", 0);
+            selectedstage = ClampStageIndex(GetSavedSelectionIndex());
+        }
+        else
+        {
+            selectedstage = ClampStageIndex(selectedstage);
         }
 
-        selectedstage = ClampStageIndex(selectedstage);
         PlayerPrefs.SetInt("selectedstage", selectedstage);
+        EnsureSplitTextObjects();
     }
 
     bool maruflag = false;
@@ -70,19 +76,39 @@ public class selectmenuUI : MonoBehaviour
                     GeneratedAudioManager.Play(GeneratedAudioCue.UiSubmit);
                     if (SceneManager.GetActiveScene().name == "Briefing")
                     {
-                        PlayerPrefs.SetInt("selectedstage", selectedstage);
+                        string stageName = GetSelectedStageName();
+                        SaveSelectedStage(stageName);
 
-                        PlayerPrefs.Save();
-
-                        SceneManager.LoadScene("SetUp");
+                        if (SelectMenuText.TryGetSortieIndex(stageName, out int sortieIndex))
+                        {
+                            PlayerPrefs.SetInt(SelectedSortieIndexPref, sortieIndex);
+                            PlayerPrefs.SetInt("selectedstage", sortieIndex);
+                            PlayerPrefs.Save();
+                            SceneManager.LoadScene("SetUp");
+                        }
+                        else
+                        {
+                            Debug.LogError("[selectmenuUI] Unsupported stage: " + stageName);
+                        }
                     }
                     else if (SceneManager.GetActiveScene().name == "Menu")
                     {
-                        PlayerPrefs.SetInt("selectedstage", selectedstage);
+                        string stageName = GetSelectedStageName();
+                        SaveSelectedStage(stageName);
 
-                        PlayerPrefs.Save();
-
-                        SceneManager.LoadScene("Briefing");
+                        if (stageName == SelectMenuText.DocumentStageName)
+                        {
+                            SceneManager.LoadScene("document");
+                        }
+                        else if (stageName == SelectMenuText.TutorialStageName)
+                        {
+                            SceneManager.LoadScene("preM00");
+                        }
+                        else
+                        {
+                            SaveSelectedStage(GetSelectedStageName());
+                            SceneManager.LoadScene("Briefing");
+                        }
                     }
                     else if (SceneManager.GetActiveScene().name == "Title")
                     {
@@ -106,16 +132,7 @@ public class selectmenuUI : MonoBehaviour
         }
         if (SceneManager.GetActiveScene().name == "Menu")
         {
-            hudText.text = "ミッション選択\n\n";
-
-            for (int i = 0; i < missionCount; i++)
-            {
-                hudText.text += Line(i, GetStagename(i)) + "\n";
-            }
-
-            hudText.text +=
-                "〇 決定\n" +
-                "× 戻る";
+            UpdateMenuText();
             if (Mathf.Abs(v) > 0.1f)
             {
                 interval -= Time.deltaTime;
@@ -133,90 +150,61 @@ public class selectmenuUI : MonoBehaviour
         }
         else if (SceneManager.GetActiveScene().name == "Briefing")
         {
-            string stageName = GetSelectedStageName();
-
-            hudText.text = "ミッション説明\n\n" +
-                "ミッション: " + stageName + "\n\n" +
-                BuildMissionDescription(stageName) + "\n\n" +
-                "〇 決定\n" +
-                "× 戻る";
+            UpdateBriefingText();
         }
     }
 
-    int missionCount => missionText.Count;
-    readonly Dictionary<string, string> missionText = new Dictionary<string, string>()
-    {
-        #region ブリーフィング文章はここへ手打ちで追加・調整する。
-        {"Document","座学です\nこのゲームの世界観、用語、基本的な操作方法を説明します。"},
-        {"M00","チュートリアルです\n表示される案内に従って操作方法、飛行、ロックオン、攻撃を確認してください。"},
-        {"M01","対空陣地中央の長射程地対空ミサイルを破壊せよ\n一定高度（900）以上を飛ぶと長距離ミサイルに狙われるので低空侵入を推奨する" },
-        {"M02","作戦空域内の未確認物体を強行偵察せよ" },
-        {"M03","敵航空隊を撃破せよ" },
-        {"M04","艤装中の試作空中戦艦を撃沈せよ\n（空中戦艦の上空に電子支援機（JAMMER）が存在します\nその影響範囲はレーダーに表示され、その範囲内の敵のロックオンが阻害されます）" },
-        {"M05","新兵器、制圧型対空砲とレールガンによる対空陣地を破壊せよ" },
-        {"M06","敵勢力を殲滅、制空権を確保せよ" },
-        {"M07","敵実験機・「エネルギー……吸収……アリーナ」搭載機を看破し、破壊せよ" },
-        {"M08","新兵器、対空レーザー砲によって防御されている重レーザー砲を破壊せよ" },
-        {"M09","「防御機動UAV」の母艦、重巡航管制機「ほにゃほにゃ」を破壊せよ" },
-        {"M10","最新鋭機・兵装多様化重戦闘機「東方弾幕風っぽいやつ」を破壊せよ" },
-        {"M11","「東方弾幕風っぽいやつ」母艦をふくめ、空中機動艦隊を撃破せよ" },
-        {"M12","逃走、ジオフロントに侵入する最新鋭機「東方弾幕風っぽいやつ」を追撃せよ" },
-        {"M13","対空制圧砲弾「やべーの」の弾着観測無人機「ドン引き」を破壊、ジオフロント崩壊を阻止せよ" },
-        {"M14","対空制圧砲弾母艦、改修型重巡航管制機「ほにゃほにゃ」を破壊せよ" }
-
-        #endregion
-
-    };
+    int missionCount => selectableStageKeys != null ? selectableStageKeys.Count : 0;
 
     public List<string> stageNames()
     {
-        return missionText.Keys.ToList();
+        return BuildSelectableStageKeys();
     }
 
-    /*
-    復号用
-    「エネルギー……吸収……アリーナ」「BHS」（バレット・ヘル・システム）
-    「防御機動UAV」　そのまま
-    「やべーの」　「彼岸花」
-    「ドン引き」　「向日葵」
-    「ほにゃほにゃ」「庭園」
-    「東方弾幕風っぽいやつ」「花束」
-    
-    */
+    List<string> BuildSelectableStageKeys()
+    {
+        return SelectMenuText.BuildSelectableStageKeys(IsSceneAvailable);
+    }
+
+    int GetSavedSelectionIndex()
+    {
+        string savedStageName = PlayerPrefs.GetString(SelectedMissionKeyPref, "");
+        if (!string.IsNullOrEmpty(savedStageName))
+        {
+            int index = selectableStageKeys.IndexOf(savedStageName);
+            if (index >= 0)
+                return index;
+        }
+
+        int sortieIndex = PlayerPrefs.GetInt(SelectedSortieIndexPref, PlayerPrefs.GetInt("selectedstage", 0));
+        if (sortieIndex >= 0)
+        {
+            string sortieStage = SelectMenuText.GetSelectableMissionBySortieIndex(sortieIndex, IsSceneAvailable);
+            if (!string.IsNullOrEmpty(sortieStage))
+            {
+                int index = selectableStageKeys.IndexOf(sortieStage);
+                if (index >= 0)
+                    return index;
+            }
+        }
+
+        return 0;
+    }
+
+    void SaveSelectedStage(string stageName)
+    {
+        PlayerPrefs.SetString(SelectedMissionKeyPref, stageName ?? "");
+
+        if (SelectMenuText.TryGetSortieIndex(stageName, out int sortieIndex))
+            PlayerPrefs.SetInt(SelectedSortieIndexPref, sortieIndex);
+
+        PlayerPrefs.Save();
+    }
 
     string GetSelectedStageName()
     {
-        if (selectedstage < 0 || selectedstage >= missionCount)
-            return "";
-
-        return missionText.Keys.ElementAt(selectedstage);
+        return SelectMenuText.GetStageName(selectableStageKeys, selectedstage);
     }
-
-    string GetStagename(int index)
-    {
-        if (index < 0 || index >= missionCount)
-            return "";
-        string r = missionText.Keys.ElementAt(index);
-        return r;
-    }
-
-    string BuildMissionDescription(string stageName)
-    {
-        if (string.IsNullOrEmpty(stageName))
-            return "ミッション情報を取得できません。";
-
-        if (missionText.TryGetValue(stageName, out string authoredText))
-            return authoredText;
-
-        return "作戦空域内のすべての敵目標を撃破せよ。";
-    }
-
-    string Line(int index, string value)
-    {
-        string head = (selectedstage == index) ? "> " : "  ";
-        return head + GetStagename(index);
-    }
-
 
     void StageChange(float value)
     {
@@ -254,5 +242,3 @@ public class selectmenuUI : MonoBehaviour
         return Mathf.Clamp(index, 0, missionCount - 1);
     }
 }
-
-   

@@ -230,13 +230,13 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         bool inBuildSettings = IsSceneInBuildSettings(sceneName);
         bool inMenu = IsStageListedInScene<selectmenuUI>("Assets/Scenes/Menu.unity", sceneName, ui => ui.stageNames());
         bool inBriefing = IsStageListedInScene<selectmenuUI>("Assets/Scenes/Briefing.unity", sceneName, ui => ui.stageNames());
-        bool inSetup = IsStageListedInScene<SetupUI>("Assets/Scenes/SetUp.unity", sceneName, ui => ui.scene_name);
+        bool inSetup = inBuildSettings;
 
         EditorGUILayout.LabelField("Scene Asset", hasSceneAsset ? "OK" : "Missing Assets/Scenes/<SceneName>.unity");
         EditorGUILayout.LabelField("Build Settings", inBuildSettings ? "OK" : "未登録");
         EditorGUILayout.LabelField("Menu stage_name", inMenu ? "OK" : "未登録");
         EditorGUILayout.LabelField("Briefing stage_name", inBriefing ? "OK" : "未登録");
-        EditorGUILayout.LabelField("SetUp scene_name", inSetup ? "OK" : "未登録");
+        EditorGUILayout.LabelField("SetUp sortie list", inSetup ? "OK (Build Settingsから自動生成)" : "Build Settings未登録");
 
         EditorGUI.BeginDisabledGroup(string.IsNullOrWhiteSpace(sceneName) || !hasSceneAsset);
         if (GUILayout.Button("選択Stageをシーン選択へ同期"))
@@ -610,11 +610,9 @@ public class StageSpawnJsonEditorWindow : EditorWindow
         AddStageToSelectMenuScene("Assets/Scenes/Menu.unity", sceneName);
         AddStageToSelectMenuScene("Assets/Scenes/Briefing.unity", sceneName);
         AddStageToSelectMenuScene("Assets/Scenes/Title.unity", sceneName);
-        AddStageToSetupScene("Assets/Scenes/SetUp.unity", sceneName);
-
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        EditorUtility.DisplayDialog("同期完了", $"{sceneName} をBuild Settings/Menu/Briefing/SetUpへ登録しました。", "OK");
+        EditorUtility.DisplayDialog("同期完了", $"{sceneName} をBuild Settings/Menu/Briefingへ登録しました。SetUpはBuild Settingsから自動反映されます。", "OK");
     }
 
     void AddSceneToBuildSettings(string sceneName)
@@ -649,29 +647,6 @@ public class StageSpawnJsonEditorWindow : EditorWindow
 
                 Undo.RecordObject(ui, "Add Stage Name");
                 ui.stageNames().Add(sceneName);
-                EditorUtility.SetDirty(ui);
-                changed = true;
-            }
-        }
-
-        if (changed)
-            EditorSceneManager.SaveScene(scene);
-    }
-
-    void AddStageToSetupScene(string scenePath, string sceneName)
-    {
-        Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-        bool changed = false;
-
-        foreach (var rootObject in scene.GetRootGameObjects())
-        {
-            foreach (var ui in rootObject.GetComponentsInChildren<SetupUI>(true))
-            {
-                ui.scene_name ??= new List<string>();
-                if (ui.scene_name.Contains(sceneName)) continue;
-
-                Undo.RecordObject(ui, "Add Setup Scene Name");
-                ui.scene_name.Add(sceneName);
                 EditorUtility.SetDirty(ui);
                 changed = true;
             }
