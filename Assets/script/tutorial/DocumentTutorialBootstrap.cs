@@ -58,7 +58,7 @@ public class DocumentTutorialBootstrap : MonoBehaviour
         {
             "HUD / UI確認",
             "緑枠は敵機、点滅中の緑枠は追跡対象、赤枠はロックオン完了です。TGT は目標情報、HP は耐久値を示します。",
-            "Next は△ボタン押下時、次に追跡する敵機です"
+            "Next は目標切替ボタン押下時、次に追跡する敵機です"
         },
         new[]
         {
@@ -297,7 +297,17 @@ public class DocumentTutorialBootstrap : MonoBehaviour
                 return text.font;
         }
 
+        var worldTexts = FindObjectsByType<TextMeshPro>(FindObjectsInactive.Include);
+        foreach (var text in worldTexts)
+        {
+            if (text != null && text.font != null && text.font.name.Contains("NotoSansJP-Regular SDF"))
+                return text.font;
+        }
+
         TMP_FontAsset resourceFont = Resources.Load<TMP_FontAsset>("NotoSansJP-Regular SDF");
-        return resourceFont;
+        if (resourceFont != null)
+            return resourceFont;
+
+        return TMP_Settings.defaultFontAsset;
     }
 }
