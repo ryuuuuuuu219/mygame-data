@@ -18,7 +18,6 @@ GameObject:
   - component: {fileID: 4665868336162120001}
   - component: {fileID: 5949140234686369841}
   - component: {fileID: 733410310005000003}
-  - component: {fileID: 3290276902702495531}
   - component: {fileID: -6850463899120659239}
   - component: {fileID: 956532314793742502}
   m_Layer: 0
@@ -160,8 +159,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25c7baad31268c54b82131749a678c4b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  thrustPower: 100
-  maxSpeed: 300
+  thrustPower: 180
+  maxSpeed: 500
   stallSpeed: 50
   liftPower: 9.8
   dragPower: 0.1
@@ -226,13 +225,29 @@ MonoBehaviour:
   - state: 6
     enterDelay: 0.1
     minimumDuration: 0.7
+  enterDelayRandomAddMax: 0.15
+  minimumDurationRandomAddMax: 0.4
+  threatenedAngle: 70
+  brakeDistance: 250
+  missileThreatNearDistance: 100
+  missileThreatFarDistance: 2000
+  randomManeuverCheckInterval: 0.5
+  randomManeuverChance: 0.04
+  randomManeuverCooldown: 12
+  stateDecayMaxSeconds: 30
+  stateDecayRecoverSeconds: 10
+  freshStateWeight: 1.6
+  staleStateWeight: 1
   currentState: 0
   bookedState: 0
+  stateScoreDebugs: []
   pursuitScore: 0
   leadPursuitScore: 0
   offsetScore: 0
+  brakeScore: 0
   extendScore: 0
   evadeMissileScore: 0
+  aoALimitReleaseScore: 0
   recoverAltitudeScore: 0
   missileThreat: 0
   targetDistance: 0
@@ -329,6 +344,7 @@ MonoBehaviour:
   waveID: -1
   currentHeat: 1
   destructionEffectRadius: 12
+  scoreReward: -1
   hp: 0
   maxhp: 100
   lifeTime: 10
@@ -436,7 +452,7 @@ MonoBehaviour:
           min: 0
           max: 100
           step: 1
-        value: 0
+        value: 2
       - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u8A98\u5C0E\u529B"
         range:
           min: 45
@@ -574,50 +590,6 @@ MonoBehaviour:
   launchDirectionOverride: {x: 0, y: 1, z: 0}
   guidanceStartDelay: 1.3333334
   guidanceStartSwitch: 0
-  usePurePursuitAssistForLaunchOverride: 0
-  initialTurnRate: 95
-  initialTurnBreakAngle: 15
-  isHeatSeeker: 0
-  seekerFoV: 30
-  flareHeatModifier: 1
-  bulletpool: {fileID: 0}
---- !u!114 &3290276902702495531
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8923875824590251343}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 063ec16ef7a34f00a8d5ac5e9f1c641e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyMissileShooter
-  missileHardpoint: {fileID: 4598931842802037457}
-  salvoCount: 1
-  salvoSpreadAngle: 0
-  salvoVerticalSpreadAngle: 0
-  missileSpeed: 200
-  missileCooldown: 6
-  missileLifeTime: 12
-  missilePower: 10
-  missileAcceleration: 25
-  missileMaxSpeed: 400
-  missileTurnRate: 9
-  missileBreakAngle: 90
-  missileProportionalConstant: 3
-  missileTurnRateDecay: 1
-  missileTotalDeltaTheta: 90
-  missileEffectRadius: 0
-  requireLineOfSight: 1
-  lineOfSightMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  lineOfSightOriginOffset: 2
-  minimumLaunchUpDot: 1
-  launchDirectionOverride: {x: 0, y: 1, z: 0}
-  guidanceStartDelay: 1.3333334
-  guidanceStartSwitch: 0
   usePurePursuitAssistForLaunchOverride: 1
   initialTurnRate: 95
   initialTurnBreakAngle: 15
@@ -640,10 +612,10 @@ MonoBehaviour:
   useGun: 0
   useMissile: 1
   gunRange: 900
-  missileRange: 800
+  missileRange: 2139.5
   targetSelector: {fileID: 956532314793742502}
   gunShooter: {fileID: 0}
-  missileShooter: {fileID: 3290276902702495531}
+  missileShooter: {fileID: 733410310005000003}
 --- !u!114 &956532314793742502
 MonoBehaviour:
   m_ObjectHideFlags: 0

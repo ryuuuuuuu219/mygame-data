@@ -5,6 +5,7 @@ public class ObjectManager : MonoBehaviour
 {
     public static ObjectManager Instance;   // シングルトン的にアクセスできるようにする
 
+    public GameObject tester_enemy;
     public List<(int, GameObject)> enemies = new ();
     public List<GameObject> missiles_e = new ();
 
@@ -29,6 +30,12 @@ public class ObjectManager : MonoBehaviour
         }
     }
 
+    void SetTester()
+    {
+        if (tester_enemy == null) return;
+        RegisterEnemy(tester_enemy, 0);
+    }
+
     private readonly List<GameObject> _enemyCache = new();
 
 
@@ -36,6 +43,7 @@ public class ObjectManager : MonoBehaviour
     {
         Instance = this;
         RegisterAlly(gameObject); // 自分自身を味方リストに登録
+        SetTester();
     }
 
     public SpawnTableManager spawnTableManager;

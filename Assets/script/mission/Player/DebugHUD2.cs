@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
 public class DebugHUD2 : MonoBehaviour
@@ -36,7 +36,7 @@ public class DebugHUD2 : MonoBehaviour
         UpdateScoreTimeText();
         ApplyHudTextColor(missilelocked ? missileAlertHudColor : normalHudColor);
 
-        if (spawnTableManager.isStageClear)
+        if (spawnTableManager!=null && spawnTableManager.isStageClear)
         {
             altTimerUI.GetComponent<TextMeshProUGUI>().text = "Stage Clear!" +
                 "\nReturning to Base in " + spawnTableManager.toResultTimer.ToString("F1") + "s";

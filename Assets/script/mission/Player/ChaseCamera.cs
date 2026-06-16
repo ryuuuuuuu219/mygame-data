@@ -5,7 +5,6 @@ public class ChaseCameraController : MonoBehaviour
     [Header("Camera Settings")]
     public Camera chaseCamera;
     public Vector3 offset = new Vector3(0, 1.5f, -3f);
-    public float followSpeed = 5f;
     public float rotationSpeed = 5f;
 
     [Header("Right Stick Settings")]
@@ -46,11 +45,7 @@ public class ChaseCameraController : MonoBehaviour
         chaseCamera.transform.rotation = desiredRotation;
 
         // --- 位置を補間 ---
-        Vector3 desiredPosition = transform.TransformPoint(offset);
-        chaseCamera.transform.position = Vector3.Lerp(
-            chaseCamera.transform.position,
-            desiredPosition,
-            followSpeed * Time.deltaTime
-        );
+        Vector3 desiredPosition = transform.position + desiredRotation * offset;
+        chaseCamera.transform.position = desiredPosition;
     }
 }

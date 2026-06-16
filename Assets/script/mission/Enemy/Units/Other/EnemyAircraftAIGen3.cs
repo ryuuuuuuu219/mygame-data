@@ -8,9 +8,10 @@ public class EnemyAircraftAIGen3 : AircraftController
         Pursuit,
         LeadPursuit,
         Offset,
+        Brake,
         Extend,
         EvadeMissile,
-        BarrelRoll,
+        AoALimitRelease,
         RecoverAltitude
     }
 
@@ -20,6 +21,11 @@ public class EnemyAircraftAIGen3 : AircraftController
         public CombatState state;
         public float enterDelay;
         public float minimumDuration;
+        public float needToChoiceTime;
+        public float maxTime;
+        public bool flag;
+        public float remainTime;
+        public float weight;
     }
 
     [Header("Target")]
@@ -47,8 +53,7 @@ public class EnemyAircraftAIGen3 : AircraftController
     public float evadeForwardWeight = 0.25f;
     public float evadeTargetWeight = 0.2f;
     public float missileApproachAngle = 45f;
-    public int barrelRollThreatCount = 1;
-    public float barrelRollSeconds = 1.2f;
+    public float missileBarrelRollChance = 0.3f;
     public float barrelRollInput = 1f;
     public float attackApproachAngle = 45f;
     public float lagPursuitSeconds = 1.2f;
@@ -70,24 +75,42 @@ public class EnemyAircraftAIGen3 : AircraftController
     [SerializeField]
     StateTuning[] stateTunings =
     {
-        new StateTuning { state = CombatState.Pursuit, enterDelay = 0.35f, minimumDuration = 0.6f },
         new StateTuning { state = CombatState.LeadPursuit, enterDelay = 0.2f, minimumDuration = 0.5f },
         new StateTuning { state = CombatState.Offset, enterDelay = 0.15f, minimumDuration = 0.7f },
+        new StateTuning { state = CombatState.Brake, enterDelay = 0.08f, minimumDuration = 0.6f },
         new StateTuning { state = CombatState.Extend, enterDelay = 0.25f, minimumDuration = 1.0f },
         new StateTuning { state = CombatState.EvadeMissile, enterDelay = 0.05f, minimumDuration = 0.8f },
-        new StateTuning { state = CombatState.BarrelRoll, enterDelay = 0.02f, minimumDuration = 0.8f },
+        new StateTuning { state = CombatState.AoALimitRelease, enterDelay = 0.08f, minimumDuration = 0.6f },
         new StateTuning { state = CombatState.RecoverAltitude, enterDelay = 0.1f, minimumDuration = 0.7f },
     };
+    [SerializeField] float enterDelayRandomAddMax = 0.15f;
+    [SerializeField] float minimumDurationRandomAddMax = 0.4f;
+
+    [Header("Decision")]
+    [SerializeField] float threatenedAngle = 70f;
+    [SerializeField] float brakeDistance = 250f;
+    [SerializeField] float missileThreatNearDistance = 100f;
+    [SerializeField] float missileThreatFarDistance = 2000f;
+    [SerializeField] float randomManeuverCheckInterval = 0.5f;
+    [SerializeField] float randomManeuverChance = 0.04f;
+    [SerializeField] float randomManeuverCooldown = 12f;
+    [SerializeField] float tacticSwitchCheckInterval = 1f;
+    [SerializeField] float tacticSwitchChance = 0.05f;
+    [SerializeField] float tacticSwitchCooldown = 30f;
+    [SerializeField] float stateRemainRecoverSeconds = 10f;
 
     [Header("Debug")]
-    [SerializeField] CombatState currentState = CombatState.Pursuit;
-    [SerializeField] CombatState bookedState = CombatState.Pursuit;
-    [SerializeField] float pursuitScore;
-    [SerializeField] float leadPursuitScore;
-    [SerializeField] float offsetScore;
-    [SerializeField] float extendScore;
-    [SerializeField] float evadeMissileScore;
-    [SerializeField] float recoverAltitudeScore;
+    [SerializeField] CombatState currentState = CombatState.LeadPursuit;
+    [SerializeField] CombatState bookedState = CombatState.LeadPursuit;
+    [SerializeField] bool pursuitFlag;
+    [SerializeField] bool leadPursuitFlag;
+    [SerializeField] bool offsetFlag;
+    [SerializeField] bool brakeFlag;
+    [SerializeField] bool extendFlag;
+    [SerializeField] bool evadeMissileFlag;
+    [SerializeField] bool aoALimitReleaseFlag;
+    [SerializeField] bool recoverAltitudeFlag;
+    [SerializeField] bool evadeMissileUseBarrelRoll;
     [SerializeField] float missileThreat;
     [SerializeField] float targetDistance;
     [SerializeField] Vector3 targetDirection = Vector3.forward;
@@ -104,15 +127,39 @@ public class EnemyAircraftAIGen3 : AircraftController
     Vector3 offsetVector;
     readonly List<EnemyMissileThreatSensor.ThreatInfo> missileThreats = new();
     Vector3[] sensedMissileDirections = new Vector3[4];
-    float barrelRollTimer;
     float barrelRollSign = 1f;
+    float nextRandomManeuverCheckTime;
+    float nextRandomManeuverTime;
+    float nextTacticSwitchCheckTime;
+    float nextTacticSwitchTime;
+    bool invertOffensiveTactic;
 
     protected override void Awake()
     {
         base.Awake();
+        TuningOverwrite();
         fcs = GetComponent<FCS_e>();
         targetDirection = transform.forward;
         offsetVector = transform.right * offsetRadius;
+    }
+
+    void TuningOverwrite()
+    {
+        StateTuning[] overwrittenTunings = new StateTuning[stateTunings.Length];
+        for (int i = 0; i < stateTunings.Length; i++)
+        {
+            StateTuning tuning = stateTunings[i];
+            tuning.enterDelay += Random.Range(0f, enterDelayRandomAddMax);
+            tuning.minimumDuration += Random.Range(0f, minimumDurationRandomAddMax);
+            tuning.needToChoiceTime = 6f;
+            tuning.maxTime = 20f;
+            tuning.remainTime = 0f;
+            tuning.weight = 0f;
+            tuning.flag = false;
+            overwrittenTunings[i] = tuning;
+        }
+
+        stateTunings = overwrittenTunings;
     }
 
     void Update()
@@ -122,12 +169,16 @@ public class EnemyAircraftAIGen3 : AircraftController
         if (target == null)
         {
             ResetDecision();
+            missileThreat = 0f;
+            targetDistance = 0f;
             targetDirection = transform.forward;
             return;
         }
 
         targetDistance = Vector3.Distance(transform.position, target.position);
-        missileThreat = EvaluateMissileThreat(out missileEvadeDirection);
+        missileThreat = EvaluateMissileThreat(out Vector3 evaluatedMissileEvadeDirection);
+        missileEvadeDirection = evaluatedMissileEvadeDirection;
+        UpdateStateChoiceTimes();
 
         CombatState nextState = ChooseState();
         ApplyStateTransition(nextState);
@@ -151,16 +202,17 @@ public class EnemyAircraftAIGen3 : AircraftController
         switch (currentState)
         {
             case CombatState.Pursuit:
-                return fullThrottle;
             case CombatState.LeadPursuit:
                 return attackThrottle;
             case CombatState.Offset:
                 return targetDistance < offsetRange ? brakeThrottle : attackThrottle;
+            case CombatState.Brake:
+                return brakeThrottle;
             case CombatState.Extend:
                 return fullThrottle;
             case CombatState.EvadeMissile:
                 return fullThrottle;
-            case CombatState.BarrelRoll:
+            case CombatState.AoALimitRelease:
                 return fullThrottle;
             case CombatState.RecoverAltitude:
                 return fullThrottle;
@@ -222,45 +274,203 @@ public class EnemyAircraftAIGen3 : AircraftController
 
         Vector3 toTarget = target.position - transform.position;
         Vector3 toTargetDir = SafeNormalize(toTarget, transform.forward);
+        Vector3 targetToMeDir = SafeNormalize(transform.position - target.position, -target.forward);
         float altitude = transform.position.y;
-        float noseAngle = Vector3.Angle(GetForwardReference(), toTargetDir);
-        float closureRate = GetClosureRate(toTargetDir);
+        float toTargetAngle = Vector3.Angle(GetForwardReference(), toTargetDir);
+        float targetNoseToMeAngle = Vector3.Angle(target.forward, targetToMeDir);
+        bool baseOffensive = targetNoseToMeAngle > toTargetAngle;
+        UpdateOffensiveTactic(baseOffensive);
+        bool offensive = invertOffensiveTactic ? !baseOffensive : baseOffensive;
+        bool threatened = targetNoseToMeAngle < threatenedAngle;
+        bool targetBehindMe = toTargetAngle > 90f;
+        bool leadPursuitReady = offensive && toTargetAngle < 30f && targetDistance < leadPursuitRange;
+        bool brakeReady = targetBehindMe && threatened && targetDistance < brakeDistance * 0.6f;
+        bool extendReady = targetBehindMe && !threatened && targetDistance > extendRange;
+        float altitudeDangerScore = GetAltitudeDangerScore(altitude);
+        UpdateStateFlags(offensive, threatened, targetBehindMe, leadPursuitReady, brakeReady, extendReady, altitudeDangerScore);
 
-        pursuitScore = Mathf.Clamp(targetDistance - leadPursuitRange, 0f, 2500f);
-        leadPursuitScore = Mathf.Clamp(leadPursuitRange - targetDistance, 0f, leadPursuitRange)
-            + Mathf.Clamp(70f - noseAngle, 0f, 70f) * 8f;
-        offsetScore = Mathf.Clamp(offsetRange - targetDistance, 0f, offsetRange) * 1.4f
-            + Mathf.Clamp(35f - noseAngle, 0f, 35f) * 6f;
-        extendScore = Mathf.Clamp(extendRange - targetDistance, 0f, extendRange) * 2.2f
-            + Mathf.Clamp(closureRate, 0f, 250f) * 3f;
-        evadeMissileScore = missileThreat;
-        float barrelRollScore = missileThreats.Count >= barrelRollThreatCount
-            ? missileThreat + 900f
-            : 0f;
-        recoverAltitudeScore = 0f;
+        if (TryPickRandomManeuver(offensive, threatened, targetBehindMe, brakeReady, extendReady, toTargetAngle))
+            return currentState;
 
-        if (altitude < minAltitude)
-            recoverAltitudeScore = (minAltitude - altitude) * 2f;
-        else if (altitude > maxAltitude)
-            recoverAltitudeScore = (altitude - maxAltitude) * 2f;
+        if (TryGetStateCandidate(out CombatState candidateState))
+            return candidateState;
 
-        CombatState bestState = CombatState.Pursuit;
-        float bestScore = pursuitScore;
-        PickBetter(CombatState.LeadPursuit, leadPursuitScore, ref bestState, ref bestScore);
-        PickBetter(CombatState.Offset, offsetScore, ref bestState, ref bestScore);
-        PickBetter(CombatState.Extend, extendScore, ref bestState, ref bestScore);
-        PickBetter(CombatState.EvadeMissile, evadeMissileScore, ref bestState, ref bestScore);
-        PickBetter(CombatState.BarrelRoll, barrelRollScore, ref bestState, ref bestScore);
-        PickBetter(CombatState.RecoverAltitude, recoverAltitudeScore, ref bestState, ref bestScore);
-
-        return bestState;
+        return currentState;
     }
 
-    void PickBetter(CombatState state, float score, ref CombatState bestState, ref float bestScore)
+    bool TryPickRandomManeuver(bool offensive, bool threatened, bool targetBehindMe, bool brakeReady, bool extendReady, float toTargetAngle)
     {
-        if (score <= bestScore) return;
-        bestState = state;
-        bestScore = score;
+        if (Time.time < nextRandomManeuverTime || Time.time < nextRandomManeuverCheckTime)
+            return false;
+
+        nextRandomManeuverCheckTime = Time.time + randomManeuverCheckInterval;
+        if (Random.value >= randomManeuverChance)
+            return false;
+
+        nextRandomManeuverTime = Time.time + randomManeuverCooldown;
+
+        if (missileThreat > 0f)
+        {
+            ForceState(CombatState.EvadeMissile);
+            return true;
+        }
+
+        if (offensive)
+        {
+            ForceState(toTargetAngle > 12f ? CombatState.AoALimitRelease : CombatState.LeadPursuit);
+            return true;
+        }
+
+        if (threatened || targetBehindMe)
+        {
+            float roll = Random.value;
+            if (roll < 0.4f && brakeReady)
+                ForceState(CombatState.Brake);
+            else if (extendReady)
+                ForceState(CombatState.Extend);
+            else
+                ForceState(CombatState.Offset);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    void UpdateOffensiveTactic(bool baseOffensive)
+    {
+        if (!baseOffensive) return;
+        if (Time.time < nextTacticSwitchTime || Time.time < nextTacticSwitchCheckTime) return;
+
+        nextTacticSwitchCheckTime = Time.time + tacticSwitchCheckInterval;
+        if (Random.value >= tacticSwitchChance) return;
+
+        invertOffensiveTactic = !invertOffensiveTactic;
+        nextTacticSwitchTime = Time.time + tacticSwitchCooldown;
+    }
+
+    void ForceState(CombatState state)
+    {
+        currentState = state;
+        bookedState = state;
+        bookedStateTimer = 0f;
+        stateTimer = 0f;
+        nextDirectionRefreshTime = 0f;
+        ResetStateRemainTime(state);
+        PickEvadeMissileManeuver(state);
+    }
+
+    void PickEvadeMissileManeuver(CombatState state)
+    {
+        if (state != CombatState.EvadeMissile)
+        {
+            evadeMissileUseBarrelRoll = false;
+            return;
+        }
+
+        evadeMissileUseBarrelRoll = Random.value < missileBarrelRollChance;
+        barrelRollSign = Random.value < 0.5f ? -1f : 1f;
+    }
+
+    void UpdateStateChoiceTimes()
+    {
+        for (int i = 0; i < stateTunings.Length; i++)
+        {
+            StateTuning tuning = stateTunings[i];
+            float needToChoiceTime = Mathf.Max(0.01f, tuning.needToChoiceTime);
+            float maxTime = Mathf.Max(needToChoiceTime, tuning.maxTime);
+            float recoverSpeed = tuning.state == currentState
+                ? 1f
+                : needToChoiceTime / Mathf.Max(0.01f, stateRemainRecoverSeconds);
+
+            tuning.remainTime = Mathf.Clamp(tuning.remainTime + Time.deltaTime * recoverSpeed, 0f, maxTime);
+            tuning.weight = GetStateWeight(tuning);
+            stateTunings[i] = tuning;
+        }
+    }
+
+    bool IsStateCandidate(CombatState state)
+    {
+        int index = FindTuningIndex(state);
+        return index >= 0 && stateTunings[index].weight > 0f;
+    }
+
+    float GetStateWeight(StateTuning tuning)
+    {
+        float needToChoiceTime = Mathf.Max(0.01f, tuning.needToChoiceTime);
+        if (!tuning.flag || tuning.remainTime <= needToChoiceTime)
+            return 0f;
+
+        return tuning.remainTime / needToChoiceTime;
+    }
+
+    void ResetStateRemainTime(CombatState state)
+    {
+        int index = FindTuningIndex(state);
+        if (index < 0) return;
+
+        StateTuning tuning = stateTunings[index];
+        tuning.remainTime = 0f;
+        tuning.weight = 0f;
+        stateTunings[index] = tuning;
+    }
+
+    void UpdateStateFlags(bool offensive, bool threatened, bool targetBehindMe, bool leadPursuitReady, bool brakeReady, bool extendReady, float altitudeDangerScore)
+    {
+        pursuitFlag = false;
+        leadPursuitFlag = offensive && leadPursuitReady;
+        offsetFlag = !offensive && threatened;
+        brakeFlag = brakeReady;
+        extendFlag = extendReady;
+        evadeMissileFlag = missileThreat > 0f;
+        aoALimitReleaseFlag = offensive && !leadPursuitReady;
+        recoverAltitudeFlag = altitudeDangerScore > 0f;
+
+        UpdateStateDebug(CombatState.Pursuit, pursuitFlag);
+        UpdateStateDebug(CombatState.LeadPursuit, leadPursuitFlag);
+        UpdateStateDebug(CombatState.Offset, offsetFlag);
+        UpdateStateDebug(CombatState.Brake, brakeFlag);
+        UpdateStateDebug(CombatState.Extend, extendFlag);
+        UpdateStateDebug(CombatState.EvadeMissile, evadeMissileFlag);
+        UpdateStateDebug(CombatState.AoALimitRelease, aoALimitReleaseFlag);
+        UpdateStateDebug(CombatState.RecoverAltitude, recoverAltitudeFlag);
+    }
+
+    void UpdateStateDebug(CombatState state, bool flag)
+    {
+        int index = FindTuningIndex(state);
+        if (index < 0) return;
+
+        StateTuning tuning = stateTunings[index];
+        tuning.flag = flag;
+        tuning.weight = GetStateWeight(tuning);
+        stateTunings[index] = tuning;
+    }
+
+    bool TryGetStateCandidate(out CombatState state)
+    {
+        float totalWeight = 0f;
+        for (int i = 0; i < stateTunings.Length; i++)
+            totalWeight += stateTunings[i].weight;
+
+        if (totalWeight <= 0f)
+        {
+            state = currentState;
+            return false;
+        }
+
+        float roll = Random.value * totalWeight;
+        for (int i = 0; i < stateTunings.Length; i++)
+        {
+            roll -= stateTunings[i].weight;
+            if (roll > 0f) continue;
+
+            state = stateTunings[i].state;
+            return true;
+        }
+
+        state = currentState;
+        return false;
     }
 
     void ApplyStateTransition(CombatState nextState)
@@ -270,6 +480,18 @@ public class EnemyAircraftAIGen3 : AircraftController
         {
             bookedState = currentState;
             bookedStateTimer = 0f;
+            return;
+        }
+
+        if (currentState == CombatState.AoALimitRelease && IsTargetInFront(12f))
+        {
+            currentState = nextState;
+            bookedState = nextState;
+            bookedStateTimer = 0f;
+            stateTimer = 0f;
+            nextDirectionRefreshTime = 0f;
+            ResetStateRemainTime(currentState);
+            PickEvadeMissileManeuver(currentState);
             return;
         }
 
@@ -285,11 +507,8 @@ public class EnemyAircraftAIGen3 : AircraftController
         if (bookedStateTimer < GetTuning(bookedState).enterDelay) return;
 
         currentState = bookedState;
-        if (currentState == CombatState.BarrelRoll)
-        {
-            barrelRollTimer = barrelRollSeconds;
-            barrelRollSign = Random.value < 0.5f ? -1f : 1f;
-        }
+        ResetStateRemainTime(currentState);
+        PickEvadeMissileManeuver(currentState);
         bookedStateTimer = 0f;
         stateTimer = 0f;
         nextDirectionRefreshTime = 0f;
@@ -305,27 +524,30 @@ public class EnemyAircraftAIGen3 : AircraftController
         switch (currentState)
         {
             case CombatState.Pursuit:
-                return direct;
             case CombatState.LeadPursuit:
                 return targetDistance < offsetRange ? GetLagPursuitDirection() : BuildAttackApproachDirection(lead, leadVector);
             case CombatState.Offset:
                 return SafeNormalize(BuildAttackApproachDirection(lead, leadVector) + GetOffsetVector() * 0.001f, direct);
+            case CombatState.Brake:
+                return SafeNormalize(GetForwardReference() * 0.7f + GetOffsetVector() * 0.0015f, transform.forward);
             case CombatState.Extend:
                 return SafeNormalize(transform.position - target.position + Vector3.up * 120f, -direct);
             case CombatState.EvadeMissile:
+                if (evadeMissileUseBarrelRoll)
+                {
+                    return SafeNormalize(
+                        GetForwardReference() * 0.65f
+                        + missileEvadeDirection.normalized * 0.35f,
+                        transform.forward);
+                }
+
                 return SafeNormalize(
                     missileEvadeDirection.normalized
                     + GetForwardReference() * evadeForwardWeight
                     + lead * evadeTargetWeight,
                     transform.right);
-            case CombatState.BarrelRoll:
-                barrelRollTimer -= Time.deltaTime;
-                if (barrelRollTimer <= 0f)
-                    currentState = CombatState.EvadeMissile;
-                return SafeNormalize(
-                    GetForwardReference() * 0.65f
-                    + missileEvadeDirection.normalized * 0.35f,
-                    transform.forward);
+            case CombatState.AoALimitRelease:
+                return direct;
             case CombatState.RecoverAltitude:
                 return GetAltitudeRecoveryDirection();
             default:
@@ -397,12 +619,39 @@ public class EnemyAircraftAIGen3 : AircraftController
         EnemyMissileThreatSensor.ThreatInfo highest = missileThreats[0];
         for (int i = 1; i < missileThreats.Count; i++)
         {
-            if (missileThreats[i].score > highest.score)
+            if (GetMissileDistanceThreat(missileThreats[i]) > GetMissileDistanceThreat(highest))
                 highest = missileThreats[i];
         }
 
         evadeDirection = highest.evadeDirection;
-        return highest.score;
+        return GetMissileDistanceThreat(highest);
+    }
+
+    float GetMissileDistanceThreat(EnemyMissileThreatSensor.ThreatInfo threat)
+    {
+        float range = Mathf.Max(1f, missileThreatFarDistance - missileThreatNearDistance);
+        return Mathf.Clamp01((missileThreatFarDistance - threat.dist) / range) * 1000f;
+    }
+
+    float GetAltitudeDangerScore(float altitude)
+    {
+        float score = 0f;
+        if (altitude < minAltitude)
+            score = (minAltitude - altitude) * 2f;
+        else if (altitude > maxAltitude)
+            score = (altitude - maxAltitude) * 2f;
+
+        if (rb != null)
+        {
+            float predictedY = altitude + rb.linearVelocity.y * 2f;
+            if (rb.linearVelocity.y < -10f && predictedY < minAltitude)
+                score = Mathf.Max(score, (minAltitude - predictedY) * 2f);
+        }
+
+        if (transform.forward.y < -0.2f && altitude < minAltitude + 400f)
+            score = Mathf.Max(score, 1200f);
+
+        return score;
     }
 
     Vector3 CalculateLeadDirection(out Vector3 leadVector)
@@ -463,13 +712,31 @@ public class EnemyAircraftAIGen3 : AircraftController
         float pitchScale = Mathf.Lerp(downwardPitchLimit, 1f, 1f - downFactor);
         float pitch = Mathf.Clamp(localDir.y, -1f, 1f) * pitchScale;
         float yaw = Mathf.Clamp(localDir.x, -1f, 1f) * downFactor * Mathf.Abs(roll) * yawAssist;
-        if (currentState == CombatState.BarrelRoll)
+        if (currentState == CombatState.AoALimitRelease)
+        {
+            float pitchAxisError = Mathf.Abs(localDir.x);
+            roll = Mathf.Clamp(localDir.x * 2.2f, -1f, 1f);
+            pitch *= Mathf.Clamp01(1f - pitchAxisError * 1.6f - downFactor > 0 ? 1f : 0f);
+            yaw *= 0.35f;
+        }
+
+        if (currentState == CombatState.EvadeMissile && evadeMissileUseBarrelRoll)
         {
             roll = Mathf.Clamp(barrelRollInput * barrelRollSign, -1f, 1f);
             pitch = Mathf.Clamp(pitch + 0.25f, -1f, 1f);
         }
 
         return new Vector3(pitch, roll, yaw);
+    }
+
+    bool IsTargetInFront(float angle)
+    {
+        if (target == null) return false;
+
+        Vector3 toTarget = target.position - transform.position;
+        if (toTarget.sqrMagnitude <= 0.001f) return true;
+
+        return Vector3.Angle(GetForwardReference(), toTarget.normalized) <= angle;
     }
 
     float GetClosureRate(Vector3 toTargetDir)
@@ -512,18 +779,34 @@ public class EnemyAircraftAIGen3 : AircraftController
 
     StateTuning GetTuning(CombatState state)
     {
-        for (int i = 0; i < stateTunings.Length; i++)
-        {
-            if (stateTunings[i].state == state)
-                return stateTunings[i];
-        }
+        int index = FindTuningIndex(state);
+        if (index >= 0)
+            return stateTunings[index];
 
         return new StateTuning
         {
             state = state,
             enterDelay = 0.2f,
-            minimumDuration = 0.5f
+            minimumDuration = 0.5f,
+            needToChoiceTime = 6f,
+            maxTime = 20f
         };
+    }
+
+    int FindTuningIndex(CombatState state)
+    {
+        for (int i = 0; i < stateTunings.Length; i++)
+        {
+            if (stateTunings[i].state == state)
+                return i;
+        }
+
+        return -1;
+    }
+
+    protected override bool GetLimiter()
+    {
+        return currentState != CombatState.AoALimitRelease;
     }
 
     public int sencing(out Vector3[] approachDirections, int maxCount)
@@ -554,14 +837,15 @@ public class EnemyAircraftAIGen3 : AircraftController
 
     void ResetDecision()
     {
-        pursuitScore = 0f;
-        leadPursuitScore = 0f;
-        offsetScore = 0f;
-        extendScore = 0f;
-        evadeMissileScore = 0f;
-        recoverAltitudeScore = 0f;
-        missileThreat = 0f;
-        targetDistance = 0f;
+        pursuitFlag = false;
+        leadPursuitFlag = false;
+        offsetFlag = false;
+        brakeFlag = false;
+        extendFlag = false;
+        evadeMissileFlag = false;
+        aoALimitReleaseFlag = false;
+        recoverAltitudeFlag = false;
+        evadeMissileUseBarrelRoll = false;
     }
 
     void OnDrawGizmosSelected()
