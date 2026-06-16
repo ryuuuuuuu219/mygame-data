@@ -1,6 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public class ImprovedEnemyAircraftAI : AircraftController
+public class EnemyAircraftAIGen3 : AircraftController
 {
     public enum CombatState
     {
@@ -9,6 +10,7 @@ public class ImprovedEnemyAircraftAI : AircraftController
         Offset,
         Extend,
         EvadeMissile,
+        BarrelRoll,
         RecoverAltitude
     }
 
@@ -44,6 +46,12 @@ public class ImprovedEnemyAircraftAI : AircraftController
     public float missileThreatDot = 0.45f;
     public float evadeForwardWeight = 0.25f;
     public float evadeTargetWeight = 0.2f;
+    public float missileApproachAngle = 45f;
+    public int barrelRollThreatCount = 1;
+    public float barrelRollSeconds = 1.2f;
+    public float barrelRollInput = 1f;
+    public float attackApproachAngle = 45f;
+    public float lagPursuitSeconds = 1.2f;
 
     [Header("Steering")]
     public float offsetRadius = 450f;
@@ -67,6 +75,7 @@ public class ImprovedEnemyAircraftAI : AircraftController
         new StateTuning { state = CombatState.Offset, enterDelay = 0.15f, minimumDuration = 0.7f },
         new StateTuning { state = CombatState.Extend, enterDelay = 0.25f, minimumDuration = 1.0f },
         new StateTuning { state = CombatState.EvadeMissile, enterDelay = 0.05f, minimumDuration = 0.8f },
+        new StateTuning { state = CombatState.BarrelRoll, enterDelay = 0.02f, minimumDuration = 0.8f },
         new StateTuning { state = CombatState.RecoverAltitude, enterDelay = 0.1f, minimumDuration = 0.7f },
     };
 
@@ -93,6 +102,10 @@ public class ImprovedEnemyAircraftAI : AircraftController
     float stateTimer;
     float interceptTimeCache;
     Vector3 offsetVector;
+    readonly List<EnemyMissileThreatSensor.ThreatInfo> missileThreats = new();
+    Vector3[] sensedMissileDirections = new Vector3[4];
+    float barrelRollTimer;
+    float barrelRollSign = 1f;
 
     protected override void Awake()
     {
@@ -146,6 +159,8 @@ public class ImprovedEnemyAircraftAI : AircraftController
             case CombatState.Extend:
                 return fullThrottle;
             case CombatState.EvadeMissile:
+                return fullThrottle;
+            case CombatState.BarrelRoll:
                 return fullThrottle;
             case CombatState.RecoverAltitude:
                 return fullThrottle;
@@ -219,6 +234,9 @@ public class ImprovedEnemyAircraftAI : AircraftController
         extendScore = Mathf.Clamp(extendRange - targetDistance, 0f, extendRange) * 2.2f
             + Mathf.Clamp(closureRate, 0f, 250f) * 3f;
         evadeMissileScore = missileThreat;
+        float barrelRollScore = missileThreats.Count >= barrelRollThreatCount
+            ? missileThreat + 900f
+            : 0f;
         recoverAltitudeScore = 0f;
 
         if (altitude < minAltitude)
@@ -232,6 +250,7 @@ public class ImprovedEnemyAircraftAI : AircraftController
         PickBetter(CombatState.Offset, offsetScore, ref bestState, ref bestScore);
         PickBetter(CombatState.Extend, extendScore, ref bestState, ref bestScore);
         PickBetter(CombatState.EvadeMissile, evadeMissileScore, ref bestState, ref bestScore);
+        PickBetter(CombatState.BarrelRoll, barrelRollScore, ref bestState, ref bestScore);
         PickBetter(CombatState.RecoverAltitude, recoverAltitudeScore, ref bestState, ref bestScore);
 
         return bestState;
@@ -266,6 +285,11 @@ public class ImprovedEnemyAircraftAI : AircraftController
         if (bookedStateTimer < GetTuning(bookedState).enterDelay) return;
 
         currentState = bookedState;
+        if (currentState == CombatState.BarrelRoll)
+        {
+            barrelRollTimer = barrelRollSeconds;
+            barrelRollSign = Random.value < 0.5f ? -1f : 1f;
+        }
         bookedStateTimer = 0f;
         stateTimer = 0f;
         nextDirectionRefreshTime = 0f;
@@ -283,9 +307,9 @@ public class ImprovedEnemyAircraftAI : AircraftController
             case CombatState.Pursuit:
                 return direct;
             case CombatState.LeadPursuit:
-                return SafeNormalize(lead + leadVector.normalized * 0.15f, direct);
+                return targetDistance < offsetRange ? GetLagPursuitDirection() : BuildAttackApproachDirection(lead, leadVector);
             case CombatState.Offset:
-                return SafeNormalize(lead + GetOffsetVector() * 0.001f, direct);
+                return SafeNormalize(BuildAttackApproachDirection(lead, leadVector) + GetOffsetVector() * 0.001f, direct);
             case CombatState.Extend:
                 return SafeNormalize(transform.position - target.position + Vector3.up * 120f, -direct);
             case CombatState.EvadeMissile:
@@ -294,6 +318,14 @@ public class ImprovedEnemyAircraftAI : AircraftController
                     + GetForwardReference() * evadeForwardWeight
                     + lead * evadeTargetWeight,
                     transform.right);
+            case CombatState.BarrelRoll:
+                barrelRollTimer -= Time.deltaTime;
+                if (barrelRollTimer <= 0f)
+                    currentState = CombatState.EvadeMissile;
+                return SafeNormalize(
+                    GetForwardReference() * 0.65f
+                    + missileEvadeDirection.normalized * 0.35f,
+                    transform.forward);
             case CombatState.RecoverAltitude:
                 return GetAltitudeRecoveryDirection();
             default:
@@ -317,6 +349,33 @@ public class ImprovedEnemyAircraftAI : AircraftController
         return offsetVector;
     }
 
+    Vector3 BuildAttackApproachDirection(Vector3 leadDirection, Vector3 leadVector)
+    {
+        if (target == null) return leadDirection;
+
+        Vector3 toTarget = SafeNormalize(target.position - transform.position, transform.forward);
+        Vector3 side = Vector3.Cross(Vector3.up, toTarget);
+        if (side.sqrMagnitude < 0.001f) side = transform.right;
+        side.Normalize();
+        if (Vector3.Dot(side, transform.right) < 0f) side = -side;
+
+        Vector3 approach = Quaternion.AngleAxis(attackApproachAngle, Vector3.up) * toTarget;
+        if (Vector3.Dot(approach, side) < 0f)
+            approach = Quaternion.AngleAxis(-attackApproachAngle, Vector3.up) * toTarget;
+
+        return SafeNormalize(leadDirection + leadVector.normalized * 0.15f + approach * 0.35f, leadDirection);
+    }
+
+    Vector3 GetLagPursuitDirection()
+    {
+        if (target == null) return transform.forward;
+
+        Rigidbody otherRb = target.GetComponent<Rigidbody>();
+        Vector3 targetVelocity = otherRb != null ? otherRb.linearVelocity : target.forward * 120f;
+        Vector3 lagPoint = target.position - targetVelocity * lagPursuitSeconds;
+        return SafeNormalize(lagPoint - transform.position, transform.forward);
+    }
+
     Vector3 GetAltitudeRecoveryDirection()
     {
         if (transform.position.y < minAltitude)
@@ -332,59 +391,18 @@ public class ImprovedEnemyAircraftAI : AircraftController
     float EvaluateMissileThreat(out Vector3 evadeDirection)
     {
         evadeDirection = Vector3.zero;
-        if (ObjectManager.Instance == null || ObjectManager.Instance.missiles_a == null) return 0f;
+        Sencing(out _, 4);
+        if (missileThreats.Count == 0) return 0f;
 
-        float highestThreat = 0f;
-
-        foreach (GameObject missileObject in ObjectManager.Instance.missiles_a)
+        EnemyMissileThreatSensor.ThreatInfo highest = missileThreats[0];
+        for (int i = 1; i < missileThreats.Count; i++)
         {
-            if (missileObject == null) continue;
-
-            Vector3 missileToMe = transform.position - missileObject.transform.position;
-            float distance = missileToMe.magnitude;
-            if (distance > missileDetectRange || distance <= 0.001f) continue;
-
-            Rigidbody missileRb = missileObject.GetComponent<Rigidbody>();
-            Vector3 missileVelocity = missileRb != null ? missileRb.linearVelocity : missileObject.transform.forward;
-            Vector3 missileDirection = SafeNormalize(missileVelocity, missileObject.transform.forward);
-            Vector3 toMeDirection = missileToMe / distance;
-
-            float approachDot = Vector3.Dot(missileDirection, toMeDirection);
-            if (approachDot < missileThreatDot) continue;
-
-            float closingSpeed = missileRb != null
-                ? Vector3.Dot(missileVelocity - rb.linearVelocity, toMeDirection)
-                : missileVelocity.magnitude * approachDot;
-            if (closingSpeed <= 0.1f) continue;
-
-            bool targeted = false;
-            Missile missile = missileObject.GetComponent<Missile>();
-            if (missile != null && missile.target == transform)
-                targeted = true;
-
-            float timeToImpact = distance / closingSpeed;
-            float distanceScore = Mathf.Clamp(missileDetectRange - distance, 0f, missileDetectRange);
-            float timeScore = Mathf.Clamp(missileCriticalTime - timeToImpact, 0f, missileCriticalTime) * 500f;
-            float dotScore = Mathf.Clamp01(approachDot) * 600f;
-            float threat = distanceScore + timeScore + dotScore + (targeted ? 900f : 0f);
-
-            if (threat <= highestThreat) continue;
-
-            highestThreat = threat;
-            Vector3 lateral = Vector3.Cross(missileDirection, Vector3.up);
-            if (lateral.sqrMagnitude < 0.001f)
-                lateral = Vector3.Cross(missileDirection, transform.up);
-
-            lateral.Normalize();
-            if (Vector3.Dot(lateral, transform.right) < 0f)
-                lateral = -lateral;
-
-            Vector3 away = toMeDirection * 0.45f;
-            Vector3 climbBias = transform.position.y < minAltitude + 300f ? Vector3.up * 0.45f : Vector3.zero;
-            evadeDirection = SafeNormalize(lateral + away + climbBias, transform.right);
+            if (missileThreats[i].score > highest.score)
+                highest = missileThreats[i];
         }
 
-        return highestThreat;
+        evadeDirection = highest.evadeDirection;
+        return highest.score;
     }
 
     Vector3 CalculateLeadDirection(out Vector3 leadVector)
@@ -445,6 +463,11 @@ public class ImprovedEnemyAircraftAI : AircraftController
         float pitchScale = Mathf.Lerp(downwardPitchLimit, 1f, 1f - downFactor);
         float pitch = Mathf.Clamp(localDir.y, -1f, 1f) * pitchScale;
         float yaw = Mathf.Clamp(localDir.x, -1f, 1f) * downFactor * Mathf.Abs(roll) * yawAssist;
+        if (currentState == CombatState.BarrelRoll)
+        {
+            roll = Mathf.Clamp(barrelRollInput * barrelRollSign, -1f, 1f);
+            pitch = Mathf.Clamp(pitch + 0.25f, -1f, 1f);
+        }
 
         return new Vector3(pitch, roll, yaw);
     }
@@ -501,6 +524,32 @@ public class ImprovedEnemyAircraftAI : AircraftController
             enterDelay = 0.2f,
             minimumDuration = 0.5f
         };
+    }
+
+    public int sencing(out Vector3[] approachDirections, int maxCount)
+    {
+        return Sencing(out approachDirections, maxCount);
+    }
+
+    public int Sencing(out Vector3[] approachDirections, int maxCount)
+    {
+        int count = EnemyMissileThreatSensor.SenseIncomingMissiles(
+            transform,
+            rb,
+            missileThreats,
+            missileDetectRange,
+            missileApproachAngle,
+            missileCriticalTime);
+
+        int outputCount = Mathf.Clamp(maxCount, 0, count);
+        if (sensedMissileDirections.Length != outputCount)
+            sensedMissileDirections = new Vector3[outputCount];
+
+        for (int i = 0; i < outputCount; i++)
+            sensedMissileDirections[i] = missileThreats[i].approachDirection;
+
+        approachDirections = sensedMissileDirections;
+        return count;
     }
 
     void ResetDecision()

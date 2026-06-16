@@ -18,11 +18,8 @@ GameObject:
   - component: {fileID: 4665868336162120001}
   - component: {fileID: 5949140234686369841}
   - component: {fileID: 733410310005000003}
-  - component: {fileID: 3290276902702495531}
-  - component: {fileID: -6850463899120659239}
-  - component: {fileID: 956532314793742502}
   m_Layer: 0
-  m_Name: ACEM05
+  m_Name: AceGen1
   m_TagString: enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -98,7 +95,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &6662380896898526167
 BoxCollider:
@@ -237,7 +233,7 @@ MonoBehaviour:
   currentMissiles: 0
   missilePrefab: {fileID: 8541818180842832201, guid: d58c981dbc484834092448ff45dbc79d, type: 3}
   missileHardpoint: {fileID: 4598931842802037457}
-  missileSpeed: 160
+  missileSpeed: 100
   missilelifeTime: 2
   missileCooldown: 6
   mslPower: 10
@@ -278,11 +274,9 @@ MonoBehaviour:
   ECM: 0
   waveID: -1
   currentHeat: 1
-  destructionEffectRadius: 12
   hp: 0
   maxhp: 100
   lifeTime: 10
-  preferInspectorStatus: 1
   CurrentStatus:
     statusdic:
     - pageName: Aircraft
@@ -330,7 +324,7 @@ MonoBehaviour:
           min: 1
           max: 60
           step: 0.1
-        value: 10
+        value: 0
       - key: "\u9283\u5F3E\uFF1A\u5C04\u7A0B"
         range:
           min: 450
@@ -342,7 +336,7 @@ MonoBehaviour:
           min: 3
           max: 150
           step: 1
-        value: 3
+        value: 0
       - key: "\u9283\u5F3E\uFF1A\u5F53\u305F\u308A\u5224\u5B9A\u30B5\u30A4\u30BA"
         range:
           min: 3
@@ -368,7 +362,7 @@ MonoBehaviour:
           min: 100
           max: 600
           step: 5
-        value: 200
+        value: 0
       - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u5A01\u529B"
         range:
           min: 10
@@ -380,7 +374,7 @@ MonoBehaviour:
           min: 100
           max: 800
           step: 5
-        value: 400
+        value: 0
       - key: "\u30DF\u30B5\u30A4\u30EB\uFF1A\u52A0\u901F\u5EA6"
         range:
           min: 0
@@ -503,13 +497,13 @@ MonoBehaviour:
   salvoCount: 1
   salvoSpreadAngle: 0
   salvoVerticalSpreadAngle: 0
-  missileSpeed: 200
+  missileSpeed: 100
   missileCooldown: 6
-  missileLifeTime: 12
+  missileLifeTime: 2
   missilePower: 10
-  missileAcceleration: 25
-  missileMaxSpeed: 400
-  missileTurnRate: 16
+  missileAcceleration: 20
+  missileMaxSpeed: 150
+  missileTurnRate: 90
   missileBreakAngle: 90
   missileProportionalConstant: 3
   missileTurnRateDecay: 1
@@ -520,9 +514,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   lineOfSightOriginOffset: 2
-  minimumLaunchUpDot: 1
-  launchDirectionOverride: {x: 0, y: 1, z: 0}
-  guidanceStartDelay: 1.3333334
+  minimumLaunchUpDot: 0.15
+  launchDirectionOverride: {x: 0, y: 0, z: 0}
+  guidanceStartDelay: 0
   guidanceStartSwitch: 0
   usePurePursuitAssistForLaunchOverride: 0
   initialTurnRate: 95
@@ -531,89 +525,3 @@ MonoBehaviour:
   seekerFoV: 30
   flareHeatModifier: 1
   bulletpool: {fileID: 0}
---- !u!114 &3290276902702495531
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8923875824590251343}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 063ec16ef7a34f00a8d5ac5e9f1c641e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyMissileShooter
-  missileHardpoint: {fileID: 4598931842802037457}
-  salvoCount: 1
-  salvoSpreadAngle: 0
-  salvoVerticalSpreadAngle: 0
-  missileSpeed: 200
-  missileCooldown: 6
-  missileLifeTime: 12
-  missilePower: 10
-  missileAcceleration: 25
-  missileMaxSpeed: 400
-  missileTurnRate: 9
-  missileBreakAngle: 90
-  missileProportionalConstant: 3
-  missileTurnRateDecay: 1
-  missileTotalDeltaTheta: 90
-  missileEffectRadius: 0
-  requireLineOfSight: 1
-  lineOfSightMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  lineOfSightOriginOffset: 2
-  minimumLaunchUpDot: 1
-  launchDirectionOverride: {x: 0, y: 1, z: 0}
-  guidanceStartDelay: 1.3333334
-  guidanceStartSwitch: 0
-  usePurePursuitAssistForLaunchOverride: 1
-  initialTurnRate: 95
-  initialTurnBreakAngle: 15
-  isHeatSeeker: 0
-  seekerFoV: 30
-  flareHeatModifier: 1
-  bulletpool: {fileID: 0}
---- !u!114 &-6850463899120659239
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8923875824590251343}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e07f6a35d7e9423dbf0bd79e4a7ab413, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GroundAntiAirController
-  useGun: 0
-  useMissile: 1
-  gunRange: 900
-  missileRange: 800
-  targetSelector: {fileID: 956532314793742502}
-  gunShooter: {fileID: 0}
-  missileShooter: {fileID: 3290276902702495531}
---- !u!114 &956532314793742502
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8923875824590251343}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0fc8f97bd8cf43f5ae1bc79f6f6bd711, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyTargetSelector
-  detectRange: 3000
-  lockRange: 850
-  retargetInterval: 0.25
-  alternateClosestTarget: 1
-  IsAirsuppression: 0
-  thresholdalt: 1000
-  thresholdaltperdist: 0.25
-  lockon: 0
-  target: {fileID: 0}
-  lastDirToTarget: {x: 0, y: 0, z: 0}
-  targetVelocity: {x: 0, y: 0, z: 0}

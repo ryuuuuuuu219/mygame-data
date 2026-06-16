@@ -12,6 +12,8 @@ public class DocumentTutorialBootstrap : MonoBehaviour
 {
     const string NextScene = "preM00";
     const string BackScene = "Menu";
+    const string DocumentFontAssetPath = "Assets/NotoSansJP-Regular SDF.asset";
+    const string DocumentFontAssetName = "NotoSansJP-Regular SDF";
     const float StickScrollSpeed = 0.85f;
     const float ButtonScrollSpeed = 1.2f;
 
@@ -285,7 +287,7 @@ public class DocumentTutorialBootstrap : MonoBehaviour
     TMP_FontAsset ResolveNotoFont()
     {
 #if UNITY_EDITOR
-        TMP_FontAsset asset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/NotoSansJP-Regular SDF.asset");
+        TMP_FontAsset asset = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(DocumentFontAssetPath);
         if (asset != null)
             return asset;
 #endif
@@ -293,18 +295,18 @@ public class DocumentTutorialBootstrap : MonoBehaviour
         var uiTexts = FindObjectsByType<TextMeshProUGUI>(FindObjectsInactive.Include);
         foreach (var text in uiTexts)
         {
-            if (text != null && text.font != null && text.font.name.Contains("NotoSansJP-Regular SDF"))
+            if (text != null && text.font != null && text.font.name.Contains(DocumentFontAssetName))
                 return text.font;
         }
 
         var worldTexts = FindObjectsByType<TextMeshPro>(FindObjectsInactive.Include);
         foreach (var text in worldTexts)
         {
-            if (text != null && text.font != null && text.font.name.Contains("NotoSansJP-Regular SDF"))
+            if (text != null && text.font != null && text.font.name.Contains(DocumentFontAssetName))
                 return text.font;
         }
 
-        TMP_FontAsset resourceFont = Resources.Load<TMP_FontAsset>("NotoSansJP-Regular SDF");
+        TMP_FontAsset resourceFont = Resources.Load<TMP_FontAsset>(DocumentFontAssetName);
         if (resourceFont != null)
             return resourceFont;
 

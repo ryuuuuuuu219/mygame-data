@@ -12,7 +12,9 @@ public class EnemyNameConverterToUI : MonoBehaviour
     public NameConversion[] conversions = new NameConversion[]
     {
         new NameConversion { beforeName = "Ace", afterName = "ACE" },
+        new NameConversion { beforeName = "AceGen1", afterName = "ACE" },
         new NameConversion { beforeName = "ACE_M03", afterName = "ACE" },
+        new NameConversion { beforeName = "ACE_M03Gen1", afterName = "ACE" },
         new NameConversion { beforeName = "AceM03Special", afterName = "ACE-2" },
         new NameConversion { beforeName = "AA_GUN", afterName = "AA" },
         new NameConversion { beforeName = "HR_AAGUN", afterName = "AA-2" },
@@ -25,9 +27,15 @@ public class EnemyNameConverterToUI : MonoBehaviour
         new NameConversion { beforeName = "TRIGGER_EMPTY", afterName = "TRIGGER" },
         new NameConversion { beforeName = "UAV_STORAGE", afterName = "UAV STORAGE" },
         new NameConversion { beforeName = "fighter", afterName = "FIGHTER" },
+        new NameConversion { beforeName = "fighterGen0", afterName = "FIGHTER" },
         new NameConversion { beforeName = "acem05", afterName = "ACE" },
+        new NameConversion { beforeName = "acem05Gen3", afterName = "ACE-3" },
         new NameConversion { beforeName = "ace_m03", afterName = "ACE" },
-        new NameConversion { beforeName = "fighter_m03_special", afterName = "ACE-2" }
+        new NameConversion { beforeName = "ace_m03Gen1", afterName = "ACE" },
+        new NameConversion { beforeName = "fighter_m03_special", afterName = "ACE-2" },
+        new NameConversion { beforeName = "fighter_m03_specialGen2", afterName = "ACE-2" },
+        new NameConversion { beforeName = "ACEM05Gen3", afterName = "ACE-3" },
+        new NameConversion { beforeName = "AceM03SpecialGen2", afterName = "ACE-2" }
     };
 
     public string converter(GameObject obj)

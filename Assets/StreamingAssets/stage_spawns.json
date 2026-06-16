@@ -2538,7 +2538,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ace_m03",
+                            "prefabType": "ace_m03Gen1",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -2589,7 +2589,7 @@
                         },
                         {
                             "enemyId": -1,
-                            "prefabType": "ace_m03",
+                            "prefabType": "ace_m03Gen1",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -2640,7 +2640,7 @@
                         },
                         {
                             "enemyId": -1,
-                            "prefabType": "ace_m03",
+                            "prefabType": "ace_m03Gen1",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -2691,7 +2691,7 @@
                         },
                         {
                             "enemyId": -1,
-                            "prefabType": "ace_m03",
+                            "prefabType": "ace_m03Gen1",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -2742,7 +2742,7 @@
                         },
                         {
                             "enemyId": -1,
-                            "prefabType": "fighter_m03_special",
+                            "prefabType": "fighter_m03_specialGen2",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -3813,7 +3813,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -3877,7 +3877,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -3941,7 +3941,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4005,7 +4005,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4070,7 +4070,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4135,7 +4135,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4200,7 +4200,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4266,7 +4266,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "AceM03Special",
+                            "prefabType": "AceM03SpecialGen2",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4317,7 +4317,7 @@
                         },
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4381,7 +4381,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4445,7 +4445,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4509,7 +4509,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4574,7 +4574,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4639,7 +4639,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4704,7 +4704,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4770,7 +4770,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "AceM03Special",
+                            "prefabType": "AceM03SpecialGen2",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4821,7 +4821,7 @@
                         },
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4885,7 +4885,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "AceM03Special",
+                            "prefabType": "AceM03SpecialGen2",
                             "spawnAsAlly": false,
                             "missionTarget": true,
                             "lifetime": 0,
@@ -4949,7 +4949,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0,
@@ -5013,7 +5013,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0,
@@ -5077,7 +5077,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0,
@@ -5142,7 +5142,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0,
@@ -5207,7 +5207,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0,
@@ -5272,7 +5272,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0,
@@ -5336,7 +5336,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "AceM03Special",
+                            "prefabType": "AceM03SpecialGen2",
                             "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0,
@@ -5402,7 +5402,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0,
@@ -5466,7 +5466,7 @@
                     "enemies": [
                         {
                             "enemyId": -1,
-                            "prefabType": "ACEM05",
+                            "prefabType": "ACEM05Gen3",
                             "spawnAsAlly": false,
                             "missionTarget": false,
                             "lifetime": 0,

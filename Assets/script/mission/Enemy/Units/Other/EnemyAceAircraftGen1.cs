@@ -4,7 +4,7 @@ using Random = UnityEngine.Random;
 
 
 
-public class EnemyAceAircraft : AircraftController
+public class EnemyAceAircraftGen1 : AircraftController
 {
     public Transform target; // プレイヤー機
 

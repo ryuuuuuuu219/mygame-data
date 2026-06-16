@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 733410310001000003}
   - component: {fileID: 733410310001000004}
   m_Layer: 0
-  m_Name: AceM03Special
+  m_Name: AceM03SpecialGen2
   m_TagString: enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -196,10 +196,21 @@ MonoBehaviour:
     delay: 0.1
   - state: 5
     level: 0
+    delay: 0.05
+  - state: 6
+    level: 0
     delay: 0.8
   currentstate: 0
   bookingstate: 0
   distdetecttimer: 0
+  missileDetectRange: 1800
+  missileApproachAngle: 45
+  missileCriticalTime: 3.5
+  barrelRollThreatCount: 1
+  barrelRollSeconds: 1.2
+  barrelRollInput: 1
+  attackApproachAngle: 45
+  lagPursuitSeconds: 1.2
   basedist: 3000
   basedist_close: 1000
   notchingangle: 98

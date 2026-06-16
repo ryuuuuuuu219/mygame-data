@@ -55,7 +55,7 @@ public class UAVStorageLauncher : MonoBehaviour
             UAV = new GameObject[Mathf.Max(1, launch.fighterCount)];
 
         string prefabType = string.IsNullOrEmpty(launch.fighterPrefabType)
-            ? "fighter"
+            ? "fighterGen0"
             : launch.fighterPrefabType;
         int waveId = launch.waveId;
 

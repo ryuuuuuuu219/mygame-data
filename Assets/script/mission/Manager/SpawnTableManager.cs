@@ -503,7 +503,7 @@ public class UAVLaunchDefinition
     public float fighterSpawnRadius = 80f;
     public float fighterSpawnAltitude = 220f;
     public float fighterSpeed = 350f;
-    public string fighterPrefabType = "fighter";
+    public string fighterPrefabType = "fighterGen0";
 }
 
 [System.Serializable]

@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 4665868336162120001}
   - component: {fileID: 5949140234686369841}
   m_Layer: 0
-  m_Name: ACE_M03
+  m_Name: ACE_M03Gen1
   m_TagString: enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

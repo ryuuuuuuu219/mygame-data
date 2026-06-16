@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class EnemyAircraft : AircraftController
+public class EnemyAircraftGen0 : AircraftController
 {
     public Transform target; // �v���C���[�@
 

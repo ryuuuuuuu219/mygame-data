@@ -1269,11 +1269,11 @@ MonoBehaviour:
     prefab: {fileID: 287339356655383430, guid: a8f39d91b5109fc419044e9b4c30a6af, type: 3}
   - prefabTypeName: LASM
     prefab: {fileID: 287339356655383430, guid: 9c61ccc9d85242acb1e018ab81b752ea, type: 3}
-  - prefabTypeName: fighter
+  - prefabTypeName: fighterGen0
     prefab: {fileID: 8923875824590251343, guid: 0ad90a41f8330d14ea6c0d46e26566d6, type: 3}
-  - prefabTypeName: ace_m03
+  - prefabTypeName: ace_m03Gen1
     prefab: {fileID: 8923875824590251343, guid: ae7a63425d914a45861f07460b3b4a86, type: 3}
-  - prefabTypeName: fighter_m03_special
+  - prefabTypeName: fighter_m03_specialGen2
     prefab: {fileID: 8923875824590251343, guid: 5a215477212741da9d86647dc220486d, type: 3}
 --- !u!1001 &277640307
 PrefabInstance:
