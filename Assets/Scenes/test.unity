@@ -564,6 +564,109 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!1 &238623861
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 238623863}
+  - component: {fileID: 238623862}
+  m_Layer: 0
+  m_Name: AirCombatBehaviorAnalyzer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &238623862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238623861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97d539bce3805ed4b8e46d7f3f2d8494, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AirCombatBehaviorAnalyzer
+  playerObject: {fileID: 796543696}
+  enemyObject: {fileID: 113715580}
+  inputManager: {fileID: 796543712}
+  leadPredictionTime: 1.2
+  inViewAngle: 65
+  lowPitchInputThreshold: 0.3
+  pitchAxisAlignedAngle: 10
+  closeRange: 1200
+  axisOffsetRollThreshold: 0.55
+  missileDetectRange: 1800
+  missileApproachAngle: 45
+  missileCriticalTime: 3.5
+  pitchInput: 0
+  rollInput: 0
+  yawInput: 0
+  throttleInput: 0
+  rollPitchInputRatio: 0
+  distance: 0
+  playerSpeed: 0
+  enemySpeed: 0
+  relativeSpeed: 0
+  closureRate: 0
+  playerThrottle: 0
+  enemyThrottle: 0
+  playerNoseToEnemyAngle: 0
+  enemyNoseToPlayerAngle: 0
+  playerVelocityToEnemyAngle: 0
+  enemyVelocityToPlayerAngle: 0
+  closing: 0
+  leadPredictionPreferred: 0
+  purePursuitAngle: 0
+  leadPursuitAngle: 0
+  lastLeadPreferredDistance: 0
+  purePursuitDirection: {x: 0, y: 0, z: 0}
+  leadPursuitDirection: {x: 0, y: 0, z: 0}
+  predictedEnemyPosition: {x: 0, y: 0, z: 0}
+  enemyIncomingMissileCount: 0
+  enemyMissileDistance: 0
+  enemyMissileTimeToImpact: 0
+  enemyMissileApproachDirection: {x: 0, y: 0, z: 0}
+  enemyMissileEvadeDirection: {x: 0, y: 0, z: 0}
+  enemyInView: 0
+  pitchAxisToEnemyAngle: 0
+  pitchAxisToEnemyVelocityAngle: 0
+  pitchAxisErrorChangePerSecond: 0
+  estimatedPitchAxisAlignTime: 0
+  inViewVelocityAxisAlignFrequency: 0
+  inViewVelocityAxisAlignedSamples: 0
+  inViewVelocityAxisTotalSamples: 0
+  lowPitchInput: 0
+  lowPitchPitchAxisToEnemyAngle: 0
+  lowPitchRollPitchRatio: 0
+  lowPitchAxisPrecision: 0
+  scissorsAxisOffsetCandidate: 0
+  axisOffsetRollEvents: 0
+  axisOffsetRollFrequency: 0
+  lastAxisOffsetAngle: 0
+  averageAxisOffsetAngle: 0
+  rollingScissorsCandidateTime: 0
+--- !u!4 &238623863
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238623861}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 221.58606, y: 818.1029, z: -27.35913}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &277640307
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8643,3 +8746,4 @@ SceneRoots:
   - {fileID: 1097357054}
   - {fileID: 1255823092}
   - {fileID: 1039684272}
+  - {fileID: 238623863}
