@@ -156,7 +156,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8923875824590251343}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25c7baad31268c54b82131749a678c4b, type: 3}
+  m_Script: {fileID: 11500000, guid: e40c1a72bde2d8e45bf9289c00cc1f03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   thrustPower: 180
@@ -220,9 +220,6 @@ MonoBehaviour:
     enterDelay: 0.05
     minimumDuration: 0.8
   - state: 5
-    enterDelay: 0.02
-    minimumDuration: 0.8
-  - state: 6
     enterDelay: 0.1
     minimumDuration: 0.7
   enterDelayRandomAddMax: 0.15

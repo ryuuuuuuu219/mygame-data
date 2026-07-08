@@ -19,6 +19,8 @@ public class AirCombatBehaviorAnalyzer : MonoBehaviour
     [SerializeField] float missileDetectRange = 1800f;
     [SerializeField] float missileApproachAngle = 45f;
     [SerializeField] float missileCriticalTime = 3.5f;
+    [SerializeField] float trackingSecondsSearchRange = 8f;
+    [SerializeField] float trackingSecondsSearchStep = 0.1f;
 
     [Header("Input Snapshot")]
     [SerializeField] float pitchInput;
@@ -37,6 +39,10 @@ public class AirCombatBehaviorAnalyzer : MonoBehaviour
     [SerializeField] float enemyThrottle;
     [SerializeField] float playerNoseToEnemyAngle;
     [SerializeField] float enemyNoseToPlayerAngle;
+    [SerializeField] float signedAzimuthError;
+    [SerializeField] float signedElevationError;
+    [SerializeField] float bankAngle;
+    [SerializeField] Vector3 playerLocalAngularVelocity;
     [SerializeField] float playerVelocityToEnemyAngle;
     [SerializeField] float enemyVelocityToPlayerAngle;
 
@@ -66,6 +72,8 @@ public class AirCombatBehaviorAnalyzer : MonoBehaviour
     [SerializeField] float inViewVelocityAxisAlignFrequency;
     [SerializeField] int inViewVelocityAxisAlignedSamples;
     [SerializeField] int inViewVelocityAxisTotalSamples;
+    [SerializeField] float outOfViewTrackingSeconds;
+    [SerializeField] float outOfViewTrackingErrorAngle;
 
     [Header("Low Pitch Input Snapshot")]
     [SerializeField] bool lowPitchInput;
@@ -103,12 +111,23 @@ public class AirCombatBehaviorAnalyzer : MonoBehaviour
     public float Distance => distance;
     public float PlayerSpeed => playerSpeed;
     public float EnemySpeed => enemySpeed;
+    public float RelativeSpeed => relativeSpeed;
     public float ClosureRate => closureRate;
     public float PlayerThrottle => playerThrottle;
     public float EnemyThrottle => enemyThrottle;
+    public float PlayerNoseToEnemyAngle => playerNoseToEnemyAngle;
+    public float EnemyNoseToPlayerAngle => enemyNoseToPlayerAngle;
+    public float SignedAzimuthError => signedAzimuthError;
+    public float SignedElevationError => signedElevationError;
+    public float BankAngle => bankAngle;
+    public Vector3 PlayerLocalAngularVelocity => playerLocalAngularVelocity;
+    public float PlayerVelocityToEnemyAngle => playerVelocityToEnemyAngle;
+    public float EnemyVelocityToPlayerAngle => enemyVelocityToPlayerAngle;
     public bool EnemyInView => enemyInView;
     public float PitchAxisToEnemyAngle => pitchAxisToEnemyAngle;
     public float PitchAxisToEnemyVelocityAngle => pitchAxisToEnemyVelocityAngle;
+    public float OutOfViewTrackingSeconds => outOfViewTrackingSeconds;
+    public float OutOfViewTrackingErrorAngle => outOfViewTrackingErrorAngle;
     public float LowPitchInputThreshold => lowPitchInputThreshold;
     public bool LowPitchInput => lowPitchInput;
     public float LowPitchPitchAxisToEnemyAngle => lowPitchPitchAxisToEnemyAngle;
@@ -198,6 +217,11 @@ public class AirCombatBehaviorAnalyzer : MonoBehaviour
         enemyThrottle = enemyAircraft != null ? enemyAircraft.throttle : 0f;
         playerNoseToEnemyAngle = Vector3.Angle(playerTransform.forward, toEnemyDirection);
         enemyNoseToPlayerAngle = Vector3.Angle(enemyTransform.forward, toPlayerDirection);
+        Vector3 localToEnemy = playerTransform.InverseTransformDirection(toEnemy);
+        signedAzimuthError = Mathf.Atan2(localToEnemy.x, localToEnemy.z) * Mathf.Rad2Deg;
+        signedElevationError = Mathf.Atan2(localToEnemy.y, new Vector2(localToEnemy.x, localToEnemy.z).magnitude) * Mathf.Rad2Deg;
+        bankAngle = Vector3.SignedAngle(Vector3.ProjectOnPlane(playerTransform.up, Vector3.up), Vector3.ProjectOnPlane(Vector3.up, playerTransform.forward), playerTransform.forward);
+        playerLocalAngularVelocity = playerTransform.InverseTransformDirection(playerRb != null ? playerRb.angularVelocity : Vector3.zero);
         playerVelocityToEnemyAngle = Vector3.Angle(SafeNormalize(playerVelocity, playerTransform.forward), toEnemyDirection);
         enemyVelocityToPlayerAngle = Vector3.Angle(SafeNormalize(enemyVelocity, enemyTransform.forward), toPlayerDirection);
     }
@@ -274,6 +298,39 @@ public class AirCombatBehaviorAnalyzer : MonoBehaviour
             inViewVelocityAxisAlignFrequency =
                 (float)inViewVelocityAxisAlignedSamples / Mathf.Max(1, inViewVelocityAxisTotalSamples);
         }
+
+        UpdateOutOfViewTrackingMethod();
+    }
+
+    void UpdateOutOfViewTrackingMethod()
+    {
+        if (enemyInView)
+        {
+            outOfViewTrackingSeconds = 0f;
+            outOfViewTrackingErrorAngle = 0f;
+            return;
+        }
+
+        Vector3 enemyVelocity = GetVelocity(enemyRb);
+        float searchRange = Mathf.Max(0f, trackingSecondsSearchRange);
+        float searchStep = Mathf.Max(0.01f, trackingSecondsSearchStep);
+        float bestSeconds = 0f;
+        float bestError = float.MaxValue;
+
+        for (float seconds = -searchRange; seconds <= searchRange + 0.0001f; seconds += searchStep)
+        {
+            Vector3 trackedPosition = enemyTransform.position + enemyVelocity * seconds;
+            Vector3 direction = SafeNormalize(trackedPosition - playerTransform.position, playerTransform.forward);
+            float error = Mathf.Abs(GetPitchAxisErrorAngle(playerTransform, direction));
+            if (error < bestError)
+            {
+                bestError = error;
+                bestSeconds = seconds;
+            }
+        }
+
+        outOfViewTrackingSeconds = bestSeconds;
+        outOfViewTrackingErrorAngle = bestError;
     }
 
     void UpdateLowPitchInputSnapshot()

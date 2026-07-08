@@ -1,0 +1,267 @@
+空戦挙動解析コンポーネント 説明書
+====================================
+
+1. 目的
+-------
+
+空戦中のプレイヤー操作と敵機との相対関係を解析し、次の処理を分担する。
+
+・Analyzer
+  現在の入力、距離、角度、追跡状態などを解析する。
+
+・Server
+  Analyzerの解析結果を時系列で蓄積し、旋回面補正エピソードや統計値を管理する。
+
+・VisualGraphViewer
+  Serverが蓄積したデータをグラフ表示する。
+
+・LogGenerator
+  旋回面補正エピソードをCSV形式のstringへ変換する。
+
+・Judge
+  蓄積されたエピソードから操作傾向を判定し、ゲーム内UIでも使用できるstringを返す。
+
+
+2. 推奨GameObject構成
+--------------------
+
+解析用GameObjectへ次の5コンポーネントを追加する。
+
+1. AirCombatBehaviorAnalyzer
+2. AirCombatBehaviorServer
+3. AirCombatBehaviorLogGenerator
+4. AirCombatBehaviorJudge
+5. AirCombatBehaviorVisualGraphViewer
+
+LogGenerator、Judge、VisualGraphViewerの「Server」欄には、同じGameObjectの
+AirCombatBehaviorServerを指定する。
+
+AirCombatBehaviorServerはAirCombatBehaviorRecorderを継承している。
+そのため、同じGameObjectへServerと旧Recorderを同時に追加してはいけない。
+記録処理が二重に動作する可能性がある。
+
+
+3. 基本設定
+-----------
+
+AirCombatBehaviorAnalyzer
+
+・Player Object
+  操作解析の対象となるプレイヤー航空機。
+
+・Enemy Object
+  相対位置や角度を計測する敵航空機。
+
+・Input Manager
+  プレイヤー入力の取得元。未設定の場合はInputManager.Instanceを自動参照する。
+
+
+AirCombatBehaviorServer
+
+・Analyzer
+  同じGameObjectのAirCombatBehaviorAnalyzerを指定する。
+
+・Recording
+  記録の有効化、記録間隔、ロール開始・停止判定などを設定する。
+
+・Turn Plane Correction
+  旋回面補正エピソードの開始・終了条件、最大記録数、サンプル間隔などを設定する。
+
+・Disengage Recording
+  敵機から離脱したと判断する角度、距離、継続時間を設定する。
+
+・Graph Bins
+  統計グラフで使用する角度範囲と分割数を設定する。
+
+
+4. データの流れ
+---------------
+
+InputManager・航空機
+        |
+        v
+AirCombatBehaviorAnalyzer
+        |
+        v
+AirCombatBehaviorServer
+        |
+        +-- VisualGraphViewer  グラフ表示
+        |
+        +-- LogGenerator       CSV文字列生成
+        |
+        +-- Judge              傾向判定文字列生成
+
+
+5. LogGenerator
+---------------
+
+コンポーネント:
+AirCombatBehaviorLogGenerator
+
+現在の全エピソードをCSV文字列として取得する:
+
+string csv = logGenerator.CurrentLog;
+
+明示的なServerから生成する:
+
+string csv = AirCombatBehaviorLogGenerator.GenerateCsv(server);
+
+エピソード一覧の指定範囲だけを生成する:
+
+string csv = AirCombatBehaviorLogGenerator.GenerateCsv(
+    server.TurnPlaneCorrectionEpisodes,
+    startIndex,
+    endIndex);
+
+範囲は両端を含む。
+インデックスが記録範囲外の場合は自動的に補正される。
+startIndexとendIndexが逆の場合は自動的に入れ替えられる。
+
+CSVヘッダーは次の定数から取得できる。
+
+AirCombatBehaviorLogGenerator.CsvHeader
+
+NaNまたはInfinityの浮動小数点値は0として出力される。
+
+
+6. Episode Log Window
+---------------------
+
+Editorメニューから次を開く。
+
+Tools > Air Combat > Correction Episode Log
+
+機能:
+
+・RecorderまたはServerの選択
+・全エピソードのCSV表示
+・全CSVのコピー
+・ヘッダーのみコピー
+・指定範囲のコピー
+・CSVファイル保存
+・エピソード概要表示
+・エピソード数が変化した場合の自動更新
+
+このウィンドウはUnity Editor専用であり、ゲームのビルドには含まれない。
+ゲーム中にCSV文字列が必要な場合はAirCombatBehaviorLogGeneratorを使用する。
+
+
+7. Judge
+-------
+
+コンポーネント:
+AirCombatBehaviorJudge
+
+判定を実行して文字列を取得する:
+
+string result = judge.Evaluate();
+
+最後に生成した結果を再取得する:
+
+string result = judge.LatestResult;
+
+現在の主な判定対象:
+
+・平均補正効率
+・平均オーバーシュート回数
+・平均ロール反転回数
+・平均反応遅延
+
+出力例:
+
+旋回面補正: オーバーシュートが多い傾向
+対象 12件 / 平均効率 0.643 / 平均オーバーシュート 1.25 /
+平均ロール反転 1.50 / 平均反応遅延 0.184秒
+
+Minimum Episodes未満の場合:
+
+判定保留: エピソード不足 (2/3)
+
+Inspectorで調整できる項目:
+
+・Minimum Episodes
+  判定に必要な最低エピソード数。
+
+・Low Efficiency Threshold
+  補正効率が低いと判定する境界値。
+
+・High Overshoot Average
+  オーバーシュートが多いと判定する平均回数。
+
+・High Reverse Average
+  ロール反転が多いと判定する平均回数。
+
+
+8. ゲーム内UIへの表示
+---------------------
+
+TextMeshProを使用する場合の実装例:
+
+using TMPro;
+using UnityEngine;
+
+public class AirCombatJudgeTextView : MonoBehaviour
+{
+    [SerializeField] AirCombatBehaviorJudge judge;
+    [SerializeField] TMP_Text resultText;
+
+    public void Refresh()
+    {
+        resultText.text = judge != null ? judge.Evaluate() : string.Empty;
+    }
+}
+
+ボタン、戦闘終了イベント、一定間隔の更新処理などからRefreshを呼び出す。
+Judgeは表示先を直接参照しないため、TextMeshPro以外のUIやログ出力にも利用できる。
+
+
+9. VisualGraphViewer
+--------------------
+
+コンポーネント:
+AirCombatBehaviorVisualGraphViewer
+
+Serverを指定すると、Inspectorに最新の旋回面補正エピソードを表示する。
+
+表示色:
+
+・青: ロール入力
+・橙: ヨー入力
+・緑: 方位誤差を90度で正規化した値
+
+グラフ表示処理はEditorフォルダー内にあるため、ゲームのビルドには含まれない。
+ランタイムでグラフを表示する場合は、Serverの公開データをUI側から参照して描画する。
+
+
+10. 旧構成からの移行
+--------------------
+
+既存シーンにAirCombatBehaviorRecorderがある場合、そのままでも
+LogGenerator、Judge、VisualGraphViewerのServer欄へ指定できる。
+
+段階的な移行手順:
+
+1. 既存Recorderを残す。
+2. LogGenerator、Judge、VisualGraphViewerを追加する。
+3. 各Server欄へ既存Recorderを指定する。
+4. 動作確認後、必要に応じてRecorderをAirCombatBehaviorServerへ置き換える。
+
+ServerはRecorderの派生クラスであり、現時点では蓄積実装を共有している。
+既存シーンやPrefabの参照を一度に壊さず、責務名を段階的に移行するための構成である。
+
+
+11. 注意事項
+------------
+
+・AnalyzerのPlayer ObjectまたはEnemy Objectが未設定の場合、記録は開始されない。
+
+・ServerのRecordが無効の場合、解析値は更新されても蓄積は行われない。
+
+・Serverと旧Recorderを同じGameObjectへ同時に追加しない。
+
+・Judgeの結果はEvaluateを呼んだ時点のエピソードから生成される。
+  LatestResultは自動更新されない。
+
+・CSV生成とJudgeはEditor専用ではないため、ゲームビルドからも呼び出せる。
+
+・Episode Log WindowとVisualGraphViewerのInspector描画はEditor専用である。

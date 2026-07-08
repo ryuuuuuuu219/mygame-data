@@ -11,7 +11,6 @@ public class EnemyAircraftAIGen4 : AircraftController
         Brake,
         Extend,
         EvadeMissile,
-        AoALimitRelease,
         RecoverAltitude
     }
 
@@ -84,7 +83,6 @@ public class EnemyAircraftAIGen4 : AircraftController
         new StateTuning { state = CombatState.Brake, enterDelay = 0.08f, minimumDuration = 0.6f },
         new StateTuning { state = CombatState.Extend, enterDelay = 0.25f, minimumDuration = 1.0f },
         new StateTuning { state = CombatState.EvadeMissile, enterDelay = 0.05f, minimumDuration = 0.8f },
-        new StateTuning { state = CombatState.AoALimitRelease, enterDelay = 0.08f, minimumDuration = 0.6f },
         new StateTuning { state = CombatState.RecoverAltitude, enterDelay = 0.1f, minimumDuration = 0.7f },
     };
     [SerializeField] StateRuntime[] stateRuntime;
@@ -227,8 +225,6 @@ public class EnemyAircraftAIGen4 : AircraftController
                 return fullThrottle;
             case CombatState.EvadeMissile:
                 return fullThrottle;
-            case CombatState.AoALimitRelease:
-                return fullThrottle;
             case CombatState.RecoverAltitude:
                 return fullThrottle;
             default:
@@ -332,7 +328,7 @@ public class EnemyAircraftAIGen4 : AircraftController
 
         if (offensive)
         {
-            ForceState(toTargetAngle > 12f ? CombatState.AoALimitRelease : CombatState.LeadPursuit);
+            ForceState(CombatState.LeadPursuit);
             return true;
         }
 
@@ -435,7 +431,6 @@ public class EnemyAircraftAIGen4 : AircraftController
         SetStateCondition(CombatState.Brake, brakeReady);
         SetStateCondition(CombatState.Extend, extendReady);
         SetStateCondition(CombatState.EvadeMissile, missileThreat > 0f);
-        SetStateCondition(CombatState.AoALimitRelease, offensive && !leadPursuitReady);
         SetStateCondition(CombatState.RecoverAltitude, altitudeDangerScore > 0f);
     }
 
@@ -484,18 +479,6 @@ public class EnemyAircraftAIGen4 : AircraftController
         {
             bookedState = currentState;
             bookedStateTimer = 0f;
-            return;
-        }
-
-        if (currentState == CombatState.AoALimitRelease && IsTargetInFront(12f))
-        {
-            currentState = nextState;
-            bookedState = nextState;
-            bookedStateTimer = 0f;
-            stateTimer = 0f;
-            nextDirectionRefreshTime = 0f;
-            ResetStateRemainTime(currentState);
-            PickEvadeMissileManeuver(currentState);
             return;
         }
 
@@ -549,8 +532,6 @@ public class EnemyAircraftAIGen4 : AircraftController
                     + GetForwardReference() * evadeForwardWeight
                     + interceptDirection * evadeTargetWeight,
                     transform.right);
-            case CombatState.AoALimitRelease:
-                return directTargetDirection;
             case CombatState.RecoverAltitude:
                 return GetAltitudeRecoveryDirection();
             default:
@@ -715,13 +696,6 @@ public class EnemyAircraftAIGen4 : AircraftController
         float pitchScale = Mathf.Lerp(downwardPitchLimit, 1f, 1f - downFactor);
         float pitch = Mathf.Clamp(localDir.y, -1f, 1f) * pitchScale;
         float yaw = Mathf.Clamp(localDir.x, -1f, 1f) * downFactor * Mathf.Abs(roll) * yawAssist;
-        if (currentState == CombatState.AoALimitRelease)
-        {
-            float pitchAxisError = Mathf.Abs(localDir.x);
-            roll = Mathf.Clamp(localDir.x * 2.2f, -1f, 1f);
-            pitch *= Mathf.Clamp01(1f - pitchAxisError * 1.6f - downFactor > 0 ? 1f : 0f);
-            yaw *= 0.35f;
-        }
 
         if (currentState == CombatState.EvadeMissile && evadeMissileUseBarrelRoll)
         {
@@ -810,12 +784,6 @@ public class EnemyAircraftAIGen4 : AircraftController
 
         return -1;
     }
-
-    protected override bool GetLimiter()
-    {
-        return currentState != CombatState.AoALimitRelease;
-    }
-
     public int SenseIncomingMissiles(out Vector3[] approachDirections, int maxCount)
     {
         int count = EnemyMissileThreatSensor.SenseIncomingMissiles(

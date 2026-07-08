@@ -447,39 +447,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 8923875824590251343, guid: 14369d21db044a9cb2e0d229dd06fe19, type: 3}
   m_PrefabInstance: {fileID: 1255823092}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &113715592 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4598931842802037457, guid: 14369d21db044a9cb2e0d229dd06fe19, type: 3}
-  m_PrefabInstance: {fileID: 1255823092}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &113715593
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 113715580}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 740d91914da044cb97a8f48c4adf90a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyGunShooter
-  gunMuzzle: {fileID: 113715592}
-  barrelCount: 5
-  barrelArcAngle: 2
-  bulletSpeed: 300
-  fireRate: 0.1
-  spreadAngle: 2
-  bulletSize: 1
-  bulletLifetime: 3
-  useLeadBias: 0
-  requireLineOfSight: 1
-  lineOfSightMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  lineOfSightOriginOffset: 2
-  bulletpool: {fileID: 1039684271}
-  leadBiasAddon: {fileID: 0}
 --- !u!1 &145374515
 GameObject:
   m_ObjectHideFlags: 0
@@ -574,6 +541,10 @@ GameObject:
   m_Component:
   - component: {fileID: 238623863}
   - component: {fileID: 238623862}
+  - component: {fileID: 238623866}
+  - component: {fileID: 238623868}
+  - component: {fileID: 238623865}
+  - component: {fileID: 238623867}
   m_Layer: 0
   m_Name: AirCombatBehaviorAnalyzer
   m_TagString: Untagged
@@ -605,6 +576,8 @@ MonoBehaviour:
   missileDetectRange: 1800
   missileApproachAngle: 45
   missileCriticalTime: 3.5
+  trackingSecondsSearchRange: 8
+  trackingSecondsSearchStep: 0.1
   pitchInput: 0
   rollInput: 0
   yawInput: 0
@@ -619,6 +592,10 @@ MonoBehaviour:
   enemyThrottle: 0
   playerNoseToEnemyAngle: 0
   enemyNoseToPlayerAngle: 0
+  signedAzimuthError: 0
+  signedElevationError: 0
+  bankAngle: 0
+  playerLocalAngularVelocity: {x: 0, y: 0, z: 0}
   playerVelocityToEnemyAngle: 0
   enemyVelocityToPlayerAngle: 0
   closing: 0
@@ -642,6 +619,8 @@ MonoBehaviour:
   inViewVelocityAxisAlignFrequency: 0
   inViewVelocityAxisAlignedSamples: 0
   inViewVelocityAxisTotalSamples: 0
+  outOfViewTrackingSeconds: 0
+  outOfViewTrackingErrorAngle: 0
   lowPitchInput: 0
   lowPitchPitchAxisToEnemyAngle: 0
   lowPitchRollPitchRatio: 0
@@ -667,6 +646,407 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &238623865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238623861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ceb2e84579069447a187c223ea41e83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AirCombatBehaviorJudge
+  server: {fileID: 238623866}
+  minimumEpisodes: 3
+  lowEfficiencyThreshold: 0.5
+  highOvershootAverage: 1
+  highReverseAverage: 2
+  latestResult: 
+--- !u!114 &238623866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238623861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf503bf42a645f40b2d37e7feb81aa3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AirCombatBehaviorServer
+  analyzer: {fileID: 238623862}
+  record: 1
+  minSampleInterval: 0.08
+  requireEnemyInView: 0
+  rollStartThreshold: 0.55
+  rollStopThreshold: 0.2
+  correctionStartAzimuthThreshold: 5
+  correctionEndAzimuthThreshold: 2
+  correctionInputThreshold: 0.15
+  correctionPitchThreshold: 0.2
+  requirePitchDuringCorrection: 1
+  correctionSampleInterval: 0.05
+  correctionMaxDuration: 5
+  maxCorrectionEpisodes: 128
+  maxCorrectionPointsPerEpisode: 512
+  rollControlStopThreshold: 0.1
+  rollReverseThreshold: 0.2
+  overshootInputHoldTime: 0.15
+  delayedCorrelationMaxLag: 1
+  turnPlaneGainBinCount: 9
+  iqrEpisodeWindowSize: 8
+  disengageAngleThreshold: 90
+  disengageResetAngle: 70
+  disengageConfirmHoldTime: 0.2
+  disengageMinDistance: 800
+  minAngle: -90
+  maxAngle: 90
+  binCount: 18
+  rollCorrectionSamples: []
+  turnPlaneCorrectionEpisodes: []
+  normalizedTurnPlaneAverage: []
+  turnPlaneIqrHistory: []
+  outOfViewTrackingPoints: []
+  outOfViewTrackingSegments: []
+  graphBins:
+  - minAngle: -90
+    maxAngle: -80
+    centerAngle: -85
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: -80
+    maxAngle: -70
+    centerAngle: -75
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: -70
+    maxAngle: -60
+    centerAngle: -65
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: -60
+    maxAngle: -50
+    centerAngle: -55
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: -50
+    maxAngle: -40
+    centerAngle: -45
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: -40
+    maxAngle: -30
+    centerAngle: -35
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: -30
+    maxAngle: -20
+    centerAngle: -25
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: -20
+    maxAngle: -10
+    centerAngle: -15
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: -10
+    maxAngle: 0
+    centerAngle: -5
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: 0
+    maxAngle: 10
+    centerAngle: 5
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: 10
+    maxAngle: 20
+    centerAngle: 15
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: 20
+    maxAngle: 30
+    centerAngle: 25
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: 30
+    maxAngle: 40
+    centerAngle: 35
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: 40
+    maxAngle: 50
+    centerAngle: 45
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: 50
+    maxAngle: 60
+    centerAngle: 55
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: 60
+    maxAngle: 70
+    centerAngle: 65
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: 70
+    maxAngle: 80
+    centerAngle: 75
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  - minAngle: 80
+    maxAngle: 90
+    centerAngle: 85
+    sampleCount: 0
+    lowPitchSampleCount: 0
+    rollCorrectionSampleCount: 0
+    disengageSampleCount: 0
+    averageRollPitchInputRatio: 0
+    averageAxisPrecision: 0
+    averageRollEndPitchAxisAngle: 0
+    averageDisengageDistance: 0
+  lowPitchSampleCount: 0
+  disengageSampleCount: 0
+  rollCorrectionCorrelation: 0
+  disengageFrequencyPerMinute: 0
+  averageDisengageDistance: 0
+  averageDisengageAngle: 0
+  lowPitchRatioSums:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  lowPitchPrecisionSums:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  rollEndAngleSums:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  disengageDistanceSums:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  noseAngleHistogramBins: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  relativeDirectionSectorSeconds:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  relativeDirectionSectorAngleSums:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  relativeDirectionSectorCounts: 0000000000000000000000000000000000000000000000000000000000000000
+  relativeDirectionSectorAngleBins: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  leftCorrectionEpisodeCount: 0
+  rightCorrectionEpisodeCount: 0
+  leftCorrectionEfficiencyAverage: 0
+  rightCorrectionEfficiencyAverage: 0
+  leftHysteresisWidthAverage: 0
+  rightHysteresisWidthAverage: 0
+  correctionEfficiencyAsymmetry: 0
+  hysteresisWidthAsymmetry: 0
+  turnPlaneGainBins: []
+--- !u!114 &238623867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238623861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5eb185cdd630d9458510ecaaed3b448, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AirCombatBehaviorVisualGraphViewer
+  server: {fileID: 238623866}
+--- !u!114 &238623868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 238623861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3ed051ba2c34cc45bc5b593f18e7f3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AirCombatBehaviorLogGenerator
+  server: {fileID: 238623866}
 --- !u!1001 &277640307
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7290,7 +7670,7 @@ PrefabInstance:
     - target: {fileID: -6850463899120659239, guid: 14369d21db044a9cb2e0d229dd06fe19, type: 3}
       propertyPath: gunShooter
       value: 
-      objectReference: {fileID: 113715593}
+      objectReference: {fileID: 0}
     - target: {fileID: 4598931842802037457, guid: 14369d21db044a9cb2e0d229dd06fe19, type: 3}
       propertyPath: m_LocalPosition.x
       value: 221.58606
@@ -7374,10 +7754,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8923875824590251343, guid: 14369d21db044a9cb2e0d229dd06fe19, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 113715593}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 14369d21db044a9cb2e0d229dd06fe19, type: 3}
 --- !u!1 &1269224629
 GameObject:

@@ -1,309 +1,109 @@
-プレイヤーの空戦軌道を解析するゲーム？ツール？を作りたい
+プレイヤーの空戦軌道を解析するツールを作りたい
 
+◇◇概要
 最終的にはプレイヤーと一緒に育つAIをつくる？
 
 とりあえずロックオン・カメラ操作・プレイヤーのフライトモデル・それと敵機のそれを同期させるシステム
 はできてるので流用
 
-◇解析対象
-・でシチュエーションを分ける
-・全般
-相対角度（機首-機銃会合点）平均・最小・復元速度・遅延
+所在：
+C:\はこんばっと\Assets\script\mission\Manager\combat
 
-・ヘッドオン
-回避開始距離
-相対角度
+◇◇現状
+・構成
+AirCombatBehaviorAnalyzer：
+プレイヤー機・敵機・入力・速度・相対角度・視野内外・ピッチ軸誤差・追跡手法秒数などを毎フレーム解析する。
 
-・すれ違い後
-旋回開始遅延
+AirCombatBehaviorRecorder：
+Analyzerの値を受け取り、グラフ表示に必要な最小情報だけを蓄積する。
+現在は過剰な構造体ログを保持しない方針。
+ヒストグラムやレーダーチャートは生配列ではなく、固定サイズのビン・合計値・件数へ直接加算する。
 
-・旋回戦（攻撃）
-相対角度（全般のそれの細分化項目）
+AirCombatBehaviorRecorderEditor：
+Unity Inspector上で解析結果を表示する。
+Clear Samplesで記録をリセットできる。
 
-・〃（防御）
-オーバーシュート狙いの頻度
+・グラフ対応項目
+ロール補正：
+ロール開始時のピッチ軸-敵機方向角度と、ロール終了時角度の散布図。
+y=x と y=0 の基準線あり。
+相関係数を表示する。
 
-・ローリングシザース（⊃シザース）
-継続時間
-自身の敵機から見た象限（アングル）平均・最小・最大
-敵機から（以下略）
-角度（ピッチ軸-敵機）平均・最小・復元速度・遅延
+離脱：
+playerNoseToEnemyAngle >= 90° になった時点で保存予約。
+その状態が0.2秒以上継続し、かつ距離 > 800 のとき保存確定。
+離脱サンプル数・頻度/分・平均離脱距離・平均離脱角度を表示する。
+再検出は角度が70°未満へ戻るまで抑制する。
+
+視野外追尾：
+視野外中のみ、敵機位置 + 敵機linearVelocity * 秒数 の候補点を探索する。
+探索範囲は-2秒から+2秒、0.1秒刻み。
+ピッチ軸との誤差が最小になる秒数を追跡手法値として記録する。
+0秒ならピュアパーシュート、プラスならリード、マイナスならラグパーシュートとして読む。
+視野外の連続区間ごとに、継続秒数、追跡手法平均・最小・最大、相対角度平均・最小・最大、追跡誤差平均・最小・最大を保存する。
+Inspector上には追跡手法秒数の折れ線、最新区間平均線、0秒基準線、相対角度絶対値を表示する。
+enemyNoseToPlayerAngle <= 90° の点は赤で重ね、敵機射線内に入っている可能性を見えるようにする。
+
+playerNoseToEnemyAngle絶対値ヒストグラム：
+視野内外を問わず全フレームで収集する。
+0-180°を18ビンに分けて、固定サイズ配列へ直接加算する。
+
+相対方向レーダーチャート：
+敵機位置をプレイヤーローカル座標へ変換し、z成分を抜いたx/y平面で8方向に分類する。
+各方向の累計時間をレーダーチャート表示する。
+各方向のplayerNoseToEnemyAngle絶対値の平均・近似中央値・最頻値を表示する。
+中央値と最頻値は10°刻みの固定ビンから近似する。
+
+・対応項目
+接近中・純粋追尾と未来位置予測追尾の切り替え距離
+ミサイル回避の方向ベクトル
+旋回戦中・視野外・ピッチ軸を敵機に合わせる精度　ピッチ軸＝transform.up-.forward平面と敵機のベロシティベクトルを見て秒数で出す
+視野内・敵機移動方向にピッチ軸を合わせる頻度
+ピッチ入力絶対値が一定（0.3?）以下になった時のピッチ軸-敵機相対角度・ロール/ピッチ入力強度比・精度（前述のロジックで算出）
+シザース→ローリングシザースに移行するため軸をずらす（ロールする）頻度・角度
+離脱の癖：相対角度90°以上の継続時間と距離条件で保存確定
+押し出しの癖：視野外中にピッチ軸が敵機の過去/現在/未来位置のどこに合うかを秒数で記録
+
+・現在のデータ保持方針
+グラフに点列が必要なものだけ最小構造体配列を保持する。
+ロール補正散布図：開始角度・終了角度のみ保持。
+視野外追尾折れ線：時刻・追跡手法秒数・相対角度・敵機射線内フラグのみ保持。
+ヒストグラム、レーダーチャート、離脱集計、低ピッチ入力集計は、生サンプル配列を持たず固定ビンと合計値へ蓄積する。
+そのため長時間記録しても、ヒストグラム/レーダー分のメモリ使用量は増えない。
+
+距離・アングル・スロットルも取得・解析したい
+
+◇◇予定
+・テストプレイで判明したユーザー（人力）の空戦の癖
+◇基本的にロールでピッチ軸をあわせてピッチアップで敵機を捉えるのを前提とする
+◇旋回中は軸合わせ（ロール）と並行して全力でピッチアップしてる
+◇離脱して仕切りなおす場合がある
+◇未来位置に指向するためにピッチダウンする場合がある　一定以上の角速度（距離？）で諦めてロール→ピッチアップに移行する
 
 
-◇EnemyAircraftAIGen4 整理メモ：実装保留
 
-目的：
-プレイヤー挙動解析ツールと、将来の成長AI実装を妨げる要素を取り除く。
-ただし今回はコード編集を保留し、次に行うべき修正方針として整理する。
+◇◇指示文
+押し出しの癖
+旋回戦中・視野外・ピッチ軸を敵機に合わせる精度　ピッチ軸＝transform.up-.forward平面と敵機のベロシティベクトルを見て秒数で出す
+の項目にかかわる
 
-前提：
-・CombatState.Pursuitおよびピュア追尾は削除済みとして扱う。
-・targetRbは維持する。
-・プレイヤーのpitch / roll / yaw / throttle入力を敵AIへ直接渡さない。
-・今回は機械学習、成長AI、解析機能そのものは追加しない。
-・完全なランダム性ゼロよりも、行動理由を追跡・説明できる構造を優先する。
+視野外にいる場合、連続的に精度（ばらつきと平均）を出す
+平均は前述の秒数（追跡手法）単位　±0ならばピュアパーシュートといった形
+２Dグラフで表示　計測値を折れ線グラフ線抜き　精度は水平線で表示
 
-目標：
-・AIの行動理由を追跡可能にする。
-・同一状況に対する挙動を再現可能にする。
-・無関係な乱数による状態変化を除去する。
-・解析ツールが算出した特徴量を将来利用できる構造へ近づける。
-・プレイヤー入力の直接模倣ではなく、状況判断と行動選択の傾向を模倣できるようにする。
+複数回起こることを考慮し、継続秒数、追跡手法平均・最小・最大、相対角度平均・最小・最大を記録する
 
-優先して削除・修正するもの：
+◇実装MVP
+・視野外中のみ、敵機位置 + 敵機linearVelocity * 秒数 の候補点を探索する
+・探索範囲は-2秒から+2秒、0.1秒刻み
+・ピッチ軸との誤差が最小になる秒数を追跡手法値として記録する
+・0秒ならピュアパーシュート、プラスならリード、マイナスならラグパーシュートとして読む
+・視野外の連続区間ごとに、継続秒数、追跡手法平均・最小・最大、相対角度平均・最小・最大、追跡誤差平均・最小・最大を保存する
+・Inspector上に視野外追跡区間数、最新区間の集計、追跡手法秒数の折れ線グラフ、最新区間平均線、0秒基準線を表示する
 
-1. 攻防認識のランダム反転を削除する
-・invertOffensiveTactic
-・tacticSwitchCheckInterval
-・tacticSwitchChance
-・tacticSwitchCooldown
-・nextTacticSwitchCheckTime
-・nextTacticSwitchTime
-・UpdateOffensiveTactic()
-・invertOffensiveTactic による offensive の反転処理
+◇◇次回設計
 
-暫定的には以下のようにする。
 
-```csharp
-bool offensive = baseOffensive;
-```
+癖（傾向）を抽出できそうな項目の洗い出し
 
-攻撃側・防御側という状況認識そのものを乱数で反転しない。
-戦術の多様性は、同じ攻撃状況または防御状況の中で行動候補を変える形で将来実装する。
-
-2. ランダムな強制状態遷移を削除する
-・randomManeuverCheckInterval
-・randomManeuverChance
-・randomManeuverCooldown
-・nextRandomManeuverCheckTime
-・nextRandomManeuverTime
-・TryPickRandomManeuver()
-・TryPickRandomManeuver() の呼び出し
-・TryPickRandomManeuver() からのみ使われている場合の ForceState()
-
-無関係な乱数で AoALimitRelease / LeadPursuit / Brake / Extend / Offset へ強制遷移させない。
-ミサイル回避も、ランダムチェック成功時だけ回避する構造にしない。
-
-3. remainTimeによる不透明な重み生成を削除する
-削除または置換対象：
-・needToChoiceTime
-・maxTime
-・remainTime
-・weight
-・UpdateStateChoiceTimes()
-・GetStateWeight()
-・ResetStateRemainTime()
-
-現在のremainTimeは、条件未成立中にも蓄積し、条件成立時に過去の蓄積が選択重みになるため、行動理由が追跡しづらい。
-状態候補は現在フレーム、または短時間継続した conditionMet から決定する。
-乱数抽選は使わない。
-
-候補案：
-・conditionMet が true の状態を、明示的な固定優先順位で選ぶ。
-・または deterministicScore を与え、最大スコアの状態を選ぶ。
-
-4. 毎フレームの重み付きランダム抽選を削除する
-・TryGetStateCandidate()
-・Random.value を使った重み付き状態抽選
-
-同じ conditionMet の組み合わせなら、同じ状態候補が選ばれるようにする。
-
-暫定優先順位：
-1. 高度安全処理
-2. ミサイル回避
-3. Brake
-4. Extend
-5. AoALimitRelease
-6. LeadPursuit
-7. Offset
-8. 現在状態維持
-
-5. AoALimitRelease中のpitch補正式を連続値に修正する
-現在の式は演算子優先順位により、ほぼ0または1の二値になる。
-以下のようにローカル変数へ分ける。
-
-```csharp
-float pitchAvailability =
-    Mathf.Clamp01(
-        1f
-        - pitchAxisError * 1.6f
-        - downFactor);
-
-pitch *= pitchAvailability;
-```
-
-6. TuningOverwriteによるランダム初期化を削除する
-・enterDelayRandomAddMax
-・minimumDurationRandomAddMax
-・TuningOverwrite()
-・Awake内のTuningOverwrite呼び出し
-
-Inspectorに設定された enterDelay と minimumDuration をそのまま使用する。
-個体差は将来的にパイロット設定、またはScriptableObjectから明示的に与える。
-
-7. 攻撃優位判定を専用メソッドへ切り出す
-ChooseState内に直接埋め込まず、以下のようなメソッドに分離する。
-
-```csharp
-bool EvaluateOffensiveState(
-    float ownNoseToTargetAngle,
-    float targetNoseToOwnAngle)
-{
-    return targetNoseToOwnAngle > ownNoseToTargetAngle;
-}
-```
-
-将来はこの責務を、解析ツールが算出する以下の特徴量へ置き換える。
-・AdvantageScore
-・ThreatScore
-・ClosureRate
-・LongitudinalPosition
-・GunSolutionError
-
-8. 戦術選択と機体制御指示を分離する方向へ寄せる
-今回CombatState enumを全面置換する必要はない。
-ただし、以下の処理を「現在状態から操縦計画を生成する」構造へ寄せる。
-・GetLimiter()
-・GetThrottleInput()
-・BuildTargetDirection()
-・SteerToward()
-
-将来の目標：
-
-```text
-状況認識
-→ 戦術選択
-→ 操縦計画
-→ AircraftControllerへの入力
-```
-
-操縦計画の案：
-
-```csharp
-struct ControlPlan
-{
-    public Vector3 targetDirection;
-    public float throttle;
-    public bool limiterOn;
-    public bool useMissileBarrelRoll;
-}
-```
-
-9. GetOffsetVectorのランダム方向選択を削除する
-削除対象：
-・Random.value による左右反転
-・Random.Range によるvertical選択
-
-暫定ルール：
-・左右方向は現在の機体右方向に近いsideを選ぶ。
-・verticalは固定値0にする。
-
-```csharp
-if (Vector3.Dot(side, transform.right) < 0f)
-    side = -side;
-
-float vertical = 0f;
-```
-
-将来は解析済み特徴量から選択する。
-・左右旋回傾向
-・上下回避傾向
-・敵の旋回方向
-・高度余裕
-・過去の成功率
-
-10. 緊急処理と通常戦術を分離する
-緊急処理：
-・RecoverAltitude
-・EvadeMissile
-
-通常戦術：
-・Brake
-・Extend
-・AoALimitRelease
-・LeadPursuit
-・Offset
-
-ChooseStateでは、先に緊急状態を評価し、その後に通常戦術を評価する。
-緊急状態を通常戦術と同じランダム抽選候補に入れない。
-
-11. 状態遷移予約を安定させる
-bookedStateは維持する。
-ただし候補状態が毎フレーム乱数で変化する問題をなくす。
-
-保証したいこと：
-・決定論的なChooseState結果がbookedStateへ入る。
-・候補が変わった場合のみbookedStateTimerをリセットする。
-・同じ候補が続く間はbookedStateTimerが増える。
-・enterDelay到達後に遷移する。
-・currentStateのminimumDuration中は、緊急状態を除いて通常遷移しない。
-・高度危険やミサイル危険は、必要に応じてminimumDurationを無視できる。
-
-緊急割り込み条件は専用メソッドへ分離する。
-
-```csharp
-bool CanInterruptCurrentState(CombatState requestedState)
-```
-
-12. ランダム性を残す場所を限定する
-残してよい候補：
-・ミサイル回避時のバレルロール方向
-・同価値の左右回避候補から選ぶ処理
-
-ただし乱数によって以下が起きてはいけない。
-・攻撃と防御の認識が反転する。
-・危険状態を無視する。
-・全く異なる戦術へ強制遷移する。
-
-可能なら、使用した乱数結果をデバッグ表示する。
-
-targetRbとプレイヤー模倣の制約：
-・targetRbは維持する。
-・敵AIはプレイヤーの生の操作入力を直接使用しない。
-
-禁止：
-・playerPitchInput → enemyPitchInput
-・playerRollInput → enemyRollInput
-・playerYawInput → enemyYawInput
-・playerThrottleInput → enemyThrottleInput
-
-将来使うものは解析済み特徴量に限定する。
-・旋回開始遅延
-・左右旋回傾向
-・平均接近率
-・Brake選択頻度
-・Extend選択頻度
-・リミッター解除頻度
-・追尾誤差
-・オーバーシュート頻度
-
-変更前の状態選択フロー：
-1. ターゲットとミサイル脅威を更新する。
-2. remainTimeとweightを更新する。
-3. 攻防認識を乱数で反転する場合がある。
-4. ランダム強制遷移が発生する場合がある。
-5. StateRuntimeのweightからランダム抽選で候補状態を選ぶ。
-6. bookedStateとenterDelayで遷移を確定する。
-
-変更後に目指す状態選択フロー：
-1. ターゲットとミサイル脅威を更新する。
-2. 現在フレームの状況から conditionMet を更新する。
-3. 高度危険・ミサイル危険などの緊急状態を決定論的に評価する。
-4. 緊急状態がなければ、通常戦術を固定優先順位またはdeterministicScoreで選ぶ。
-5. 決定論的な候補状態をbookedStateへ渡す。
-6. bookedStateが一定時間継続したらenterDelay後に遷移する。
-7. 操縦計画を生成し、AircraftControllerへ入力する。
-
-完了条件メモ：
-・Unityでコンパイルエラーがない。
-・攻防認識を乱数で反転する処理がない。
-・無関係なランダム強制状態遷移がない。
-・remainTimeによる不透明な重み付き抽選がない。
-・同一条件から同一状態候補が選ばれる。
-・AoALimitReleaseのpitch補正が連続値として動作する。
-・Inspector値へランダム加算する処理がない。
-・Offset方向が決定論的である。
-・緊急処理と通常戦術が分離されている。
-・targetRbが維持されている。
-・プレイヤー入力を敵AIへ直接接続していない。
-
+いずれは射線をスナップロールで回避しながらオーバーシュートを試みるあたりも解析したい
