@@ -45,6 +45,17 @@ public class AirCombatBehaviorAnalyzer : MonoBehaviour
     [SerializeField] Vector3 playerLocalAngularVelocity;
     [SerializeField] float playerVelocityToEnemyAngle;
     [SerializeField] float enemyVelocityToPlayerAngle;
+    [SerializeField] Vector3 playerVelocity;
+    [SerializeField] Vector3 enemyVelocity;
+    [SerializeField] Vector3 relativeVelocity;
+    [SerializeField] float velocityDirectionAngle;
+    [SerializeField] float velocityLineClosestDistance;
+    [SerializeField] float normalizedVelocityLineSeparation;
+    [SerializeField] float normalizedVelocityTripleProduct;
+    [SerializeField] float timeToClosestApproach;
+    [SerializeField] float predictedClosestApproachDistance;
+    [SerializeField] VelocityLineRelation velocityLineRelation;
+    [SerializeField] VelocityEncounterType velocityEncounterType;
 
     [Header("Pursuit Analysis")]
     [SerializeField] bool closing;
@@ -123,6 +134,17 @@ public class AirCombatBehaviorAnalyzer : MonoBehaviour
     public Vector3 PlayerLocalAngularVelocity => playerLocalAngularVelocity;
     public float PlayerVelocityToEnemyAngle => playerVelocityToEnemyAngle;
     public float EnemyVelocityToPlayerAngle => enemyVelocityToPlayerAngle;
+    public Vector3 PlayerVelocity => playerVelocity;
+    public Vector3 EnemyVelocity => enemyVelocity;
+    public Vector3 RelativeVelocity => relativeVelocity;
+    public float VelocityDirectionAngle => velocityDirectionAngle;
+    public float VelocityLineClosestDistance => velocityLineClosestDistance;
+    public float NormalizedVelocityLineSeparation => normalizedVelocityLineSeparation;
+    public float NormalizedVelocityTripleProduct => normalizedVelocityTripleProduct;
+    public float TimeToClosestApproach => timeToClosestApproach;
+    public float PredictedClosestApproachDistance => predictedClosestApproachDistance;
+    public VelocityLineRelation VelocityLineRelation => velocityLineRelation;
+    public VelocityEncounterType VelocityEncounterType => velocityEncounterType;
     public bool EnemyInView => enemyInView;
     public float PitchAxisToEnemyAngle => pitchAxisToEnemyAngle;
     public float PitchAxisToEnemyVelocityAngle => pitchAxisToEnemyVelocityAngle;
@@ -200,8 +222,8 @@ public class AirCombatBehaviorAnalyzer : MonoBehaviour
 
     void UpdateRelativeGeometry()
     {
-        Vector3 playerVelocity = GetVelocity(playerRb);
-        Vector3 enemyVelocity = GetVelocity(enemyRb);
+        playerVelocity = GetVelocity(playerRb);
+        enemyVelocity = GetVelocity(enemyRb);
         Vector3 toEnemy = enemyTransform.position - playerTransform.position;
         Vector3 toPlayer = -toEnemy;
         Vector3 toEnemyDirection = SafeNormalize(toEnemy, playerTransform.forward);
@@ -224,6 +246,66 @@ public class AirCombatBehaviorAnalyzer : MonoBehaviour
         playerLocalAngularVelocity = playerTransform.InverseTransformDirection(playerRb != null ? playerRb.angularVelocity : Vector3.zero);
         playerVelocityToEnemyAngle = Vector3.Angle(SafeNormalize(playerVelocity, playerTransform.forward), toEnemyDirection);
         enemyVelocityToPlayerAngle = Vector3.Angle(SafeNormalize(enemyVelocity, enemyTransform.forward), toPlayerDirection);
+        UpdateVelocityGeometry(toEnemy);
+    }
+
+    void UpdateVelocityGeometry(Vector3 relativePosition)
+    {
+        relativeVelocity = enemyVelocity - playerVelocity;
+        float playerMagnitude = playerVelocity.magnitude;
+        float enemyMagnitude = enemyVelocity.magnitude;
+        bool degenerate = playerMagnitude <= 0.001f || enemyMagnitude <= 0.001f;
+        Vector3 playerDirection = degenerate ? Vector3.zero : playerVelocity / playerMagnitude;
+        Vector3 enemyDirection = degenerate ? Vector3.zero : enemyVelocity / enemyMagnitude;
+        Vector3 cross = Vector3.Cross(playerDirection, enemyDirection);
+
+        velocityDirectionAngle = degenerate ? 0f : Vector3.Angle(playerDirection, enemyDirection);
+        if (degenerate)
+        {
+            velocityLineClosestDistance = relativePosition.magnitude;
+            normalizedVelocityTripleProduct = 0f;
+            velocityLineRelation = VelocityLineRelation.Degenerate;
+        }
+        else if (cross.sqrMagnitude <= 0.0001f)
+        {
+            velocityLineClosestDistance = Vector3.Cross(relativePosition, playerDirection).magnitude;
+            normalizedVelocityTripleProduct = 0f;
+            velocityLineRelation = velocityLineClosestDistance <= Mathf.Max(1f, distance * 0.01f)
+                ? VelocityLineRelation.NearCollinear : VelocityLineRelation.NearParallel;
+        }
+        else
+        {
+            velocityLineClosestDistance = Mathf.Abs(Vector3.Dot(relativePosition, cross)) / cross.magnitude;
+            normalizedVelocityTripleProduct = Vector3.Dot(relativePosition, cross)
+                / Mathf.Max(relativePosition.magnitude, 0.001f);
+            velocityLineRelation = velocityLineClosestDistance <= Mathf.Max(1f, distance * 0.01f)
+                ? VelocityLineRelation.NearIntersecting : VelocityLineRelation.Skew;
+        }
+
+        normalizedVelocityLineSeparation = velocityLineClosestDistance / Mathf.Max(distance, 0.001f);
+        if (relativeVelocity.sqrMagnitude <= 0.0001f)
+        {
+            timeToClosestApproach = 0f;
+            predictedClosestApproachDistance = relativePosition.magnitude;
+        }
+        else
+        {
+            timeToClosestApproach = -Vector3.Dot(relativePosition, relativeVelocity) / relativeVelocity.sqrMagnitude;
+            predictedClosestApproachDistance = (relativePosition + relativeVelocity * timeToClosestApproach).magnitude;
+        }
+
+        if (degenerate)
+            velocityEncounterType = VelocityEncounterType.Unknown;
+        else if (timeToClosestApproach < 0f)
+            velocityEncounterType = VelocityEncounterType.PassedClosestApproach;
+        else if (closureRate < -0.01f)
+            velocityEncounterType = VelocityEncounterType.Diverging;
+        else if (velocityDirectionAngle < 30f)
+            velocityEncounterType = VelocityEncounterType.SameDirection;
+        else if (velocityDirectionAngle > 150f)
+            velocityEncounterType = VelocityEncounterType.HeadOn;
+        else
+            velocityEncounterType = VelocityEncounterType.Crossing;
     }
 
     void UpdatePursuitAnalysis()

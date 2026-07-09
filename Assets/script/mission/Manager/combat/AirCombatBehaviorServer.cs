@@ -1,6 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum TurnPlaneCorrectionClass { Fine, Large, Rear }
+public enum TurnPlaneCorrectionEndReason { None, AzimuthSettled, InputReleased, TimedOut, TargetInvalid }
+public enum TurnPlaneEpisodeInvalidReason { None, TooShort, TooFewPoints, TargetInvalid, InvalidGeometry }
+public enum VelocityLineRelation { Degenerate, NearParallel, NearCollinear, NearIntersecting, Skew }
+public enum VelocityEncounterType { Unknown, SameDirection, HeadOn, Crossing, Diverging, PassedClosestApproach }
+[System.Serializable]
+public struct RobustStats { public int count; public float q1, median, q3, iqr; }
+
 [DefaultExecutionOrder(100)]
 public class AirCombatBehaviorServer : MonoBehaviour
 {
@@ -100,6 +108,10 @@ public class AirCombatBehaviorServer : MonoBehaviour
     [System.Serializable]
     public struct TurnPlaneCorrectionEpisode
     {
+        public bool isValidForSummary;
+        public TurnPlaneEpisodeInvalidReason invalidReason;
+        public TurnPlaneCorrectionClass correctionClass;
+        public TurnPlaneCorrectionEndReason endReason;
         public float startTime;
         public float endTime;
         public float duration;
@@ -114,6 +126,10 @@ public class AirCombatBehaviorServer : MonoBehaviour
         public int yawReverseCount;
         public int azimuthZeroCrossCount;
         public int overshootCount;
+        public int azimuthWrapCount;
+        public int intermediateRollStopCount;
+        public int rollReinputCount;
+        public bool terminalRollRelease;
         public float rollMaxAbs;
         public float rollMeanAbs;
         public float rollRms;
@@ -148,6 +164,26 @@ public class AirCombatBehaviorServer : MonoBehaviour
         public float rollBestLagCorrelation;
         public float yawBestLagSeconds;
         public float yawBestLagCorrelation;
+        public bool rollLagCorrelationValid;
+        public int rollLagPairCount;
+        public bool yawLagCorrelationValid;
+        public int yawLagPairCount;
+        public float initialTotalRelativeAngle, initialElevationError, initialDistance, initialClosureRate, initialBankAngle;
+        public Vector3 initialLocalAngularVelocity;
+        public float finalTotalRelativeAngle, finalElevationError, finalDistance, finalClosureRate, finalBankAngle;
+        public Vector3 finalLocalAngularVelocity;
+        public float initialVelocityDirectionAngle, initialVelocityLineClosestDistance, initialNormalizedVelocityLineSeparation;
+        public float initialNormalizedVelocityTripleProduct, initialTimeToClosestApproach, initialPredictedClosestApproachDistance;
+        public VelocityLineRelation initialVelocityLineRelation;
+        public VelocityEncounterType initialVelocityEncounterType;
+        public float finalVelocityDirectionAngle, finalVelocityLineClosestDistance, finalNormalizedVelocityLineSeparation;
+        public float finalNormalizedVelocityTripleProduct, finalTimeToClosestApproach, finalPredictedClosestApproachDistance;
+        public VelocityLineRelation finalVelocityLineRelation;
+        public VelocityEncounterType finalVelocityEncounterType;
+        public float pitchMaxAbs, pitchMeanAbs, pitchRms, pitchSignedIntegral, pitchAbsoluteIntegral;
+        public float pitchQ1, pitchMedian, pitchQ3, pitchIqr;
+        public float localRollRateMaxAbs, localRollRateMeanAbs, localRollRateRms;
+        public float localRollRateSignedIntegral, localRollRateAbsoluteIntegral;
         public List<TurnPlaneCorrectionPoint> points;
         public List<RollControlEvent> rollEvents;
     }
@@ -186,6 +222,13 @@ public class AirCombatBehaviorServer : MonoBehaviour
     [SerializeField] float rollReverseThreshold = 0.2f;
     [SerializeField] float overshootInputHoldTime = 0.15f;
     [SerializeField] float delayedCorrelationMaxLag = 1f;
+    [SerializeField] float fineCorrectionMaximumAzimuth = 30f;
+    [SerializeField] float largeCorrectionMaximumAzimuth = 90f;
+    [SerializeField, Min(0f)] float minimumValidEpisodeDuration = 0.15f;
+    [SerializeField, Min(2)] int minimumValidEpisodePointCount = 4;
+    [SerializeField, Min(0f)] float correctionEndHoldTime = 0.15f;
+    [SerializeField, Min(3)] int minimumLagCorrelationPairCount = 8;
+    [SerializeField, Range(0.1f, 0.8f)] float maximumLagFractionOfEpisode = 0.4f;
     [SerializeField] int turnPlaneGainBinCount = 9;
     [SerializeField] int iqrEpisodeWindowSize = 8;
 
@@ -245,6 +288,10 @@ public class AirCombatBehaviorServer : MonoBehaviour
     float correctionPreviousAbsRollInput;
     float correctionThresholdCrossTime = -1f;
     bool correctionAwaitingRollReinput;
+    bool correctionEndPending;
+    float correctionEndCandidateTime;
+    TurnPlaneCorrectionEndReason pendingEndReason;
+    bool pendingTerminalRollRelease;
 
     public IReadOnlyList<TurnPlaneCorrectionEpisode> TurnPlaneCorrectionEpisodes => turnPlaneCorrectionEpisodes;
     public IReadOnlyList<NormalizedTurnPlanePoint> NormalizedTurnPlaneAverage => normalizedTurnPlaneAverage;
@@ -395,6 +442,12 @@ public class AirCombatBehaviorServer : MonoBehaviour
 
     void RecordTurnPlaneCorrection()
     {
+        if (!analyzer.HasValidTargets)
+        {
+            if (turnPlaneCorrectionActive)
+                EndTurnPlaneCorrection(TurnPlaneCorrectionEndReason.TargetInvalid);
+            return;
+        }
         float absAzimuth = Mathf.Abs(analyzer.SignedAzimuthError);
         bool pitchOk = !requirePitchDuringCorrection || Mathf.Abs(analyzer.PitchInput) >= correctionPitchThreshold;
         bool correctionInputActive = Mathf.Abs(analyzer.RollInput) >= correctionInputThreshold
@@ -430,8 +483,39 @@ public class AirCombatBehaviorServer : MonoBehaviour
         bool azimuthSettled = absAzimuth <= correctionEndAzimuthThreshold;
         bool timedOut = Time.time - currentTurnPlaneCorrection.startTime >= correctionMaxDuration;
 
-        if (azimuthSettled || inputStopped || timedOut)
-            EndTurnPlaneCorrection();
+        TurnPlaneCorrectionEndReason reason = timedOut
+            ? TurnPlaneCorrectionEndReason.TimedOut
+            : azimuthSettled
+                ? TurnPlaneCorrectionEndReason.AzimuthSettled
+                : inputStopped ? TurnPlaneCorrectionEndReason.InputReleased : TurnPlaneCorrectionEndReason.None;
+
+        if (reason == TurnPlaneCorrectionEndReason.TimedOut)
+            EndTurnPlaneCorrection(reason);
+        else if (reason != TurnPlaneCorrectionEndReason.None)
+        {
+            if (!correctionEndPending || EndPriority(reason) > EndPriority(pendingEndReason))
+            {
+                correctionEndPending = true;
+                correctionEndCandidateTime = Time.time;
+                pendingEndReason = reason;
+                pendingTerminalRollRelease |= inputStopped;
+            }
+            if (Time.time - correctionEndCandidateTime >= correctionEndHoldTime)
+                EndTurnPlaneCorrection(pendingEndReason, pendingTerminalRollRelease);
+        }
+        else if (correctionEndPending)
+        {
+            if (pendingEndReason == TurnPlaneCorrectionEndReason.InputReleased)
+            {
+                currentTurnPlaneCorrection.intermediateRollStopCount++;
+                currentTurnPlaneCorrection.rollStopCount = currentTurnPlaneCorrection.intermediateRollStopCount;
+                currentTurnPlaneCorrection.rollReinputCount++;
+                AddRollControlEvent(false, false, false, true);
+            }
+            correctionEndPending = false;
+            pendingEndReason = TurnPlaneCorrectionEndReason.None;
+            pendingTerminalRollRelease = false;
+        }
 
         correctionPreviousRollInput = analyzer.RollInput;
         correctionPreviousYawInput = analyzer.YawInput;
@@ -452,11 +536,29 @@ public class AirCombatBehaviorServer : MonoBehaviour
             minimumRelativeAngle = analyzer.PlayerNoseToEnemyAngle,
             timeToMinimumRelativeAngle = 0f,
             reactionDelay = correctionThresholdCrossTime >= 0f ? Time.time - correctionThresholdCrossTime : 0f,
+            correctionClass = ClassifyCorrection(Mathf.Abs(analyzer.SignedAzimuthError)),
+            initialTotalRelativeAngle = analyzer.PlayerNoseToEnemyAngle,
+            initialElevationError = analyzer.SignedElevationError,
+            initialDistance = analyzer.Distance,
+            initialClosureRate = analyzer.ClosureRate,
+            initialBankAngle = analyzer.BankAngle,
+            initialLocalAngularVelocity = analyzer.PlayerLocalAngularVelocity,
+            initialVelocityDirectionAngle = analyzer.VelocityDirectionAngle,
+            initialVelocityLineRelation = analyzer.VelocityLineRelation,
+            initialVelocityEncounterType = analyzer.VelocityEncounterType,
+            initialVelocityLineClosestDistance = analyzer.VelocityLineClosestDistance,
+            initialNormalizedVelocityLineSeparation = analyzer.NormalizedVelocityLineSeparation,
+            initialNormalizedVelocityTripleProduct = analyzer.NormalizedVelocityTripleProduct,
+            initialTimeToClosestApproach = analyzer.TimeToClosestApproach,
+            initialPredictedClosestApproachDistance = analyzer.PredictedClosestApproachDistance,
             points = new List<TurnPlaneCorrectionPoint>(),
             rollEvents = new List<RollControlEvent>()
         };
 
         correctionAwaitingRollReinput = false;
+        correctionEndPending = false;
+        pendingEndReason = TurnPlaneCorrectionEndReason.None;
+        pendingTerminalRollRelease = false;
         RecordTurnPlaneCorrectionPoint();
     }
 
@@ -503,7 +605,6 @@ public class AirCombatBehaviorServer : MonoBehaviour
         float absRoll = Mathf.Abs(analyzer.RollInput);
         if (correctionPreviousAbsRollInput > rollControlStopThreshold && absRoll <= rollControlStopThreshold)
         {
-            currentTurnPlaneCorrection.rollStopCount++;
             correctionAwaitingRollReinput = true;
             AddRollControlEvent(true, false, false, false);
         }
@@ -513,7 +614,6 @@ public class AirCombatBehaviorServer : MonoBehaviour
             && absRoll >= correctionInputThreshold)
         {
             correctionAwaitingRollReinput = false;
-            AddRollControlEvent(false, false, false, true);
         }
 
         int previousSign = GetInputSign(correctionPreviousRollInput, rollReverseThreshold);
@@ -564,14 +664,31 @@ public class AirCombatBehaviorServer : MonoBehaviour
         }
     }
 
-    void EndTurnPlaneCorrection()
+    void EndTurnPlaneCorrection(TurnPlaneCorrectionEndReason reason, bool terminalRelease = false)
     {
         RecordTurnPlaneCorrectionPoint();
         currentTurnPlaneCorrection.endTime = Time.time;
         currentTurnPlaneCorrection.duration = Mathf.Max(0f, currentTurnPlaneCorrection.endTime - currentTurnPlaneCorrection.startTime);
         currentTurnPlaneCorrection.finalAzimuth = analyzer.SignedAzimuthError;
+        currentTurnPlaneCorrection.endReason = reason;
+        currentTurnPlaneCorrection.terminalRollRelease = terminalRelease || reason == TurnPlaneCorrectionEndReason.InputReleased;
+        currentTurnPlaneCorrection.finalTotalRelativeAngle = analyzer.PlayerNoseToEnemyAngle;
+        currentTurnPlaneCorrection.finalElevationError = analyzer.SignedElevationError;
+        currentTurnPlaneCorrection.finalDistance = analyzer.Distance;
+        currentTurnPlaneCorrection.finalClosureRate = analyzer.ClosureRate;
+        currentTurnPlaneCorrection.finalBankAngle = analyzer.BankAngle;
+        currentTurnPlaneCorrection.finalLocalAngularVelocity = analyzer.PlayerLocalAngularVelocity;
+        currentTurnPlaneCorrection.finalVelocityDirectionAngle = analyzer.VelocityDirectionAngle;
+        currentTurnPlaneCorrection.finalVelocityLineRelation = analyzer.VelocityLineRelation;
+        currentTurnPlaneCorrection.finalVelocityEncounterType = analyzer.VelocityEncounterType;
+        currentTurnPlaneCorrection.finalVelocityLineClosestDistance = analyzer.VelocityLineClosestDistance;
+        currentTurnPlaneCorrection.finalNormalizedVelocityLineSeparation = analyzer.NormalizedVelocityLineSeparation;
+        currentTurnPlaneCorrection.finalNormalizedVelocityTripleProduct = analyzer.NormalizedVelocityTripleProduct;
+        currentTurnPlaneCorrection.finalTimeToClosestApproach = analyzer.TimeToClosestApproach;
+        currentTurnPlaneCorrection.finalPredictedClosestApproachDistance = analyzer.PredictedClosestApproachDistance;
         currentTurnPlaneCorrection.releaseDelay = Mathf.Max(0f, currentTurnPlaneCorrection.duration - currentTurnPlaneCorrection.timeToMinimumRelativeAngle);
         CalculateTurnPlaneCorrectionStats(ref currentTurnPlaneCorrection);
+        ValidateEpisode(ref currentTurnPlaneCorrection);
 
         turnPlaneCorrectionEpisodes.Add(currentTurnPlaneCorrection);
         while (turnPlaneCorrectionEpisodes.Count > maxCorrectionEpisodes)
@@ -580,7 +697,47 @@ public class AirCombatBehaviorServer : MonoBehaviour
         turnPlaneCorrectionActive = false;
         correctionThresholdCrossTime = -1f;
         correctionAwaitingRollReinput = false;
+        correctionEndPending = false;
     }
+
+    TurnPlaneCorrectionClass ClassifyCorrection(float azimuth) =>
+        azimuth < fineCorrectionMaximumAzimuth ? TurnPlaneCorrectionClass.Fine
+        : azimuth < largeCorrectionMaximumAzimuth ? TurnPlaneCorrectionClass.Large
+        : TurnPlaneCorrectionClass.Rear;
+
+    static int EndPriority(TurnPlaneCorrectionEndReason reason) =>
+        reason == TurnPlaneCorrectionEndReason.TargetInvalid ? 4
+        : reason == TurnPlaneCorrectionEndReason.TimedOut ? 3
+        : reason == TurnPlaneCorrectionEndReason.AzimuthSettled ? 2
+        : reason == TurnPlaneCorrectionEndReason.InputReleased ? 1 : 0;
+
+    void ValidateEpisode(ref TurnPlaneCorrectionEpisode episode)
+    {
+        episode.isValidForSummary = false;
+        if (episode.endReason == TurnPlaneCorrectionEndReason.TargetInvalid)
+            episode.invalidReason = TurnPlaneEpisodeInvalidReason.TargetInvalid;
+        else if (episode.duration < minimumValidEpisodeDuration)
+            episode.invalidReason = TurnPlaneEpisodeInvalidReason.TooShort;
+        else if ((episode.points?.Count ?? 0) < minimumValidEpisodePointCount)
+            episode.invalidReason = TurnPlaneEpisodeInvalidReason.TooFewPoints;
+        else if (!EpisodeGeometryIsFinite(episode))
+            episode.invalidReason = TurnPlaneEpisodeInvalidReason.InvalidGeometry;
+        else
+        {
+            episode.invalidReason = TurnPlaneEpisodeInvalidReason.None;
+            episode.isValidForSummary = true;
+        }
+    }
+
+    static bool EpisodeGeometryIsFinite(TurnPlaneCorrectionEpisode e)
+    {
+        return IsFinite(e.initialAzimuth) && IsFinite(e.finalAzimuth)
+            && IsFinite(e.initialTotalRelativeAngle) && IsFinite(e.finalTotalRelativeAngle)
+            && IsFinite(e.initialDistance) && IsFinite(e.finalDistance)
+            && IsFinite(e.correctionEfficiency);
+    }
+
+    static bool IsFinite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
 
     void CalculateTurnPlaneCorrectionStats(ref TurnPlaneCorrectionEpisode episode)
     {
@@ -597,6 +754,9 @@ public class AirCombatBehaviorServer : MonoBehaviour
         float yawAbsIntegral = 0f;
         float[] rollAbsValues = new float[episode.points.Count];
         float[] yawAbsValues = new float[episode.points.Count];
+        float[] pitchAbsValues = new float[episode.points.Count];
+        float pitchAbsSum = 0f, pitchSquareSum = 0f, pitchSignedIntegral = 0f, pitchAbsIntegral = 0f;
+        float rollRateAbsSum = 0f, rollRateSquareSum = 0f, rollRateSignedIntegral = 0f, rollRateAbsIntegral = 0f;
 
         for (int i = 0; i < episode.points.Count; i++)
         {
@@ -618,6 +778,20 @@ public class AirCombatBehaviorServer : MonoBehaviour
             yawSignedIntegral += point.yawInput * dt;
             rollAbsIntegral += rollAbs * dt;
             yawAbsIntegral += yawAbs * dt;
+            float pitchAbs = Mathf.Abs(point.pitchInput);
+            float rollRate = point.localAngularVelocity.z;
+            float rollRateAbs = Mathf.Abs(rollRate);
+            pitchAbsValues[i] = pitchAbs;
+            pitchAbsSum += pitchAbs;
+            pitchSquareSum += point.pitchInput * point.pitchInput;
+            pitchSignedIntegral += point.pitchInput * dt;
+            pitchAbsIntegral += pitchAbs * dt;
+            rollRateAbsSum += rollRateAbs;
+            rollRateSquareSum += rollRate * rollRate;
+            rollRateSignedIntegral += rollRate * dt;
+            rollRateAbsIntegral += rollRateAbs * dt;
+            episode.pitchMaxAbs = Mathf.Max(episode.pitchMaxAbs, pitchAbs);
+            episode.localRollRateMaxAbs = Mathf.Max(episode.localRollRateMaxAbs, rollRateAbs);
         }
 
         int count = Mathf.Max(1, episode.points.Count);
@@ -631,6 +805,15 @@ public class AirCombatBehaviorServer : MonoBehaviour
         episode.yawAbsoluteIntegral = yawAbsIntegral;
         CalculateQuartiles(rollAbsValues, out episode.rollQ1, out episode.rollMedian, out episode.rollQ3, out episode.rollIqr);
         CalculateQuartiles(yawAbsValues, out episode.yawQ1, out episode.yawMedian, out episode.yawQ3, out episode.yawIqr);
+        CalculateQuartiles(pitchAbsValues, out episode.pitchQ1, out episode.pitchMedian, out episode.pitchQ3, out episode.pitchIqr);
+        episode.pitchMeanAbs = pitchAbsSum / episode.points.Count;
+        episode.pitchRms = Mathf.Sqrt(pitchSquareSum / episode.points.Count);
+        episode.pitchSignedIntegral = pitchSignedIntegral;
+        episode.pitchAbsoluteIntegral = pitchAbsIntegral;
+        episode.localRollRateMeanAbs = rollRateAbsSum / episode.points.Count;
+        episode.localRollRateRms = Mathf.Sqrt(rollRateSquareSum / episode.points.Count);
+        episode.localRollRateSignedIntegral = rollRateSignedIntegral;
+        episode.localRollRateAbsoluteIntegral = rollRateAbsIntegral;
         episode.yawRollEffortRatio = yawAbsIntegral / Mathf.Max(0.0001f, rollAbsIntegral);
         episode.yawRollRmsRatio = episode.yawRms / Mathf.Max(0.0001f, episode.rollRms);
         episode.correctionEfficiency = (Mathf.Abs(episode.initialAzimuth) - episode.minimumAzimuthAbs)
@@ -702,13 +885,18 @@ public class AirCombatBehaviorServer : MonoBehaviour
             return;
 
         int zeroCrossCount = 0;
+        int wrapCount = 0;
         int overshootCount = 0;
         int previousSign = GetInputSign(episode.points[0].signedAzimuthError, 0.001f);
 
         for (int i = 1; i < episode.points.Count; i++)
         {
+            float rawDifference = episode.points[i].signedAzimuthError - episode.points[i - 1].signedAzimuthError;
+            bool wrapped = Mathf.Abs(rawDifference) > 180f;
             int currentSign = GetInputSign(episode.points[i].signedAzimuthError, 0.001f);
-            if (previousSign != 0 && currentSign != 0 && previousSign != currentSign)
+            if (wrapped)
+                wrapCount++;
+            else if (previousSign != 0 && currentSign != 0 && previousSign != currentSign)
             {
                 zeroCrossCount++;
                 if (HasActiveInputForDuration(episode.points, i, overshootInputHoldTime))
@@ -720,6 +908,7 @@ public class AirCombatBehaviorServer : MonoBehaviour
         }
 
         episode.azimuthZeroCrossCount = zeroCrossCount;
+        episode.azimuthWrapCount = wrapCount;
         episode.overshootCount = overshootCount;
     }
 
@@ -793,10 +982,13 @@ public class AirCombatBehaviorServer : MonoBehaviour
         if (episode.points == null || episode.points.Count < 3)
             return;
 
-        float maxLag = Mathf.Max(0f, delayedCorrelationMaxLag);
+        float maxLag = Mathf.Min(Mathf.Max(0f, delayedCorrelationMaxLag),
+            episode.duration * maximumLagFractionOfEpisode);
         int lagSteps = Mathf.Max(0, Mathf.RoundToInt(maxLag / Mathf.Max(0.001f, correctionSampleInterval)));
-        FindBestDelayedCorrelation(episode.points, lagSteps, true, out episode.rollBestLagSeconds, out episode.rollBestLagCorrelation);
-        FindBestDelayedCorrelation(episode.points, lagSteps, false, out episode.yawBestLagSeconds, out episode.yawBestLagCorrelation);
+        FindBestDelayedCorrelation(episode.points, lagSteps, true, out episode.rollBestLagSeconds,
+            out episode.rollBestLagCorrelation, out episode.rollLagCorrelationValid, out episode.rollLagPairCount);
+        FindBestDelayedCorrelation(episode.points, lagSteps, false, out episode.yawBestLagSeconds,
+            out episode.yawBestLagCorrelation, out episode.yawLagCorrelationValid, out episode.yawLagPairCount);
     }
 
     void FindBestDelayedCorrelation(
@@ -804,14 +996,19 @@ public class AirCombatBehaviorServer : MonoBehaviour
         int maxLagSteps,
         bool useRoll,
         out float bestLagSeconds,
-        out float bestCorrelation)
+        out float bestCorrelation, out bool valid, out int bestPairCount)
     {
         bestLagSeconds = 0f;
         bestCorrelation = 0f;
         float bestAbsCorrelation = 0f;
+        valid = false;
+        bestPairCount = 0;
 
         for (int lag = 0; lag <= maxLagSteps; lag++)
         {
+            int pairCount = points.Count - 1 - lag;
+            if (pairCount < minimumLagCorrelationPairCount)
+                continue;
             float correlation = CalculateInputToAzimuthRateCorrelation(points, lag, useRoll);
             float absCorrelation = Mathf.Abs(correlation);
             if (absCorrelation <= bestAbsCorrelation)
@@ -820,7 +1017,10 @@ public class AirCombatBehaviorServer : MonoBehaviour
             bestAbsCorrelation = absCorrelation;
             bestCorrelation = correlation;
             bestLagSeconds = lag * correctionSampleInterval;
+            bestPairCount = pairCount;
+            valid = true;
         }
+        bestCorrelation = Mathf.Clamp(bestCorrelation, -1f, 1f);
     }
 
     float CalculateInputToAzimuthRateCorrelation(List<TurnPlaneCorrectionPoint> points, int lagSteps, bool useRoll)

@@ -6,7 +6,8 @@ using UnityEngine;
 [AddComponentMenu("Air Combat/Air Combat Behavior Log Generator")]
 public class AirCombatBehaviorLogGenerator : MonoBehaviour
 {
-    public const string CsvHeader = "Index,StartTime,EndTime,Duration,InitialAzimuth,InitialAzimuthSign,MinimumAzimuthAbs,FinalAzimuth,MinimumRelativeAngle,TimeToMinimumRelativeAngle,RollStopCount,RollReverseCount,YawReverseCount,AzimuthZeroCrossCount,OvershootCount,RollMaxAbs,RollMeanAbs,RollRms,RollSignedIntegral,RollAbsoluteIntegral,RollQ1,RollMedian,RollQ3,RollIqr,YawMaxAbs,YawMeanAbs,YawRms,YawSignedIntegral,YawAbsoluteIntegral,YawQ1,YawMedian,YawQ3,YawIqr,YawRollEffortRatio,YawRollRmsRatio,CorrectionEfficiency,ReactionDelay,ReleaseDelay,PostMinimumInputDuration,AverageReversePeriod,MinReversePeriod,AverageHysteresisWidth,AverageReverseImpulseRatio,AverageReversePeakRatio,AverageReverseDurationRatio,RollBestLagSeconds,RollBestLagCorrelation,YawBestLagSeconds,YawBestLagCorrelation,PointCount,RollEventCount";
+    public const string CsvHeader = "Index,StartTime,EndTime,Duration,InitialAzimuth,InitialAzimuthSign,MinimumAzimuthAbs,FinalAzimuth,MinimumRelativeAngle,TimeToMinimumRelativeAngle,RollStopCount,RollReverseCount,YawReverseCount,AzimuthZeroCrossCount,OvershootCount,RollMaxAbs,RollMeanAbs,RollRms,RollSignedIntegral,RollAbsoluteIntegral,RollQ1,RollMedian,RollQ3,RollIqr,YawMaxAbs,YawMeanAbs,YawRms,YawSignedIntegral,YawAbsoluteIntegral,YawQ1,YawMedian,YawQ3,YawIqr,YawRollEffortRatio,YawRollRmsRatio,CorrectionEfficiency,ReactionDelay,ReleaseDelay,PostMinimumInputDuration,AverageReversePeriod,MinReversePeriod,AverageHysteresisWidth,AverageReverseImpulseRatio,AverageReversePeakRatio,AverageReverseDurationRatio,RollBestLagSeconds,RollBestLagCorrelation,YawBestLagSeconds,YawBestLagCorrelation,PointCount,RollEventCount,IsValidForSummary,InvalidReason,CorrectionClass,EndReason,AzimuthWrapCount,IntermediateRollStopCount,RollReinputCount,TerminalRollRelease,RollLagCorrelationValid,RollLagPairCount,YawLagCorrelationValid,YawLagPairCount,InitialTotalRelativeAngle,FinalTotalRelativeAngle,InitialElevationError,FinalElevationError,InitialDistance,FinalDistance,InitialClosureRate,FinalClosureRate,InitialBankAngle,FinalBankAngle,InitialLocalRollRate,FinalLocalRollRate,LocalRollRateMaxAbs,LocalRollRateMeanAbs,LocalRollRateRms,LocalRollRateSignedIntegral,LocalRollRateAbsoluteIntegral,PitchMaxAbs,PitchMeanAbs,PitchRms,PitchSignedIntegral,PitchAbsoluteIntegral,PitchQ1,PitchMedian,PitchQ3,PitchIqr,InitialVelocityDirectionAngle,InitialVelocityLineRelation,InitialVelocityEncounterType,InitialVelocityLineClosestDistance,InitialNormalizedVelocityLineSeparation,InitialNormalizedVelocityTripleProduct,InitialTimeToClosestApproach,InitialPredictedClosestApproachDistance,FinalVelocityDirectionAngle,FinalVelocityLineRelation,FinalVelocityEncounterType,FinalVelocityLineClosestDistance,FinalNormalizedVelocityLineSeparation,FinalNormalizedVelocityTripleProduct,FinalTimeToClosestApproach,FinalPredictedClosestApproachDistance";
+    public const string PointCsvHeader = "TimeFromStart,PitchInput,RollInput,YawInput,SignedAzimuthError,SignedElevationError,TotalRelativeAngle,BankAngle,LocalAngularVelocityX,LocalAngularVelocityY,LocalAngularVelocityZ,Distance,ClosureRate";
 
     [SerializeField] AirCombatBehaviorServer server;
 
@@ -78,7 +79,50 @@ public class AirCombatBehaviorLogGenerator : MonoBehaviour
             .Append(F(e.averageReversePeakRatio)).Append(',').Append(F(e.averageReverseDurationRatio)).Append(',')
             .Append(F(e.rollBestLagSeconds, "F3")).Append(',').Append(F(e.rollBestLagCorrelation)).Append(',')
             .Append(F(e.yawBestLagSeconds, "F3")).Append(',').Append(F(e.yawBestLagCorrelation)).Append(',')
-            .Append(e.points?.Count ?? 0).Append(',').Append(e.rollEvents?.Count ?? 0).AppendLine();
+            .Append(e.points?.Count ?? 0).Append(',').Append(e.rollEvents?.Count ?? 0).Append(',')
+            .Append(e.isValidForSummary).Append(',').Append(e.invalidReason).Append(',')
+            .Append(e.correctionClass).Append(',').Append(e.endReason).Append(',')
+            .Append(e.azimuthWrapCount).Append(',').Append(e.intermediateRollStopCount).Append(',')
+            .Append(e.rollReinputCount).Append(',').Append(e.terminalRollRelease).Append(',')
+            .Append(e.rollLagCorrelationValid).Append(',').Append(e.rollLagPairCount).Append(',')
+            .Append(e.yawLagCorrelationValid).Append(',').Append(e.yawLagPairCount).Append(',')
+            .Append(F(e.initialTotalRelativeAngle)).Append(',').Append(F(e.finalTotalRelativeAngle)).Append(',')
+            .Append(F(e.initialElevationError)).Append(',').Append(F(e.finalElevationError)).Append(',')
+            .Append(F(e.initialDistance)).Append(',').Append(F(e.finalDistance)).Append(',')
+            .Append(F(e.initialClosureRate)).Append(',').Append(F(e.finalClosureRate)).Append(',')
+            .Append(F(e.initialBankAngle)).Append(',').Append(F(e.finalBankAngle)).Append(',')
+            .Append(F(e.initialLocalAngularVelocity.z)).Append(',').Append(F(e.finalLocalAngularVelocity.z)).Append(',')
+            .Append(F(e.localRollRateMaxAbs)).Append(',').Append(F(e.localRollRateMeanAbs)).Append(',')
+            .Append(F(e.localRollRateRms)).Append(',').Append(F(e.localRollRateSignedIntegral)).Append(',')
+            .Append(F(e.localRollRateAbsoluteIntegral)).Append(',').Append(F(e.pitchMaxAbs)).Append(',')
+            .Append(F(e.pitchMeanAbs)).Append(',').Append(F(e.pitchRms)).Append(',')
+            .Append(F(e.pitchSignedIntegral)).Append(',').Append(F(e.pitchAbsoluteIntegral)).Append(',')
+            .Append(F(e.pitchQ1)).Append(',').Append(F(e.pitchMedian)).Append(',')
+            .Append(F(e.pitchQ3)).Append(',').Append(F(e.pitchIqr)).Append(',')
+            .Append(F(e.initialVelocityDirectionAngle)).Append(',').Append(e.initialVelocityLineRelation).Append(',')
+            .Append(e.initialVelocityEncounterType).Append(',').Append(F(e.initialVelocityLineClosestDistance)).Append(',')
+            .Append(F(e.initialNormalizedVelocityLineSeparation)).Append(',').Append(F(e.initialNormalizedVelocityTripleProduct)).Append(',')
+            .Append(F(e.initialTimeToClosestApproach)).Append(',').Append(F(e.initialPredictedClosestApproachDistance)).Append(',')
+            .Append(F(e.finalVelocityDirectionAngle)).Append(',').Append(e.finalVelocityLineRelation).Append(',')
+            .Append(e.finalVelocityEncounterType).Append(',').Append(F(e.finalVelocityLineClosestDistance)).Append(',')
+            .Append(F(e.finalNormalizedVelocityLineSeparation)).Append(',').Append(F(e.finalNormalizedVelocityTripleProduct)).Append(',')
+            .Append(F(e.finalTimeToClosestApproach)).Append(',').Append(F(e.finalPredictedClosestApproachDistance)).AppendLine();
+    }
+
+    public static string GeneratePointCsv(AirCombatBehaviorServer.TurnPlaneCorrectionEpisode episode)
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.AppendLine(PointCsvHeader);
+        if (episode.points == null) return builder.ToString();
+        foreach (AirCombatBehaviorServer.TurnPlaneCorrectionPoint p in episode.points)
+            builder.Append(F(p.timeFromStart, "F3")).Append(',').Append(F(p.pitchInput)).Append(',')
+                .Append(F(p.rollInput)).Append(',').Append(F(p.yawInput)).Append(',')
+                .Append(F(p.signedAzimuthError)).Append(',').Append(F(p.signedElevationError)).Append(',')
+                .Append(F(p.totalRelativeAngle)).Append(',').Append(F(p.bankAngle)).Append(',')
+                .Append(F(p.localAngularVelocity.x)).Append(',').Append(F(p.localAngularVelocity.y)).Append(',')
+                .Append(F(p.localAngularVelocity.z)).Append(',').Append(F(p.distance)).Append(',')
+                .Append(F(p.closureRate)).AppendLine();
+        return builder.ToString();
     }
 
     static string F(float value, string format = "F4")

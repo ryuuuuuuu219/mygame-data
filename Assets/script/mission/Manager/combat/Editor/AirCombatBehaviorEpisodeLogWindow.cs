@@ -15,6 +15,7 @@ public class AirCombatBehaviorEpisodeLogWindow : EditorWindow
     Vector2 csvScrollPosition;
     int startIndex;
     int endIndex;
+    int selectedEpisodeIndex;
     bool autoRefresh;
     int cachedEpisodeCount = -1;
     double nextAutoRefreshTime;
@@ -134,6 +135,16 @@ public class AirCombatBehaviorEpisodeLogWindow : EditorWindow
         {
             if (GUILayout.Button("Copy Selected Range"))
                 CopySelectedRange(episodes);
+            selectedEpisodeIndex = EditorGUILayout.IntSlider("Selected Episode", selectedEpisodeIndex, 0, Mathf.Max(0, episodeCount - 1));
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Copy Selected Episode Points"))
+            {
+                EditorGUIUtility.systemCopyBuffer = AirCombatBehaviorLogGenerator.GeneratePointCsv(episodes[selectedEpisodeIndex]);
+                ShowNotification(new GUIContent("Point CSV copied"));
+            }
+            if (GUILayout.Button("Save Selected Episode Points"))
+                SavePointCsv(episodes[selectedEpisodeIndex]);
+            EditorGUILayout.EndHorizontal();
         }
     }
 
@@ -145,22 +156,21 @@ public class AirCombatBehaviorEpisodeLogWindow : EditorWindow
         EditorGUILayout.LabelField("Episode Overview", EditorStyles.boldLabel);
         summaryScrollPosition = EditorGUILayout.BeginScrollView(summaryScrollPosition, GUILayout.Height(150f));
         EditorGUILayout.LabelField(
-            "Index   Duration   Initial Azimuth   Minimum Abs   Final Azimuth   Efficiency   Roll Reverses   Overshoots",
+            "Index Valid Class EndReason Duration InitialAz MinimumAz FinalAz Efficiency Wrap ZeroCross Terminal",
             EditorStyles.miniBoldLabel);
         for (int i = 0; i < episodeCount; i++)
         {
             AirCombatBehaviorServer.TurnPlaneCorrectionEpisode episode = episodes[i];
             EditorGUILayout.LabelField(string.Format(
                 CultureInfo.InvariantCulture,
-                "{0,5}   {1,8:F3}   {2,15:F3}   {3,11:F3}   {4,13:F3}   {5,10:F4}   {6,13}   {7,10}",
-                i,
+                "{0} {1} {2} {3} {4:F3} {5:F2} {6:F2} {7:F2} {8:F3} {9} {10} {11}",
+                i, episode.isValidForSummary, episode.correctionClass, episode.endReason,
                 SanitizeFloat(episode.duration),
                 SanitizeFloat(episode.initialAzimuth),
                 SanitizeFloat(episode.minimumAzimuthAbs),
                 SanitizeFloat(episode.finalAzimuth),
                 SanitizeFloat(episode.correctionEfficiency),
-                episode.rollReverseCount,
-                episode.overshootCount));
+                episode.azimuthWrapCount, episode.azimuthZeroCrossCount, episode.terminalRollRelease));
         }
         EditorGUILayout.EndScrollView();
     }
@@ -251,6 +261,15 @@ public class AirCombatBehaviorEpisodeLogWindow : EditorWindow
             Debug.LogException(exception);
             EditorUtility.DisplayDialog("Save CSV", "Failed to save the CSV file.", "OK");
         }
+    }
+
+    void SavePointCsv(AirCombatBehaviorServer.TurnPlaneCorrectionEpisode episode)
+    {
+        string path = EditorUtility.SaveFilePanel("Save episode point CSV", string.Empty,
+            "AirCombatCorrectionEpisodePoints.csv", "csv");
+        if (string.IsNullOrEmpty(path)) return;
+        File.WriteAllText(path, AirCombatBehaviorLogGenerator.GeneratePointCsv(episode), new UTF8Encoding(false));
+        ShowNotification(new GUIContent("Point CSV saved"));
     }
 
     IReadOnlyList<AirCombatBehaviorServer.TurnPlaneCorrectionEpisode> GetEpisodes()

@@ -4,6 +4,67 @@ using UnityEngine.Serialization;
 
 public class EnemyAircraftAIGen4 : AircraftController
 {
+    public enum CombatMode { Offensive, Defensive }
+    public enum OffensiveState { TwoCircle, OneCircle, Twisted }
+    public enum ManeuverState
+    {
+        LeadPursuit, Extend, SplitS, ShiftTurnPlane,
+        EvadeMissile, Brake, RecoverAltitude
+    }
+
+    protected virtual bool DeterministicAnalysisMode => false;
+    protected virtual float CommandDirectionSmoothing => 0f;
+
+    [Header("Hierarchical State Machine")]
+    [SerializeField] CombatMode combatMode = CombatMode.Offensive;
+    [SerializeField] OffensiveState offensiveState = OffensiveState.Twisted;
+    [SerializeField] ManeuverState maneuverState = ManeuverState.LeadPursuit;
+    [SerializeField] float defensiveDuration = 12f;
+    [SerializeField] float defensiveCooldown = 45f;
+    [SerializeField] float turnPredictionTime = 2f;
+    [SerializeField] float turnPlaneThreshold = 60f;
+    [SerializeField] float twoCircleCooldown = 15f;
+    [SerializeField] float twoCirclePatternThreshold = 15f;
+    [SerializeField] float twoCirclePatternRate = 0.1f;
+    [SerializeField] float minimumExtendDuration = 3f;
+    [SerializeField] float desiredExtendDistance = 1200f;
+    [SerializeField] float splitSRelativePitchTolerance = 35f;
+    [SerializeField, Range(-1f, 1f)] float splitSRelativeInversionDot = 0.85f;
+    [SerializeField] float splitSPullDuration = 1.5f;
+    [SerializeField] float splitSHardTimeout = 5f;
+    [SerializeField] float oneCircleDuration = 18f;
+    [SerializeField] float insideTurnLateralThreshold = 300f;
+    [SerializeField] float shiftTurnPlaneDuration = 1.5f;
+    [SerializeField] float shiftTurnPlaneRollInput = 0.8f;
+    [SerializeField] float twistedMinimumPlaneAngle = 15f;
+    [SerializeField] float twistedMaximumPlaneAngle = 60f;
+
+    [Header("HSM Debug")]
+    [SerializeField] float defensiveRemainTime;
+    [SerializeField] float defensiveCooldownRemainTime;
+    [SerializeField] float twoCircleElapsedTime;
+    [SerializeField] float twoCircleCooldownRemainTime;
+    [SerializeField] float oneCircleElapsedTime;
+    [SerializeField] float maneuverElapsedTime;
+    [SerializeField] float pitchAxisToEnemyAngle;
+    [SerializeField] float pitchAxisToPredictedEnemyAngle;
+    [SerializeField] float pitchAxisToEnemyVelocityAngle;
+    [SerializeField] float splitSRelativePlaneError;
+    [SerializeField] float splitSRelativeInversion;
+    [SerializeField] float splitSCompletionTimer;
+    [SerializeField] bool splitSRollAligned;
+    [SerializeField] bool splitSPullStarted;
+    [SerializeField] float toTargetAngle;
+    [SerializeField] float targetNoseToMeAngle;
+    [SerializeField] bool alignedForTwoCircle;
+    [SerializeField] bool defensiveCondition;
+    [SerializeField] bool targetInsideTurn;
+
+    float splitSRollSign = 1f;
+    float shiftTurnPlaneRollSign = 1f;
+    float oneCirclePitchSign = 1f;
+    float twistedTargetPlaneAngle = 15f;
+
     public enum CombatState
     {
         LeadPursuit,
@@ -12,25 +73,6 @@ public class EnemyAircraftAIGen4 : AircraftController
         Extend,
         EvadeMissile,
         RecoverAltitude
-    }
-
-    [System.Serializable]
-    public struct StateTuning
-    {
-        public CombatState state;
-        public float enterDelay;
-        public float minimumDuration;
-        public float needToChoiceTime;
-        public float maxTime;
-    }
-
-    [System.Serializable]
-    public struct StateRuntime
-    {
-        public CombatState state;
-        public bool conditionMet;
-        public float remainTime;
-        public float weight;
     }
 
     [Header("Target")]
@@ -74,37 +116,13 @@ public class EnemyAircraftAIGen4 : AircraftController
     public float fullThrottle = 5f;
     public float brakeThrottle = 0.05f;
 
-    [Header("State Tuning")]
-    [SerializeField]
-    StateTuning[] stateTunings =
-    {
-        new StateTuning { state = CombatState.LeadPursuit, enterDelay = 0.2f, minimumDuration = 0.5f },
-        new StateTuning { state = CombatState.Offset, enterDelay = 0.15f, minimumDuration = 0.7f },
-        new StateTuning { state = CombatState.Brake, enterDelay = 0.08f, minimumDuration = 0.6f },
-        new StateTuning { state = CombatState.Extend, enterDelay = 0.25f, minimumDuration = 1.0f },
-        new StateTuning { state = CombatState.EvadeMissile, enterDelay = 0.05f, minimumDuration = 0.8f },
-        new StateTuning { state = CombatState.RecoverAltitude, enterDelay = 0.1f, minimumDuration = 0.7f },
-    };
-    [SerializeField] StateRuntime[] stateRuntime;
-    [SerializeField] float enterDelayRandomAddMax = 0.15f;
-    [SerializeField] float minimumDurationRandomAddMax = 0.4f;
-
     [Header("Decision")]
-    [SerializeField] float threatenedAngle = 70f;
     [SerializeField] float brakeDistance = 250f;
     [SerializeField] float missileThreatNearDistance = 100f;
     [SerializeField] float missileThreatFarDistance = 2000f;
-    [SerializeField] float randomManeuverCheckInterval = 0.5f;
-    [SerializeField] float randomManeuverChance = 0.04f;
-    [SerializeField] float randomManeuverCooldown = 12f;
-    [SerializeField] float tacticSwitchCheckInterval = 1f;
-    [SerializeField] float tacticSwitchChance = 0.05f;
-    [SerializeField] float tacticSwitchCooldown = 30f;
-    [SerializeField] float stateRemainRecoverSeconds = 10f;
 
     [Header("Debug")]
     [SerializeField] CombatState currentState = CombatState.LeadPursuit;
-    [SerializeField] CombatState bookedState = CombatState.LeadPursuit;
     [SerializeField] bool evadeMissileUseBarrelRoll;
     [SerializeField] float missileThreat;
     [SerializeField] float targetDistance;
@@ -133,21 +151,23 @@ public class EnemyAircraftAIGen4 : AircraftController
     protected override void Awake()
     {
         base.Awake();
-        TuningOverwrite();
-        InitializeStateRuntime();
         fcs = GetComponent<FCS_e>();
         commandedFlightDirection = transform.forward;
         offsetVector = transform.right * offsetRadius;
     }
 
+#if false // Legacy weighted-state implementation retained only for serialized migration reference.
     void TuningOverwrite()
     {
         StateTuning[] overwrittenTunings = new StateTuning[stateTunings.Length];
         for (int i = 0; i < stateTunings.Length; i++)
         {
             StateTuning tuning = stateTunings[i];
-            tuning.enterDelay += Random.Range(0f, enterDelayRandomAddMax);
-            tuning.minimumDuration += Random.Range(0f, minimumDurationRandomAddMax);
+            if (!DeterministicAnalysisMode)
+            {
+                tuning.enterDelay += Random.Range(0f, enterDelayRandomAddMax);
+                tuning.minimumDuration += Random.Range(0f, minimumDurationRandomAddMax);
+            }
             tuning.needToChoiceTime = 6f;
             tuning.maxTime = 20f;
             overwrittenTunings[i] = tuning;
@@ -176,6 +196,7 @@ public class EnemyAircraftAIGen4 : AircraftController
         stateRuntime = initializedRuntime;
     }
 
+#endif
     void Update()
     {
         RefreshTarget();
@@ -192,27 +213,240 @@ public class EnemyAircraftAIGen4 : AircraftController
         targetDistance = Vector3.Distance(transform.position, target.position);
         missileThreat = EvaluateMissileThreat(out Vector3 evaluatedMissileEvadeDirection);
         missileEvadeDirection = evaluatedMissileEvadeDirection;
-        UpdateStateChoiceTimes();
-
-        CombatState nextState = ChooseState();
-        ApplyStateTransition(nextState);
+        UpdateCombatGeometry();
+        UpdateHierarchicalState();
 
         if (Time.time >= nextDirectionRefreshTime)
         {
             nextDirectionRefreshTime = Time.time + targetDirectionRefreshInterval;
-            commandedFlightDirection = BuildTargetDirection();
+            Vector3 desiredDirection = BuildTargetDirection();
+            float smoothing = CommandDirectionSmoothing;
+            if (smoothing <= 0f)
+            {
+                commandedFlightDirection = desiredDirection;
+            }
+            else
+            {
+                float blend = 1f - Mathf.Exp(-smoothing * Mathf.Max(Time.deltaTime, 0f));
+                commandedFlightDirection = SafeNormalize(
+                    Vector3.Slerp(commandedFlightDirection, desiredDirection, blend),
+                    desiredDirection);
+            }
         }
     }
 
     protected override Vector3 GetControlInput()
     {
-        return SteerToward(commandedFlightDirection);
+        if (maneuverState == ManeuverState.SplitS)
+            return GetSplitSControlInput();
+        if (maneuverState == ManeuverState.ShiftTurnPlane)
+            return GetShiftTurnPlaneControlInput();
+        Vector3 input = SteerToward(commandedFlightDirection);
+        if (combatMode == CombatMode.Offensive && offensiveState == OffensiveState.Twisted)
+            input.y = Mathf.Clamp((pitchAxisToEnemyAngle - twistedTargetPlaneAngle) / 45f, -1f, 1f);
+        return input;
+    }
+
+    void UpdateCombatGeometry()
+    {
+        Vector3 toEnemy = SafeNormalize(target.position - transform.position, transform.forward);
+        Vector3 targetToMe = SafeNormalize(transform.position - target.position, -target.forward);
+        toTargetAngle = Vector3.Angle(GetForwardReference(), toEnemy);
+        targetNoseToMeAngle = Vector3.Angle(target.forward, targetToMe);
+        defensiveCondition = toTargetAngle > 90f && targetNoseToMeAngle < 90f;
+        if (targetRb == null || targetRb.transform != target) targetRb = target.GetComponent<Rigidbody>();
+        Vector3 predicted = target.position + (targetRb != null ? targetRb.linearVelocity : Vector3.zero) * turnPredictionTime;
+        pitchAxisToEnemyAngle = GetPitchAxisErrorAngle(toEnemy);
+        pitchAxisToPredictedEnemyAngle = GetPitchAxisErrorAngle(SafeNormalize(predicted - transform.position, toEnemy));
+        Vector3 enemyVelocityDirection = SafeNormalize(
+            targetRb != null ? targetRb.linearVelocity : Vector3.zero,
+            target.forward);
+        pitchAxisToEnemyVelocityAngle = GetPitchAxisErrorAngle(enemyVelocityDirection);
+        alignedForTwoCircle = Mathf.Abs(pitchAxisToEnemyAngle) <= turnPlaneThreshold
+            && Mathf.Abs(pitchAxisToPredictedEnemyAngle) <= turnPlaneThreshold;
+        Vector3 local = transform.InverseTransformPoint(target.position);
+        targetInsideTurn = Mathf.Abs(local.x) < insideTurnLateralThreshold && local.z > 0f;
+    }
+
+    float GetPitchAxisErrorAngle(Vector3 direction)
+    {
+        Vector3 local = transform.InverseTransformDirection(SafeNormalize(direction, transform.forward));
+        return Mathf.Asin(Mathf.Clamp(local.x, -1f, 1f)) * Mathf.Rad2Deg;
+    }
+
+    void UpdateHierarchicalState()
+    {
+        float dt = Time.deltaTime;
+        defensiveCooldownRemainTime = Mathf.Max(0f, defensiveCooldownRemainTime - dt);
+        twoCircleCooldownRemainTime = Mathf.Max(0f, twoCircleCooldownRemainTime - dt);
+        maneuverElapsedTime += dt;
+        if (missileThreat > 0f) { EnterManeuver(ManeuverState.EvadeMissile); return; }
+        if (GetAltitudeDangerScore(transform.position.y) > 0f) { EnterManeuver(ManeuverState.RecoverAltitude); return; }
+        if (maneuverState == ManeuverState.EvadeMissile
+            || maneuverState == ManeuverState.RecoverAltitude)
+            EnterManeuver(ManeuverState.LeadPursuit);
+        if (combatMode == CombatMode.Defensive)
+        {
+            defensiveRemainTime -= dt;
+            if (defensiveRemainTime <= 0f)
+            {
+                combatMode = CombatMode.Offensive;
+                defensiveCooldownRemainTime = defensiveCooldown;
+                EnterOffensiveState(OffensiveState.Twisted);
+            }
+            else EnterManeuver(targetDistance < brakeDistance ? ManeuverState.Brake : ManeuverState.LeadPursuit);
+            return;
+        }
+        if (defensiveCondition && defensiveCooldownRemainTime <= 0f)
+        {
+            combatMode = CombatMode.Defensive;
+            defensiveRemainTime = defensiveDuration;
+            EnterManeuver(ManeuverState.Brake);
+            return;
+        }
+        UpdateOffensiveStateHsm();
+    }
+
+    void UpdateOffensiveStateHsm()
+    {
+        if (maneuverState == ManeuverState.Extend)
+        {
+            if (maneuverElapsedTime >= minimumExtendDuration && targetDistance >= desiredExtendDistance)
+                EnterOffensiveState(OffensiveState.Twisted);
+            return;
+        }
+        if (maneuverState == ManeuverState.SplitS)
+        {
+            UpdateSplitS();
+            return;
+        }
+        if (maneuverState == ManeuverState.ShiftTurnPlane)
+        {
+            if (maneuverElapsedTime >= shiftTurnPlaneDuration) EnterOffensiveState(OffensiveState.Twisted);
+            return;
+        }
+        if (offensiveState == OffensiveState.Twisted)
+        {
+            if (alignedForTwoCircle)
+                EnterOffensiveState(twoCircleCooldownRemainTime <= 0f ? OffensiveState.TwoCircle : OffensiveState.OneCircle);
+        }
+        else if (offensiveState == OffensiveState.OneCircle)
+        {
+            oneCircleElapsedTime += Time.deltaTime;
+            if (targetInsideTurn) EnterManeuver(ManeuverState.ShiftTurnPlane);
+            else if (!alignedForTwoCircle || oneCircleElapsedTime >= oneCircleDuration)
+                EnterOffensiveState(OffensiveState.Twisted);
+        }
+        else
+        {
+            twoCircleElapsedTime += Time.deltaTime;
+            float excess = Mathf.Max(0f, twoCircleElapsedTime - twoCirclePatternThreshold);
+            bool change = DeterministicAnalysisMode
+                ? twoCircleElapsedTime >= 20f
+                : Random.value < 1f - Mathf.Exp(-excess * twoCirclePatternRate * Time.deltaTime);
+            if (change) ChangeTwoCirclePattern();
+        }
+    }
+
+    void EnterOffensiveState(OffensiveState next)
+    {
+        if (offensiveState == OffensiveState.TwoCircle && next != OffensiveState.TwoCircle)
+            twoCircleCooldownRemainTime = twoCircleCooldown;
+        offensiveState = next;
+        maneuverState = ManeuverState.LeadPursuit;
+        maneuverElapsedTime = 0f;
+        if (next == OffensiveState.TwoCircle) twoCircleElapsedTime = 0f;
+        if (next == OffensiveState.OneCircle) { oneCircleElapsedTime = 0f; oneCirclePitchSign = 1f; }
+        if (next == OffensiveState.Twisted)
+        {
+            twistedTargetPlaneAngle = Mathf.Clamp(pitchAxisToEnemyAngle, -twistedMaximumPlaneAngle, twistedMaximumPlaneAngle);
+            if (Mathf.Abs(twistedTargetPlaneAngle) < twistedMinimumPlaneAngle)
+                twistedTargetPlaneAngle = pitchAxisToEnemyAngle >= 0f ? twistedMinimumPlaneAngle : -twistedMinimumPlaneAngle;
+        }
+    }
+
+    void EnterManeuver(ManeuverState next)
+    {
+        if (maneuverState == next) return;
+        maneuverState = next;
+        maneuverElapsedTime = 0f;
+        Vector3 local = target != null ? transform.InverseTransformPoint(target.position) : Vector3.forward;
+        if (next == ManeuverState.SplitS)
+        {
+            splitSRollSign = local.x >= 0f ? 1f : -1f;
+            splitSCompletionTimer = 0f;
+            splitSRelativePlaneError = 0f;
+            splitSRelativeInversion = -1f;
+            splitSRollAligned = false;
+            splitSPullStarted = false;
+        }
+        if (next == ManeuverState.ShiftTurnPlane) shiftTurnPlaneRollSign = local.x >= 0f ? -1f : 1f;
+    }
+
+    void ChangeTwoCirclePattern()
+    {
+        float roll = DeterministicAnalysisMode ? 0.5f : Random.value;
+        EnterManeuver(roll < 0.34f ? ManeuverState.Extend
+            : roll < 0.67f ? ManeuverState.SplitS : ManeuverState.ShiftTurnPlane);
+    }
+
+    Vector3 GetSplitSControlInput()
+    {
+        return splitSPullStarted
+            ? new Vector3(1f, 0f, 0f)
+            : new Vector3(0.15f, splitSRollSign, 0f);
+    }
+
+    void UpdateSplitS()
+    {
+        splitSRelativePlaneError = Mathf.Abs(Mathf.DeltaAngle(
+            pitchAxisToEnemyAngle,
+            pitchAxisToEnemyVelocityAngle));
+
+        // ワールド上下ではなく、敵機の下面に対する相対的な背面姿勢を測る。
+        splitSRelativeInversion = target != null
+            ? Vector3.Dot(transform.up, -target.up)
+            : -1f;
+
+        splitSRollAligned =
+            splitSRelativeInversion >= splitSRelativeInversionDot
+            && splitSRelativePlaneError <= splitSRelativePitchTolerance;
+
+        // 通常系は相対運動面への整列後にだけ開始する。
+        // ハードタイムアウトは高精度な追跡相手でも機動を停止させない安全弁。
+        if (!splitSPullStarted
+            && (splitSRollAligned || maneuverElapsedTime >= splitSHardTimeout))
+        {
+            splitSPullStarted = true;
+            splitSCompletionTimer = 0f;
+        }
+
+        if (!splitSPullStarted) return;
+
+        splitSCompletionTimer += Time.deltaTime;
+        if (splitSCompletionTimer >= splitSPullDuration)
+            EnterOffensiveState(OffensiveState.OneCircle);
+    }
+
+    Vector3 GetShiftTurnPlaneControlInput()
+    {
+        return new Vector3(0.65f, shiftTurnPlaneRollInput * shiftTurnPlaneRollSign, 0f);
     }
 
     protected override float GetThrottleInput()
     {
         if (target == null) return cruiseThrottle;
 
+        if (maneuverState == ManeuverState.Extend
+            || maneuverState == ManeuverState.SplitS
+            || maneuverState == ManeuverState.EvadeMissile
+            || maneuverState == ManeuverState.RecoverAltitude)
+            return fullThrottle;
+        if (maneuverState == ManeuverState.Brake) return brakeThrottle;
+        if (maneuverState == ManeuverState.ShiftTurnPlane) return attackThrottle;
+        return attackThrottle;
+
+#pragma warning disable CS0162
         switch (currentState)
         {
             case CombatState.LeadPursuit:
@@ -230,6 +464,7 @@ public class EnemyAircraftAIGen4 : AircraftController
             default:
                 return cruiseThrottle;
         }
+#pragma warning restore CS0162
     }
 
     void RefreshTarget()
@@ -279,6 +514,7 @@ public class EnemyAircraftAIGen4 : AircraftController
         target = best != null ? best.transform : null;
     }
 
+#if false // Replaced by UpdateHierarchicalState.
     CombatState ChooseState()
     {
         ResetDecision();
@@ -311,6 +547,8 @@ public class EnemyAircraftAIGen4 : AircraftController
 
     bool TryPickRandomManeuver(bool offensive, bool threatened, bool targetBehindMe, bool brakeReady, bool extendReady, float toTargetAngle)
     {
+        if (DeterministicAnalysisMode) return false;
+
         if (Time.time < nextRandomManeuverTime || Time.time < nextRandomManeuverCheckTime)
             return false;
 
@@ -350,6 +588,12 @@ public class EnemyAircraftAIGen4 : AircraftController
 
     void UpdateOffensiveTactic(bool baseOffensive)
     {
+        if (DeterministicAnalysisMode)
+        {
+            invertOffensiveTactic = false;
+            return;
+        }
+
         if (!baseOffensive) return;
         if (Time.time < nextTacticSwitchTime || Time.time < nextTacticSwitchCheckTime) return;
 
@@ -379,8 +623,16 @@ public class EnemyAircraftAIGen4 : AircraftController
             return;
         }
 
-        evadeMissileUseBarrelRoll = Random.value < missileBarrelRollChance;
-        barrelRollSign = Random.value < 0.5f ? -1f : 1f;
+        if (DeterministicAnalysisMode)
+        {
+            evadeMissileUseBarrelRoll = false;
+            barrelRollSign = 1f;
+        }
+        else
+        {
+            evadeMissileUseBarrelRoll = Random.value < missileBarrelRollChance;
+            barrelRollSign = Random.value < 0.5f ? -1f : 1f;
+        }
     }
 
     void UpdateStateChoiceTimes()
@@ -442,12 +694,29 @@ public class EnemyAircraftAIGen4 : AircraftController
 
         StateRuntime runtime = stateRuntime[runtimeIndex];
         runtime.conditionMet = conditionMet;
+        if (DeterministicAnalysisMode && !conditionMet)
+            runtime.remainTime = 0f;
         runtime.weight = GetStateWeight(stateTunings[tuningIndex], runtime);
         stateRuntime[runtimeIndex] = runtime;
     }
 
     bool TryGetStateCandidate(out CombatState state)
     {
+        if (DeterministicAnalysisMode)
+        {
+            int bestIndex = -1;
+            float bestWeight = 0f;
+            for (int i = 0; i < stateRuntime.Length; i++)
+            {
+                if (stateRuntime[i].weight <= bestWeight) continue;
+                bestWeight = stateRuntime[i].weight;
+                bestIndex = i;
+            }
+
+            state = bestIndex >= 0 ? stateRuntime[bestIndex].state : currentState;
+            return bestIndex >= 0;
+        }
+
         float totalWeight = 0f;
         for (int i = 0; i < stateRuntime.Length; i++)
             totalWeight += stateRuntime[i].weight;
@@ -501,6 +770,7 @@ public class EnemyAircraftAIGen4 : AircraftController
         nextDirectionRefreshTime = 0f;
     }
 
+#endif
     Vector3 BuildTargetDirection()
     {
         if (target == null) return transform.forward;
@@ -508,6 +778,23 @@ public class EnemyAircraftAIGen4 : AircraftController
         Vector3 directTargetDirection = SafeNormalize(target.position - transform.position, transform.forward);
         Vector3 interceptDirection = CalculateLeadDirection(out Vector3 vectorToInterceptPoint);
 
+        if (maneuverState == ManeuverState.EvadeMissile)
+            return SafeNormalize(missileEvadeDirection + GetForwardReference() * evadeForwardWeight
+                + interceptDirection * evadeTargetWeight, transform.right);
+        if (maneuverState == ManeuverState.RecoverAltitude) return GetAltitudeRecoveryDirection();
+        if (maneuverState == ManeuverState.Extend)
+            return SafeNormalize(transform.position - target.position + Vector3.up * 120f, -directTargetDirection);
+        if (maneuverState == ManeuverState.Brake)
+            return SafeNormalize(GetForwardReference() * 0.7f + GetOffsetVector() * 0.0015f, transform.forward);
+
+        Vector3 pursuit = targetDistance < offsetRange
+            ? GetLagPursuitDirection()
+            : BuildAttackApproachDirection(interceptDirection, vectorToInterceptPoint);
+        if (combatMode == CombatMode.Offensive && offensiveState == OffensiveState.OneCircle)
+            return BuildOneCircleDirection(pursuit);
+        return pursuit;
+
+#pragma warning disable CS0162
         switch (currentState)
         {
             case CombatState.LeadPursuit:
@@ -537,10 +824,29 @@ public class EnemyAircraftAIGen4 : AircraftController
             default:
                 return directTargetDirection;
         }
+#pragma warning restore CS0162
+    }
+
+    Vector3 BuildOneCircleDirection(Vector3 pursuitDirection)
+    {
+        Vector3 local = transform.InverseTransformDirection(SafeNormalize(pursuitDirection, transform.forward));
+        local.y = Mathf.Abs(local.y) * oneCirclePitchSign;
+        return SafeNormalize(transform.TransformDirection(local), transform.forward);
     }
 
     Vector3 GetOffsetVector()
     {
+        if (DeterministicAnalysisMode)
+        {
+            Vector3 toTarget = target != null
+                ? target.position - transform.position
+                : transform.forward;
+            Vector3 fixedSide = Vector3.Cross(Vector3.up, SafeNormalize(toTarget, transform.forward));
+            if (fixedSide.sqrMagnitude < 0.001f) fixedSide = transform.right;
+            offsetVector = fixedSide.normalized * offsetRadius;
+            return offsetVector;
+        }
+
         if (Time.time < nextOffsetRefreshTime) return offsetVector;
 
         nextOffsetRefreshTime = Time.time + offsetRefreshInterval;
@@ -697,7 +1003,7 @@ public class EnemyAircraftAIGen4 : AircraftController
         float pitch = Mathf.Clamp(localDir.y, -1f, 1f) * pitchScale;
         float yaw = Mathf.Clamp(localDir.x, -1f, 1f) * downFactor * Mathf.Abs(roll) * yawAssist;
 
-        if (currentState == CombatState.EvadeMissile && evadeMissileUseBarrelRoll)
+        if (maneuverState == ManeuverState.EvadeMissile && evadeMissileUseBarrelRoll)
         {
             roll = Mathf.Clamp(barrelRollInput * barrelRollSign, -1f, 1f);
             pitch = Mathf.Clamp(pitch + 0.25f, -1f, 1f);
@@ -745,6 +1051,7 @@ public class EnemyAircraftAIGen4 : AircraftController
             && !float.IsInfinity(value.z);
     }
 
+#if false
     StateTuning GetTuning(CombatState state)
     {
         int index = FindTuningIndex(state);
@@ -784,6 +1091,7 @@ public class EnemyAircraftAIGen4 : AircraftController
 
         return -1;
     }
+#endif
     public int SenseIncomingMissiles(out Vector3[] approachDirections, int maxCount)
     {
         int count = EnemyMissileThreatSensor.SenseIncomingMissiles(
