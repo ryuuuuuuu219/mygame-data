@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [DefaultExecutionOrder(0)]
+[RequireComponent(typeof(AirCombatRandomRepositioner))]
 public class AirCombatBehaviorAnalyzer : MonoBehaviour
 {
     [Header("Targets")]
